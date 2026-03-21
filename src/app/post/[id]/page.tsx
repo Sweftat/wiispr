@@ -1,4 +1,5 @@
 import Nav from "@/components/Nav"
+import UpvoteButton from "@/components/UpvoteButton"
 import { createClient } from "@supabase/supabase-js"
 import { notFound } from "next/navigation"
 import ReplyComposer from "@/components/ReplyComposer"
@@ -40,7 +41,7 @@ export default async function PostPage({ params }: { params: Promise<{ id: strin
           <h1 style={{ fontSize: "1.25rem", fontWeight: 800, color: "var(--t1)", marginBottom: 10, lineHeight: 1.35 }}>{post.title}</h1>
           {post.body && <p style={{ fontSize: ".9375rem", color: "var(--t2)", lineHeight: 1.8, marginBottom: 16 }}>{post.body}</p>}
           <div style={{ display: "flex", gap: 6, paddingTop: 12, borderTop: "1px solid var(--bd)" }}>
-            <button style={{ fontSize: ".75rem", fontWeight: 600, padding: "5px 10px", borderRadius: "var(--rs)", border: "1px solid var(--bd)", background: "none", color: "var(--t3)", cursor: "pointer" }}>up {post.upvotes}</button>
+          <UpvoteButton postId={post.id} upvotes={post.upvotes} />
             <span style={{ fontSize: ".75rem", color: "var(--t4)", padding: "5px 0" }}>{post.reply_count} replies</span>
           </div>
         </div>

@@ -29,7 +29,7 @@ export default function AuthPage() {
     else setError(data.error || 'Something went wrong')
   }
 
-  async function verifyOTP() {
+async function verifyOTP() {
     setLoading(true)
     setError('')
     const res = await fetch('/api/auth/verify-otp', {
@@ -39,8 +39,23 @@ export default function AuthPage() {
     })
     const data = await res.json()
     setLoading(false)
-    if (data.success) setStep(3)
-    else setError(data.error || 'Invalid code')
+    if (data.success) {
+      // Check if user already exists
+      const signInRes = await fetch('/api/auth/create-account', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email, nickname: '', gender: '', ageRange: '' })
+      })
+      const signInData = await signInRes.json()
+      if (signInData.success) {
+        router.push('/')
+        router.refresh()
+      } else {
+        setStep(3)
+      }
+    } else {
+      setError(data.error || 'Invalid code')
+    }
   }
 
   async function createAccount() {
