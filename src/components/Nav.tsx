@@ -42,7 +42,7 @@ export default function Nav() {
         </>
       ) : (
         <>
-          <Link href="/auth" style={{
+          <Link href="/auth?signin=1" style={{
             fontSize: '.8rem', fontWeight: 600, padding: '6px 14px',
             borderRadius: 'var(--r)', border: '1px solid var(--bd)', color: 'var(--t2)'
           }}>Sign in</Link>
