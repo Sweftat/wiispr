@@ -1,65 +1,169 @@
-import Image from "next/image";
+import Nav from '@/components/Nav'
+import { supabase } from '@/lib/supabase'
+import Link from 'next/link'
 
-export default function Home() {
+export default async function Home() {
+  const { data: categories } = await supabase
+    .from('categories')
+    .select('*')
+    .eq('is_active', true)
+    .order('sort_order')
+
+  const { data: posts } = await supabase
+    .from('posts')
+    .select('*, categories(name, slug)')
+    .eq('is_deleted', false)
+    .eq('is_blurred', false)
+    .order('created_at', { ascending: false })
+    .limit(20)
+
   return (
-    <div className="flex flex-col flex-1 items-center justify-center bg-zinc-50 font-sans dark:bg-black">
-      <main className="flex flex-1 w-full max-w-3xl flex-col items-center justify-between py-32 px-16 bg-white dark:bg-black sm:items-start">
-        <Image
-          className="dark:invert"
-          src="/next.svg"
-          alt="Next.js logo"
-          width={100}
-          height={20}
-          priority
-        />
-        <div className="flex flex-col items-center gap-6 text-center sm:items-start sm:text-left">
-          <h1 className="max-w-xs text-3xl font-semibold leading-10 tracking-tight text-black dark:text-zinc-50">
-            To get started, edit the page.tsx file.
-          </h1>
-          <p className="max-w-md text-lg leading-8 text-zinc-600 dark:text-zinc-400">
-            Looking for a starting point or more instructions? Head over to{" "}
-            <a
-              href="https://vercel.com/templates?framework=next.js&utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-              className="font-medium text-zinc-950 dark:text-zinc-50"
-            >
-              Templates
-            </a>{" "}
-            or the{" "}
-            <a
-              href="https://nextjs.org/learn?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-              className="font-medium text-zinc-950 dark:text-zinc-50"
-            >
-              Learning
-            </a>{" "}
-            center.
-          </p>
+    <main style={{ minHeight: '100vh', background: 'var(--bg)' }}>
+      <Nav />
+
+      <div style={{ maxWidth: 960, margin: '0 auto', padding: '20px 20px' }}>
+        <div style={{ display: 'grid', gridTemplateColumns: '1fr 280px', gap: 20 }}>
+
+          {/* FEED */}
+          <div>
+            {/* Filters */}
+            <div style={{
+              display: 'flex', gap: 6, marginBottom: 16, flexWrap: 'wrap'
+            }}>
+              {['All', 'Hot', 'New', 'Following'].map(f => (
+                <button key={f} style={{
+                  fontSize: '.8rem',
+                  fontWeight: 600,
+                  padding: '6px 14px',
+                  borderRadius: 'var(--rs)',
+                  border: '1px solid var(--bd)',
+                  background: f === 'All' ? '#18181B' : 'var(--sur)',
+                  color: f === 'All' ? '#fff' : 'var(--t3)',
+                  cursor: 'pointer'
+                }}>{f}</button>
+              ))}
+            </div>
+
+            {/* Posts */}
+            {posts && posts.length > 0 ? posts.map(post => (
+              <div key={post.id} style={{
+                background: 'var(--sur)',
+                border: '1px solid var(--bd)',
+                borderRadius: 'var(--rm)',
+                padding: '16px 18px',
+                marginBottom: 10,
+                cursor: 'pointer'
+              }}>
+                <div style={{
+                  display: 'flex', alignItems: 'center', gap: 8,
+                  marginBottom: 10, flexWrap: 'wrap'
+                }}>
+                  <span style={{
+                    fontSize: '.6rem', fontWeight: 700,
+                    letterSpacing: '.06em', textTransform: 'uppercase',
+                    color: 'var(--blue)', background: 'var(--blue-d)',
+                    padding: '2px 7px', borderRadius: 3
+                  }}>{post.categories?.name}</span>
+                  <span style={{
+                    fontFamily: "'IBM Plex Mono', monospace",
+                    fontSize: '.7rem', color: 'var(--t4)'
+                  }}>{post.ghost_id}</span>
+                  <span style={{
+                    fontFamily: "'IBM Plex Mono', monospace",
+                    fontSize: '.65rem', color: 'var(--t4)', marginLeft: 'auto'
+                  }}>{new Date(post.created_at).toLocaleDateString()}</span>
+                </div>
+
+                <h2 style={{
+                  fontSize: '1rem', fontWeight: 700,
+                  letterSpacing: '-.01em', color: 'var(--t1)',
+                  marginBottom: 6, lineHeight: 1.4
+                }}>{post.title}</h2>
+
+                {post.body && (
+                  <p style={{
+                    fontSize: '.875rem', color: 'var(--t2)',
+                    lineHeight: 1.7, marginBottom: 12,
+                    display: '-webkit-box',
+                    WebkitLineClamp: 3,
+                    WebkitBoxOrient: 'vertical',
+                    overflow: 'hidden'
+                  }}>{post.body}</p>
+                )}
+
+                <div style={{
+                  display: 'flex', gap: 6,
+                  paddingTop: 10, borderTop: '1px solid var(--bd)'
+                }}>
+                  <button style={{
+                    fontSize: '.75rem', fontWeight: 600,
+                    padding: '5px 10px', borderRadius: 'var(--rs)',
+                    border: '1px solid var(--bd)',
+                    background: 'none', color: 'var(--t3)',
+                    display: 'flex', alignItems: 'center', gap: 4
+                  }}>↑ {post.upvotes}</button>
+                  <button style={{
+                    fontSize: '.75rem', fontWeight: 600,
+                    padding: '5px 10px', borderRadius: 'var(--rs)',
+                    border: '1px solid var(--bd)',
+                    background: 'none', color: 'var(--t3)'
+                  }}>💬 {post.reply_count} replies</button>
+                </div>
+              </div>
+            )) : (
+              <div style={{
+                background: 'var(--sur)', border: '1px solid var(--bd)',
+                borderRadius: 'var(--rm)', padding: '48px 24px', textAlign: 'center'
+              }}>
+                <p style={{ fontSize: '1.5rem', marginBottom: 12 }}>💬</p>
+                <p style={{
+                  fontSize: '1rem', fontWeight: 700,
+                  color: 'var(--t1)', marginBottom: 6
+                }}>Nothing here yet</p>
+                <p style={{ fontSize: '.875rem', color: 'var(--t3)' }}>
+                  Be the first to whisper.
+                </p>
+              </div>
+            )}
+          </div>
+
+          {/* SIDEBAR */}
+          <div>
+            <p style={{
+              fontSize: '.625rem', fontWeight: 700,
+              letterSpacing: '.08em', textTransform: 'uppercase',
+              color: 'var(--t4)', marginBottom: 10
+            }}>Categories</p>
+            <div style={{
+              background: 'var(--sur)', border: '1px solid var(--bd)',
+              borderRadius: 'var(--rm)', overflow: 'hidden'
+            }}>
+              {categories?.map((cat, i) => (
+                <div key={cat.id} style={{
+                  display: 'flex', alignItems: 'center', gap: 10,
+                  padding: '10px 14px',
+                  borderBottom: i < (categories.length - 1) ? '1px solid var(--bd)' : 'none',
+                  cursor: 'pointer'
+                }}>
+                  <span>{cat.icon}</span>
+                  <span style={{ fontSize: '.8375rem', color: 'var(--t2)', fontWeight: 500 }}>
+                    {cat.name}
+                  </span>
+                  {cat.women_only && (
+                    <span style={{
+                      marginLeft: 'auto', fontSize: '.55rem', fontWeight: 700,
+                      color: 'var(--rose)', background: 'var(--rose-d)',
+                      padding: '1px 5px', borderRadius: 3,
+                      letterSpacing: '.04em', textTransform: 'uppercase'
+                    }}>Women</span>
+                  )}
+                </div>
+              ))}
+            </div>
+          </div>
+
         </div>
-        <div className="flex flex-col gap-4 text-base font-medium sm:flex-row">
-          <a
-            className="flex h-12 w-full items-center justify-center gap-2 rounded-full bg-foreground px-5 text-background transition-colors hover:bg-[#383838] dark:hover:bg-[#ccc] md:w-[158px]"
-            href="https://vercel.com/new?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            <Image
-              className="dark:invert"
-              src="/vercel.svg"
-              alt="Vercel logomark"
-              width={16}
-              height={16}
-            />
-            Deploy Now
-          </a>
-          <a
-            className="flex h-12 w-full items-center justify-center rounded-full border border-solid border-black/[.08] px-5 transition-colors hover:border-transparent hover:bg-black/[.04] dark:border-white/[.145] dark:hover:bg-[#1a1a1a] md:w-[158px]"
-            href="https://nextjs.org/docs?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            Documentation
-          </a>
-        </div>
-      </main>
-    </div>
-  );
-}
+      </div>
+    </main>
+  )
+  }

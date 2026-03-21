@@ -1,26 +1,36 @@
-@import "tailwindcss";
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=IBM+Plex+Mono:wght@400;600&display=swap');
+
+* { box-sizing: border-box; margin: 0; padding: 0; }
 
 :root {
-  --background: #ffffff;
-  --foreground: #171717;
-}
-
-@theme inline {
-  --color-background: var(--background);
-  --color-foreground: var(--foreground);
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
-}
-
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
-  }
+  --bg: #F4F4F5;
+  --sur: #ffffff;
+  --sur2: #FAFAFA;
+  --bd: #E4E4E7;
+  --bd2: #D4D4D8;
+  --t1: #18181B;
+  --t2: #52525B;
+  --t3: #71717A;
+  --t4: #A1A1AA;
+  --blue: #2563EB;
+  --blue-d: #EFF6FF;
+  --grn: #16A34A;
+  --grn-d: #F0FDF4;
+  --rose: #E11D48;
+  --rose-d: #FFF1F2;
+  --r: 8px;
+  --rs: 6px;
+  --rm: 12px;
 }
 
 body {
-  background: var(--background);
-  color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+  font-family: 'Inter', system-ui, sans-serif;
+  background: var(--bg);
+  color: var(--t1);
+  line-height: 1.6;
+  -webkit-font-smoothing: antialiased;
 }
+
+a { text-decoration: none; color: inherit; }
+button { font-family: inherit; cursor: pointer; }
+input, textarea, select { font-family: inherit; }
