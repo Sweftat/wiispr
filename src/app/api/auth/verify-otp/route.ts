@@ -2,43 +2,58 @@ import { NextRequest, NextResponse } from 'next/server'
 import { createClient } from '@supabase/supabase-js'
 import crypto from 'crypto'
 
-const supabase = createClient(
-  process.env.NEXT_PUBLIC_SUPABASE_URL!,
-  process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
-)
-
 function hashEmail(email: string) {
   return crypto.createHash('sha256').update(email.toLowerCase().trim()).digest('hex')
 }
 
 export async function POST(req: NextRequest) {
-  const { email, code } = await req.json()
+  const supabase = createClient(
+    process.env.NEXT_PUBLIC_SUPABASE_URL!,
+    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
+  )
 
-  if (!email || !code) {
+  const { email, nickname, gender, ageRange } = await req.json()
+
+  if (!email || !nickname || !gender || !ageRange) {
     return NextResponse.json({ error: 'Missing fields' }, { status: 400 })
   }
 
   const emailHash = hashEmail(email)
 
-  const { data: otpRecord } = await supabase
-    .from('otp_codes')
-    .select('*')
-    .eq('email_hash', emailHash)
-    .eq('code', code)
-    .eq('used', false)
-    .gt('expires_at', new Date().toISOString())
-    .order('created_at', { ascending: false })
-    .limit(1)
+  const { data: existing } = await supabase
+    .from('users')
+    .select('id')
+    .eq('nickname', nickname)
     .single()
 
-  if (!otpRecord) {
-    return NextResponse.json({ error: 'Invalid or expired code' }, { status: 400 })
+  if (existing) {
+    return NextResponse.json({ error: 'Nickname already taken' }, { status: 400 })
   }
 
-  await supabase
-    .from('otp_codes')
-    .update({ used: true })
-    .eq('id', otpRecord.id)
+  const { data: existingEmail } = await supabase
+    .from('users')
+    .select('id')
+    .eq('email_hash', emailHash)
+    .single()
 
-  return NextResponse.json({ success: true, emailHash })
+  if (existingEmail) {
+    return NextResponse.json({ error: 'Email already registered' }, { status: 400 })
+  }
+
+  const { error } = await supabase
+    .from('users')
+    .insert({
+      email_hash: emailHash,
+      nickname,
+      gender,
+      age_range: ageRange,
+      rep_score: 0,
+      trust_level: 'new'
+    })
+
+  if (error) {
+    return NextResponse.json({ error: 'Failed to create account' }, { status: 500 })
+  }
+
+  return NextResponse.json({ success: true })
 }
