@@ -53,8 +53,12 @@ export default function AuthPage() {
     })
     const data = await res.json()
     setLoading(false)
-    if (data.success) router.push('/')
-    else setError(data.error || 'Something went wrong')
+    if (data.success) {
+      router.push('/')
+      router.refresh()
+    } else {
+      setError(data.error || 'Something went wrong')
+    }
   }
 
   const inputStyle = {
