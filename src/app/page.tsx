@@ -1,7 +1,7 @@
 import Nav from '@/components/Nav'
 import { getSupabase } from '@/lib/supabase'
 import Link from 'next/link'
-
+export const dynamic = 'force-dynamic'
 export default async function Home() {
   const supabase = getSupabase()
   const { data: categories } = await supabase
