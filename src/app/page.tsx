@@ -1,8 +1,8 @@
 import Nav from '@/components/Nav'
-import { supabase } from '@/lib/supabase'
+import { getSupabase } from '@/lib/supabase'
 import Link from 'next/link'
 
-export default async function Home() {
+export default async function Home(const supabase = getSupabase()) {
   const { data: categories } = await supabase
     .from('categories')
     .select('*')
