@@ -36,7 +36,7 @@ export default async function PostPage({ params }: { params: Promise<{ id: strin
           <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 12 }}>
             <span style={{ fontSize: ".6rem", fontWeight: 700, letterSpacing: ".06em", textTransform: "uppercase", color: "var(--blue)", background: "var(--blue-d)", padding: "2px 7px", borderRadius: 3 }}>{post.categories?.name}</span>
             <span style={{ fontFamily: "monospace", fontSize: ".7rem", color: "var(--t4)" }}>{post.ghost_id}</span>
-            <span style={{ fontFamily: "monospace", fontSize: ".65rem", color: "var(--t4)", marginLeft: "auto" }}>{new Date(post.created_at).toLocaleDateString()}</span>
+            <span style={{ fontFamily: "monospace", fontSize: ".65rem", color: "var(--t4)", marginLeft: "auto" }}>{new Date(post.created_at).toISOString().split('T')[0]}</span>
           </div>
           <h1 style={{ fontSize: "1.25rem", fontWeight: 800, color: "var(--t1)", marginBottom: 10, lineHeight: 1.35 }}>{post.title}</h1>
           {post.body && <p style={{ fontSize: ".9375rem", color: "var(--t2)", lineHeight: 1.8, marginBottom: 16 }}>{post.body}</p>}
@@ -51,7 +51,7 @@ export default async function PostPage({ params }: { params: Promise<{ id: strin
             <div key={reply.id} style={{ background: "var(--sur)", border: "1px solid var(--bd)", borderRadius: "var(--r)", padding: "14px 16px" }}>
               <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 8 }}>
                 <span style={{ fontFamily: "monospace", fontSize: ".7rem", color: "var(--t4)" }}>{reply.ghost_id}</span>
-                <span style={{ fontFamily: "monospace", fontSize: ".65rem", color: "var(--t4)", marginLeft: "auto" }}>{new Date(reply.created_at).toLocaleDateString()}</span>
+                <span style={{ fontFamily: "monospace", fontSize: ".65rem", color: "var(--t4)", marginLeft: "auto" }}>{new Date(reply.created_at).toISOString().split('T')[0]}</span>
               </div>
               <p style={{ fontSize: ".875rem", color: "var(--t2)", lineHeight: 1.7 }}>{reply.body}</p>
             </div>

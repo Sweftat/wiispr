@@ -22,6 +22,23 @@
   --rs: 6px;
   --rm: 12px;
 }
+[data-theme="dark"] {
+  --bg: #09090B;
+  --sur: #18181B;
+  --sur2: #111113;
+  --bd: #27272A;
+  --bd2: #3F3F46;
+  --t1: #FAFAFA;
+  --t2: #A1A1AA;
+  --t3: #71717A;
+  --t4: #52525B;
+  --blue: #3B82F6;
+  --blue-d: #1E3A5F;
+  --grn: #22C55E;
+  --grn-d: #14532D;
+  --rose: #F43F5E;
+  --rose-d: #4C0519;
+}
 
 body {
   font-family: 'Inter', system-ui, sans-serif;
@@ -34,3 +51,11 @@ body {
 a { text-decoration: none; color: inherit; }
 button { font-family: inherit; cursor: pointer; }
 input, textarea, select { font-family: inherit; }
+@media (max-width: 640px) {
+  .feed-grid {
+    grid-template-columns: 1fr !important;
+  }
+  .feed-sidebar {
+    display: none !important;
+  }
+}
