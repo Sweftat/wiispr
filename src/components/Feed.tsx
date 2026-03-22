@@ -1,13 +1,15 @@
 'use client'
+import { useState } from 'react'
 import { timeAgo } from '@/lib/time'
 import FollowButton from './FollowButton'
-import { useState } from 'react'
-import Compose from './Compose'
+import PostPanel from './PostPanel'
 import CategoryFilter from './CategoryFilter'
+import Compose from './Compose'
 
 export default function Feed({ initialPosts, categories }: { initialPosts: any[], categories: any[] }) {
   const [posts, setPosts] = useState<any[]>(initialPosts)
   const [loading, setLoading] = useState(false)
+  const [activePost, setActivePost] = useState<any>(null)
 
   async function filterByCategory(categoryId: number | null | string) {
     setLoading(true)
@@ -20,36 +22,46 @@ export default function Feed({ initialPosts, categories }: { initialPosts: any[]
     setLoading(false)
   }
 
+  function openPost(post: any) {
+    setActivePost(post)
+    window.history.pushState({}, '', '/post/' + post.id)
+  }
+
+  function closePost() {
+    setActivePost(null)
+    window.history.pushState({}, '', '/')
+  }
+
   return (
-    <>
+    <div style={{ position: 'relative' }}>
       <Compose categories={categories} />
       <CategoryFilter categories={categories} onSelect={filterByCategory} />
-      {loading && (
-        <p style={{ fontSize: '.875rem', color: 'var(--t4)', textAlign: 'center', padding: '20px 0' }}>Loading...</p>
-      )}
+      {loading && <p style={{ fontSize: '.875rem', color: 'var(--t4)', textAlign: 'center', padding: '20px 0' }}>Loading...</p>}
       {!loading && posts.length > 0 ? posts.map((post: any) => (
-        <a key={post.id} href={'/post/' + post.id} style={{ display: 'block', textDecoration: 'none', color: 'inherit', marginBottom: 10 }}>
-          <div style={{ background: 'var(--sur)', border: '1px solid var(--bd)', borderRadius: 'var(--rm)', padding: '16px 18px', cursor: 'pointer' }}>
-            <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 10 }}>
-              <span style={{ fontSize: '.6rem', fontWeight: 700, letterSpacing: '.06em', textTransform: 'uppercase', color: 'var(--blue)', background: 'var(--blue-d)', padding: '2px 7px', borderRadius: 3 }}>{post.categories?.name}</span>
-              <span style={{ fontFamily: 'monospace', fontSize: '.7rem', color: 'var(--t4)' }}>{post.ghost_id}</span>
+        <div key={post.id} style={{ background: 'var(--sur)', border: '1px solid var(--bd)', borderRadius: 'var(--rm)', padding: '16px 18px', marginBottom: 10, cursor: 'pointer' }} onClick={() => openPost(post)}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 10 }}>
+            <span style={{ fontSize: '.6rem', fontWeight: 700, letterSpacing: '.06em', textTransform: 'uppercase', color: 'var(--blue)', background: 'var(--blue-d)', padding: '2px 7px', borderRadius: 3 }}>{post.categories?.name}</span>
+            <span style={{ fontFamily: 'monospace', fontSize: '.7rem', color: 'var(--t4)' }}>{post.ghost_id}</span>
+            <span onClick={e => e.stopPropagation()}>
               <FollowButton ghostId={post.ghost_id} />
-              <span style={{ fontFamily: 'monospace', fontSize: '.65rem', color: 'var(--t4)', marginLeft: 'auto' }}>{timeAgo(post.created_at)}</span>
-            </div>
-            <h2 style={{ fontSize: '1rem', fontWeight: 700, color: 'var(--t1)', marginBottom: 6 }}>{post.title}</h2>
-            {post.body && <p style={{ fontSize: '.875rem', color: 'var(--t2)', lineHeight: 1.7, marginBottom: 12 }}>{post.body}</p>}
-            <div style={{ display: 'flex', gap: 6, paddingTop: 10, borderTop: '1px solid var(--bd)' }}>
-              <button style={{ fontSize: '.75rem', fontWeight: 600, padding: '5px 10px', borderRadius: 'var(--rs)', border: '1px solid var(--bd)', background: 'none', color: 'var(--t3)' }}>up {post.upvotes}</button>
-              <button style={{ fontSize: '.75rem', fontWeight: 600, padding: '5px 10px', borderRadius: 'var(--rs)', border: '1px solid var(--bd)', background: 'none', color: 'var(--t3)' }}>{post.reply_count} replies</button>
-            </div>
+            </span>
+            <span style={{ fontFamily: 'monospace', fontSize: '.65rem', color: 'var(--t4)', marginLeft: 'auto' }}>{timeAgo(post.created_at)}</span>
           </div>
-        </a>
+          <h2 style={{ fontSize: '1rem', fontWeight: 700, color: 'var(--t1)', marginBottom: 6 }}>{post.title}</h2>
+          {post.body && <p style={{ fontSize: '.875rem', color: 'var(--t2)', lineHeight: 1.7, marginBottom: 12 }}>{post.body}</p>}
+          <div style={{ display: 'flex', gap: 6, paddingTop: 10, borderTop: '1px solid var(--bd)' }}>
+            <button style={{ fontSize: '.75rem', fontWeight: 600, padding: '5px 10px', borderRadius: 'var(--rs)', border: '1px solid var(--bd)', background: 'none', color: 'var(--t3)' }}>up {post.upvotes}</button>
+            <button style={{ fontSize: '.75rem', fontWeight: 600, padding: '5px 10px', borderRadius: 'var(--rs)', border: '1px solid var(--bd)', background: 'none', color: 'var(--t3)' }}>{post.reply_count} replies</button>
+          </div>
+        </div>
       )) : !loading && (
         <div style={{ background: 'var(--sur)', border: '1px solid var(--bd)', borderRadius: 'var(--rm)', padding: '48px 24px', textAlign: 'center' }}>
           <p style={{ fontSize: '1rem', fontWeight: 700, color: 'var(--t1)', marginBottom: 6 }}>Nothing here yet</p>
           <p style={{ fontSize: '.875rem', color: 'var(--t3)' }}>Be the first to whisper.</p>
         </div>
       )}
-    </>
+
+      {activePost && <PostPanel post={activePost} onClose={closePost} />}
+    </div>
   )
 }
