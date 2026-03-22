@@ -42,3 +42,15 @@ export async function DELETE() {
   response.cookies.delete('wiispr_nickname')
   return response
 }
+export async function PATCH(req: NextRequest) {
+  const supabase = createClient(
+    process.env.NEXT_PUBLIC_SUPABASE_URL!,
+    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
+  )
+  const userId = req.cookies.get('wiispr_user_id')?.value
+  if (!userId) return NextResponse.json({ error: 'Not logged in' }, { status: 401 })
+  const { nickname } = await req.json()
+  if (!nickname || nickname.length < 3) return NextResponse.json({ error: 'Invalid nickname' }, { status: 400 })
+  await supabase.from('users').update({ nickname }).eq('id', userId)
+  return NextResponse.json({ success: true })
+}

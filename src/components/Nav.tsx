@@ -45,7 +45,6 @@ export default function Nav() {
       display: 'flex', alignItems: 'center', padding: '0 20px', gap: 8,
       position: 'sticky', top: 0, zIndex: 100
     }}>
-      {/* Logo */}
       <Link href="/" style={{
         fontFamily: 'Georgia, serif', fontStyle: 'italic', fontWeight: 700,
         fontSize: '1.0625rem', display: 'flex', alignItems: 'center', gap: 6, color: 'var(--t1)',
@@ -55,7 +54,6 @@ export default function Nav() {
         wiispr
       </Link>
 
-      {/* Search */}
       <Link href="/search" style={{
         fontSize: '.8rem', fontWeight: 500, color: 'var(--t3)',
         display: 'flex', alignItems: 'center', gap: 5, textDecoration: 'none',
@@ -67,7 +65,6 @@ export default function Nav() {
 
       <span style={{ flex: 1 }}></span>
 
-      {/* Theme toggle */}
       <button onClick={toggleTheme} style={{
         display: 'flex', alignItems: 'center', justifyContent: 'center',
         width: 32, height: 32, borderRadius: 'var(--r)',
@@ -79,7 +76,6 @@ export default function Nav() {
 
       {user ? (
         <>
-          {/* Bell */}
           <a href="/notifications" style={{
             display: 'flex', alignItems: 'center', justifyContent: 'center',
             width: 32, height: 32, borderRadius: 'var(--r)',
@@ -99,13 +95,15 @@ export default function Nav() {
             )}
           </a>
 
-          {/* Nickname */}
-          <span style={{ fontSize: '.8rem', color: 'var(--t3)', fontWeight: 500, padding: '0 4px' }}>{user.nickname}</span>
+          <a href="/profile" style={{
+            fontSize: '.8rem', color: 'var(--t2)', fontWeight: 600,
+            padding: '5px 10px', borderRadius: 'var(--r)',
+            border: '1px solid var(--bd)', textDecoration: 'none'
+          }}>{user.nickname}</a>
 
-          {/* Sign out */}
           <button onClick={signOut} style={{
-            display: 'flex', alignItems: 'center', gap: 5,
-            fontSize: '.8rem', fontWeight: 600, padding: '6px 12px',
+            display: 'flex', alignItems: 'center',
+            width: 32, height: 32, justifyContent: 'center',
             borderRadius: 'var(--r)', border: '1px solid var(--bd)',
             color: 'var(--t2)', background: 'none', cursor: 'pointer'
           }}>
