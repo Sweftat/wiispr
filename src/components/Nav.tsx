@@ -42,21 +42,24 @@ export default function Nav() {
   return (
     <nav style={{
       height: 52, background: 'var(--sur)', borderBottom: '1px solid var(--bd)',
-      display: 'flex', alignItems: 'center', padding: '0 20px', gap: 12,
+      display: 'flex', alignItems: 'center', padding: '0 20px', gap: 8,
       position: 'sticky', top: 0, zIndex: 100
     }}>
+      {/* Logo */}
       <Link href="/" style={{
         fontFamily: 'Georgia, serif', fontStyle: 'italic', fontWeight: 700,
         fontSize: '1.0625rem', display: 'flex', alignItems: 'center', gap: 6, color: 'var(--t1)',
-        textDecoration: 'none'
+        textDecoration: 'none', marginRight: 4
       }}>
         <span style={{ width: 6, height: 6, background: 'var(--blue)', borderRadius: '50%', display: 'inline-block' }}></span>
         wiispr
       </Link>
 
+      {/* Search */}
       <Link href="/search" style={{
         fontSize: '.8rem', fontWeight: 500, color: 'var(--t3)',
-        display: 'flex', alignItems: 'center', gap: 5, textDecoration: 'none'
+        display: 'flex', alignItems: 'center', gap: 5, textDecoration: 'none',
+        padding: '5px 10px', borderRadius: 'var(--r)'
       }}>
         <Search size={14} />
         Search
@@ -64,6 +67,7 @@ export default function Nav() {
 
       <span style={{ flex: 1 }}></span>
 
+      {/* Theme toggle */}
       <button onClick={toggleTheme} style={{
         display: 'flex', alignItems: 'center', justifyContent: 'center',
         width: 32, height: 32, borderRadius: 'var(--r)',
@@ -75,6 +79,7 @@ export default function Nav() {
 
       {user ? (
         <>
+          {/* Bell */}
           <a href="/notifications" style={{
             display: 'flex', alignItems: 'center', justifyContent: 'center',
             width: 32, height: 32, borderRadius: 'var(--r)',
@@ -93,7 +98,11 @@ export default function Nav() {
               }}>{unread > 9 ? '9+' : unread}</span>
             )}
           </a>
-          <span style={{ fontSize: '.8rem', color: 'var(--t3)', fontWeight: 500 }}>{user.nickname}</span>
+
+          {/* Nickname */}
+          <span style={{ fontSize: '.8rem', color: 'var(--t3)', fontWeight: 500, padding: '0 4px' }}>{user.nickname}</span>
+
+          {/* Sign out */}
           <button onClick={signOut} style={{
             display: 'flex', alignItems: 'center', gap: 5,
             fontSize: '.8rem', fontWeight: 600, padding: '6px 12px',
@@ -101,7 +110,6 @@ export default function Nav() {
             color: 'var(--t2)', background: 'none', cursor: 'pointer'
           }}>
             <LogOut size={13} />
-            Sign out
           </button>
         </>
       ) : (

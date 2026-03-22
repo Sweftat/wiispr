@@ -3,7 +3,6 @@ import { useState } from 'react'
 import Nav from '@/components/Nav'
 import { timeAgo } from '@/lib/time'
 import { Search, ArrowUp, MessageCircle, Ghost, SearchX } from 'lucide-react'
-import { Input } from '@/components/ui/input'
 
 export default function SearchPage() {
   const [query, setQuery] = useState('')
@@ -30,21 +29,27 @@ export default function SearchPage() {
         <div style={{ display: 'flex', gap: 8, marginBottom: 24 }}>
           <div style={{ flex: 1, position: 'relative' }}>
             <Search size={15} style={{ position: 'absolute', left: 12, top: '50%', transform: 'translateY(-50%)', color: 'var(--t4)', pointerEvents: 'none' }} />
-            <Input
+            <input
               type="text"
               placeholder="Search posts..."
               value={query}
               onChange={e => setQuery(e.target.value)}
               onKeyDown={e => e.key === 'Enter' && search()}
-              style={{ paddingLeft: 36 }}
+              style={{
+                width: '100%', height: 40, paddingLeft: 36, paddingRight: 12,
+                fontSize: '.875rem', color: 'var(--t1)',
+                background: 'var(--sur)', border: '1px solid var(--bd)',
+                borderRadius: 'var(--r)', outline: 'none', fontFamily: 'inherit'
+              }}
             />
           </div>
           <button
             onClick={search}
             disabled={loading || query.length < 2}
             style={{
-              fontSize: '.875rem', fontWeight: 600, padding: '10px 20px',
-              borderRadius: 'var(--r)',
+              height: 40, padding: '0 20px',
+              fontSize: '.875rem', fontWeight: 600,
+              borderRadius: 'var(--r)', whiteSpace: 'nowrap', flexShrink: 0,
               background: query.length >= 2 ? 'var(--blue)' : 'var(--bd)',
               color: '#fff', border: 'none',
               cursor: query.length >= 2 ? 'pointer' : 'not-allowed',
@@ -53,7 +58,7 @@ export default function SearchPage() {
             }}
           >
             <Search size={14} />
-            {loading ? 'Searching...' : 'Search'}
+            {loading ? '...' : 'Search'}
           </button>
         </div>
 

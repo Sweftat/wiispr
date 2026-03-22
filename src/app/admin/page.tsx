@@ -6,6 +6,12 @@ import AdminDashboard from '@/components/AdminDashboard'
 
 export const dynamic = 'force-dynamic'
 
+export const metadata = {
+  title: 'Admin — wiispr',
+  description: 'admin dashboard',
+}
+
+
 export default async function AdminPage() {
   const cookieStore = await cookies()
   const userId = cookieStore.get('wiispr_user_id')?.value
