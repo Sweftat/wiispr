@@ -90,17 +90,26 @@ export default function AdminDashboard({ flaggedPosts, recentUsers, stats }: {
               <p style={{ fontSize: '.875rem', color: 'var(--t3)' }}>All clear.</p>
             </div>
           ) : posts.map(post => (
-            <div key={post.id} style={{ background: 'var(--sur)', border: '1px solid var(--bd)', borderRadius: 'var(--rm)', padding: '16px 18px', marginBottom: 10 }}>
+            <div key={post.id} style={{ background: 'var(--sur)', border: '1px solid var(--bd)', borderRadius: 'var(--rm)', padding: '16px 18px', marginBottom: 10, transition: 'opacity .3s' }}>
               <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 10 }}>
                 <span style={{ fontSize: '.6rem', fontWeight: 700, letterSpacing: '.06em', textTransform: 'uppercase', color: 'var(--blue)', background: 'var(--blue-d)', padding: '2px 7px', borderRadius: 3 }}>{post.categories?.name}</span>
                 <span style={{ fontFamily: 'monospace', fontSize: '.7rem', color: 'var(--t4)' }}>{post.ghost_id}</span>
-                <span style={{ fontSize: '.6rem', fontWeight: 700, color: 'var(--rose)', background: 'var(--rose-d)', padding: '2px 6px', borderRadius: 3, marginLeft: 'auto' }}>FLAGGED</span>
+                <span style={{ fontSize: '.6rem', fontWeight: 700, color: 'var(--rose)', background: 'var(--rose-d)', padding: '2px 6px', borderRadius: 3, marginLeft: 'auto' }}>{post.reports?.length || 0} REPORTS</span>
               </div>
               <h3 style={{ fontSize: '.9375rem', fontWeight: 700, color: 'var(--t1)', marginBottom: 6 }}>{post.title}</h3>
-              {post.body && <p style={{ fontSize: '.875rem', color: 'var(--t2)', lineHeight: 1.6, marginBottom: 12 }}>{post.body}</p>}
+              {post.body && <p style={{ fontSize: '.875rem', color: 'var(--t2)', lineHeight: 1.6, marginBottom: 10 }}>{post.body}</p>}
+              {post.reports && post.reports.length > 0 && (
+                <div style={{ background: 'var(--bg)', borderRadius: 'var(--rs)', padding: '8px 12px', marginBottom: 12 }}>
+                  {post.reports.map((r: any, i: number) => (
+                    <p key={i} style={{ fontSize: '.75rem', color: 'var(--t3)', padding: '3px 0', borderBottom: i < post.reports.length - 1 ? '1px solid var(--bd)' : 'none' }}>
+                      <span style={{ color: 'var(--t4)', fontFamily: 'monospace' }}>#{i+1}</span> {r.reason}
+                    </p>
+                  ))}
+                </div>
+              )}
               <div style={{ display: 'flex', gap: 8, paddingTop: 12, borderTop: '1px solid var(--bd)' }}>
-                <button onClick={() => dismissPost(post.id)} style={{ fontSize: '.8rem', fontWeight: 600, padding: '6px 14px', borderRadius: 'var(--r)', border: '1px solid var(--bd)', background: 'none', color: 'var(--grn)', cursor: 'pointer', fontFamily: 'inherit' }}>Dismiss</button>
-                <button onClick={() => deletePost(post.id)} style={{ fontSize: '.8rem', fontWeight: 600, padding: '6px 14px', borderRadius: 'var(--r)', border: 'none', background: 'var(--rose)', color: '#fff', cursor: 'pointer', fontFamily: 'inherit' }}>Delete</button>
+                <button onClick={() => dismissPost(post.id)} style={{ fontSize: '.8rem', fontWeight: 600, padding: '6px 14px', borderRadius: 'var(--r)', border: '1px solid var(--grn)', background: 'none', color: 'var(--grn)', cursor: 'pointer', fontFamily: 'inherit' }}>Dismiss — keep post</button>
+                <button onClick={() => deletePost(post.id)} style={{ fontSize: '.8rem', fontWeight: 600, padding: '6px 14px', borderRadius: 'var(--r)', border: 'none', background: 'var(--rose)', color: '#fff', cursor: 'pointer', fontFamily: 'inherit' }}>Delete post</button>
               </div>
             </div>
           ))}

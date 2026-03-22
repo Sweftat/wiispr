@@ -1,4 +1,7 @@
-import { createClient } from '@supabase/supabase-js'
+cat > /tmp/fix_admin_page.py << 'PYEOF'
+import os
+path = os.path.expanduser('~/wiispr/src/app/admin/page.tsx')
+code = """import { createClient } from '@supabase/supabase-js'
 import { cookies } from 'next/headers'
 import { redirect } from 'next/navigation'
 import Nav from '@/components/Nav'
@@ -27,7 +30,7 @@ export default async function AdminPage() {
 
   const { data: flaggedPosts } = await supabase
     .from('posts')
-    .select('*, categories(name)')
+    .select('*, categories(name), reports(id, reason, created_at)')
     .eq('is_blurred', true)
     .eq('is_deleted', false)
     .order('created_at', { ascending: false })
@@ -62,3 +65,8 @@ export default async function AdminPage() {
     </main>
   )
 }
+"""
+open(path, 'w').write(code)
+print('done')
+PYEOF
+python3 /tmp/fix_admin_page.py
