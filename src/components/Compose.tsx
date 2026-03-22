@@ -1,5 +1,6 @@
 'use client'
 import { useState, useEffect } from 'react'
+import { Ghost } from 'lucide-react'
 
 interface Category {
   id: number
@@ -41,16 +42,24 @@ export default function Compose({ categories }: { categories: Category[] }) {
     }
   }
 
+  const btnStyle = (active: boolean) => ({
+    fontSize: '.8rem', fontWeight: 600, padding: '7px 16px',
+    borderRadius: 'var(--r)', background: active ? 'var(--blue)' : 'var(--bd)',
+    color: '#fff', border: 'none', cursor: active ? 'pointer' : 'not-allowed',
+    fontFamily: 'inherit', opacity: active ? 1 : 0.6
+  } as React.CSSProperties)
+
   if (!user) return (
     <div style={{
       background: 'var(--sur)', border: '1px solid var(--bd)',
-      borderRadius: 'var(--rm)', padding: '16px 18px', marginBottom: 16,
+      borderRadius: 'var(--rm)', padding: '14px 18px', marginBottom: 16,
       display: 'flex', alignItems: 'center', justifyContent: 'space-between'
     }}>
       <p style={{ fontSize: '.875rem', color: 'var(--t3)' }}>Sign in to whisper something</p>
       <a href="/auth" style={{
-        fontSize: '.8rem', fontWeight: 600, padding: '7px 14px',
-        borderRadius: 'var(--r)', background: '#18181B', color: '#fff'
+        fontSize: '.8rem', fontWeight: 600, padding: '7px 16px',
+        borderRadius: 'var(--r)', background: 'var(--blue)', color: '#fff',
+        textDecoration: 'none'
       }}>Join free</a>
     </div>
   )
@@ -65,8 +74,10 @@ export default function Compose({ categories }: { categories: Category[] }) {
           width: '100%', textAlign: 'left', fontSize: '.875rem',
           color: 'var(--t4)', background: 'var(--bg)',
           border: '1px solid var(--bd)', borderRadius: 'var(--r)',
-          padding: '10px 14px', cursor: 'pointer', fontFamily: 'inherit'
+          padding: '10px 14px', cursor: 'pointer', fontFamily: 'inherit',
+          display: 'flex', alignItems: 'center', gap: 8
         }}>
+          <Ghost size={14} style={{ color: 'var(--t4)' }} />
           Whisper something honest…
         </button>
       ) : (
@@ -88,7 +99,8 @@ export default function Compose({ categories }: { categories: Category[] }) {
           </select>
           <input
             type="text"
-            placeholder="Title" className="auto-dir"
+            placeholder="Title"
+            className="auto-dir"
             value={title}
             onChange={e => setTitle(e.target.value)}
             maxLength={200}
@@ -100,7 +112,8 @@ export default function Compose({ categories }: { categories: Category[] }) {
             }}
           />
           <textarea
-            placeholder="Add more detail… (optional)" className="auto-dir"
+            placeholder="Add more detail… (optional)"
+            className="auto-dir"
             value={body}
             onChange={e => setBody(e.target.value)}
             rows={3}
@@ -113,8 +126,7 @@ export default function Compose({ categories }: { categories: Category[] }) {
           />
           <div style={{
             display: 'flex', justifyContent: 'space-between',
-            alignItems: 'center', paddingTop: 10,
-            borderTop: '1px solid var(--bd)'
+            alignItems: 'center', paddingTop: 10, borderTop: '1px solid var(--bd)'
           }}>
             <button onClick={() => setOpen(false)} style={{
               fontSize: '.8rem', color: 'var(--t4)', background: 'none',
@@ -123,13 +135,7 @@ export default function Compose({ categories }: { categories: Category[] }) {
             <button
               onClick={submit}
               disabled={!title.trim() || !categoryId || loading}
-              style={{
-                fontSize: '.8rem', fontWeight: 600, padding: '7px 16px',
-                borderRadius: 'var(--r)',
-                background: title.trim() && categoryId ? '#18181B' : '#D4D4D8',
-                color: '#fff', border: 'none', cursor: 'pointer',
-                fontFamily: 'inherit'
-              }}
+              style={btnStyle(!!(title.trim() && categoryId) && !loading)}
             >
               {loading ? 'Posting...' : 'Post anonymously'}
             </button>
