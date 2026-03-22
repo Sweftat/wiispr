@@ -5,7 +5,7 @@ import { timeAgo } from '@/lib/time'
 
 export default function SearchPage() {
   const [query, setQuery] = useState('')
-  const [posts, setPosts] = useState([])
+  const [posts, setPosts] = useState<any[]>([])
   const [loading, setLoading] = useState(false)
   const [searched, setSearched] = useState(false)
 
