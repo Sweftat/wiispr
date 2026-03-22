@@ -47,7 +47,8 @@ export default function Nav() {
     }}>
       <Link href="/" style={{
         fontFamily: 'Georgia, serif', fontStyle: 'italic', fontWeight: 700,
-        fontSize: '1.0625rem', display: 'flex', alignItems: 'center', gap: 6, color: 'var(--t1)'
+        fontSize: '1.0625rem', display: 'flex', alignItems: 'center', gap: 6, color: 'var(--t1)',
+        textDecoration: 'none'
       }}>
         <span style={{ width: 6, height: 6, background: 'var(--blue)', borderRadius: '50%', display: 'inline-block' }}></span>
         wiispr
@@ -55,7 +56,7 @@ export default function Nav() {
 
       <Link href="/search" style={{
         fontSize: '.8rem', fontWeight: 500, color: 'var(--t3)',
-        display: 'flex', alignItems: 'center', gap: 5
+        display: 'flex', alignItems: 'center', gap: 5, textDecoration: 'none'
       }}>
         <Search size={14} />
         Search
@@ -107,11 +108,13 @@ export default function Nav() {
         <>
           <Link href="/auth?signin=1" style={{
             fontSize: '.8rem', fontWeight: 600, padding: '6px 14px',
-            borderRadius: 'var(--r)', border: '1px solid var(--bd)', color: 'var(--t2)'
+            borderRadius: 'var(--r)', border: '1px solid var(--bd)',
+            color: 'var(--t2)', textDecoration: 'none'
           }}>Sign in</Link>
           <Link href="/auth" style={{
             fontSize: '.8rem', fontWeight: 600, padding: '6px 14px',
-            borderRadius: 'var(--r)', background: '#18181B', color: '#fff'
+            borderRadius: 'var(--r)', background: 'var(--blue)',
+            color: '#fff', textDecoration: 'none'
           }}>Join free</Link>
         </>
       )}

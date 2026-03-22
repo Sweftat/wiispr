@@ -1,5 +1,6 @@
 'use client'
 import { useState, useEffect } from 'react'
+import { UserPlus, UserCheck } from 'lucide-react'
 
 export default function FollowButton({ ghostId }: { ghostId: string }) {
   const [following, setFollowing] = useState(false)
@@ -36,14 +37,20 @@ export default function FollowButton({ ghostId }: { ghostId: string }) {
       onClick={toggle}
       disabled={loading}
       style={{
-        fontSize: '.75rem', fontWeight: 600, padding: '5px 10px',
-        borderRadius: 'var(--rs)', border: '1px solid var(--bd)',
-        background: following ? '#18181B' : 'none',
+        fontSize: '.75rem', fontWeight: 600, padding: '4px 10px',
+        borderRadius: 'var(--rs)',
+        border: '1px solid var(--bd)',
+        background: following ? 'var(--blue)' : 'none',
         color: following ? '#fff' : 'var(--t3)',
-        cursor: 'pointer', transition: 'all .12s'
+        cursor: 'pointer', transition: 'all .15s',
+        display: 'flex', alignItems: 'center', gap: 4
       }}
     >
-      {loading ? '...' : following ? 'Following' : '+ Follow'}
+      {loading ? '...' : following ? (
+        <><UserCheck size={11} /> Following</>
+      ) : (
+        <><UserPlus size={11} /> Follow</>
+      )}
     </button>
   )
 }
