@@ -1,15 +1,24 @@
 'use client'
 import Link from 'next/link'
 import { useEffect, useState } from 'react'
+import { Search, Moon, Sun, Bell, LogOut } from 'lucide-react'
 
 export default function Nav() {
   const [user, setUser] = useState<{nickname: string} | null>(null)
   const [dark, setDark] = useState(false)
+  const [unread, setUnread] = useState(0)
 
   useEffect(() => {
     fetch('/api/auth/session')
       .then(r => r.json())
-      .then(d => { if (d.user) setUser(d.user) })
+      .then(d => {
+        if (d.user) {
+          setUser(d.user)
+          fetch('/api/notifications')
+            .then(r => r.json())
+            .then(d => setUnread(d.unread || 0))
+        }
+      })
     const theme = localStorage.getItem('theme')
     if (theme === 'dark') {
       document.documentElement.setAttribute('data-theme', 'dark')
@@ -30,9 +39,6 @@ export default function Nav() {
     localStorage.setItem('theme', isDark ? 'dark' : 'light')
   }
 
-  const moonIcon = <svg width="16" height="16" fill="none" viewBox="0 0 16 16"><path d="M13.5 10A6 6 0 0 1 6 2.5a6 6 0 1 0 7.5 7.5z" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/></svg>
-  const sunIcon = <svg width="16" height="16" fill="none" viewBox="0 0 16 16"><circle cx="8" cy="8" r="3" stroke="currentColor" strokeWidth="1.5"/><path d="M8 1v1.5M8 13.5V15M1 8h1.5M13.5 8H15M3.1 3.1l1.1 1.1M11.8 11.8l1.1 1.1M11.8 4.2l-1.1 1.1M4.2 11.8l-1.1 1.1" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round"/></svg>
-
   return (
     <nav style={{
       height: 52, background: 'var(--sur)', borderBottom: '1px solid var(--bd)',
@@ -46,31 +52,56 @@ export default function Nav() {
         <span style={{ width: 6, height: 6, background: 'var(--blue)', borderRadius: '50%', display: 'inline-block' }}></span>
         wiispr
       </Link>
+
       <Link href="/search" style={{
         fontSize: '.8rem', fontWeight: 500, color: 'var(--t3)',
         display: 'flex', alignItems: 'center', gap: 5
       }}>
-        <svg width="14" height="14" fill="none" viewBox="0 0 16 16">
-          <circle cx="6.5" cy="6.5" r="4" stroke="currentColor" strokeWidth="1.5"/>
-          <path d="M13 13l-3-3" stroke="currentColor" strokeWidth="1.75" strokeLinecap="round"/>
-        </svg>
+        <Search size={14} />
         Search
       </Link>
+
       <span style={{ flex: 1 }}></span>
+
       <button onClick={toggleTheme} style={{
         display: 'flex', alignItems: 'center', justifyContent: 'center',
         width: 32, height: 32, borderRadius: 'var(--r)',
         border: '1px solid var(--bd)', color: 'var(--t2)',
         background: 'none', cursor: 'pointer'
-      }}>{dark ? sunIcon : moonIcon}</button>
+      }}>
+        {dark ? <Sun size={15} /> : <Moon size={15} />}
+      </button>
+
       {user ? (
         <>
+          <a href="/notifications" style={{
+            display: 'flex', alignItems: 'center', justifyContent: 'center',
+            width: 32, height: 32, borderRadius: 'var(--r)',
+            border: '1px solid var(--bd)', color: 'var(--t2)',
+            background: 'none', cursor: 'pointer', position: 'relative',
+            textDecoration: 'none'
+          }}>
+            <Bell size={15} />
+            {unread > 0 && (
+              <span style={{
+                position: 'absolute', top: -4, right: -4,
+                width: 16, height: 16, borderRadius: '50%',
+                background: 'var(--rose)', color: '#fff',
+                fontSize: '.55rem', fontWeight: 700,
+                display: 'flex', alignItems: 'center', justifyContent: 'center'
+              }}>{unread > 9 ? '9+' : unread}</span>
+            )}
+          </a>
           <span style={{ fontSize: '.8rem', color: 'var(--t3)', fontWeight: 500 }}>{user.nickname}</span>
           <button onClick={signOut} style={{
-            fontSize: '.8rem', fontWeight: 600, padding: '6px 14px',
+            display: 'flex', alignItems: 'center', gap: 5,
+            fontSize: '.8rem', fontWeight: 600, padding: '6px 12px',
             borderRadius: 'var(--r)', border: '1px solid var(--bd)',
             color: 'var(--t2)', background: 'none', cursor: 'pointer'
-          }}>Sign out</button>
+          }}>
+            <LogOut size={13} />
+            Sign out
+          </button>
         </>
       ) : (
         <>
