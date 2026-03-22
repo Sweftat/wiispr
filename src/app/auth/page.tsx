@@ -73,6 +73,8 @@ export default function AuthPage() {
 
   const canSend = email.includes('@') && (isSignIn || (!!ageRange && agreed))
 
+  const inputStyle = { paddingLeft: 14, paddingRight: 14 }
+
   const primaryBtn = (active: boolean, onClick: () => void, label: string, loadingLabel: string) => (
     <button
       onClick={onClick}
@@ -96,12 +98,8 @@ export default function AuthPage() {
       <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', minHeight: 'calc(100vh - 52px)', padding: 20 }}>
         <div style={{ width: '100%', maxWidth: 400 }}>
 
-          {/* Logo */}
           <div style={{ textAlign: 'center', marginBottom: 32 }}>
-            <span style={{
-              fontFamily: 'Georgia, serif', fontStyle: 'italic', fontWeight: 700,
-              fontSize: '1.5rem', display: 'inline-flex', alignItems: 'center', gap: 8, color: 'var(--t1)'
-            }}>
+            <span style={{ fontFamily: 'Georgia, serif', fontStyle: 'italic', fontWeight: 700, fontSize: '1.5rem', display: 'inline-flex', alignItems: 'center', gap: 8, color: 'var(--t1)' }}>
               <span style={{ width: 8, height: 8, background: 'var(--blue)', borderRadius: '50%', display: 'inline-block' }}></span>
               wiispr
             </span>
@@ -110,29 +108,18 @@ export default function AuthPage() {
             </p>
           </div>
 
-          {/* Card */}
           <div style={{ background: 'var(--sur)', border: '1px solid var(--bd)', borderRadius: 'var(--rm)', padding: '28px 24px' }}>
 
-            {/* Step indicators */}
             <div style={{ display: 'flex', gap: 4, marginBottom: 24 }}>
               {[1, 2, 3].map(s => (
-                <div key={s} style={{
-                  height: 3, flex: 1, borderRadius: 2,
-                  background: s <= step ? 'var(--blue)' : 'var(--bd)',
-                  transition: 'background .2s'
-                }} />
+                <div key={s} style={{ height: 3, flex: 1, borderRadius: 2, background: s <= step ? 'var(--blue)' : 'var(--bd)', transition: 'background .2s' }} />
               ))}
             </div>
 
             {error && (
-              <div style={{
-                background: 'var(--rose-d)', border: '1px solid var(--rose)',
-                borderRadius: 'var(--r)', padding: '10px 12px',
-                fontSize: '.8rem', color: 'var(--rose)', marginBottom: 16
-              }}>{error}</div>
+              <div style={{ background: 'var(--rose-d)', border: '1px solid var(--rose)', borderRadius: 'var(--r)', padding: '10px 12px', fontSize: '.8rem', color: 'var(--rose)', marginBottom: 16 }}>{error}</div>
             )}
 
-            {/* Step 1 */}
             {step === 1 && (
               <div style={{ display: 'flex', flexDirection: 'column', gap: 14 }}>
                 <div>
@@ -151,6 +138,7 @@ export default function AuthPage() {
                     value={email}
                     onChange={e => setEmail(e.target.value)}
                     onKeyDown={e => e.key === 'Enter' && canSend && sendOTP()}
+                    style={inputStyle}
                   />
                 </div>
                 {!isSignIn && (
@@ -181,7 +169,6 @@ export default function AuthPage() {
               </div>
             )}
 
-            {/* Step 2 */}
             {step === 2 && (
               <div style={{ display: 'flex', flexDirection: 'column', gap: 14 }}>
                 <div>
@@ -194,14 +181,13 @@ export default function AuthPage() {
                   maxLength={6}
                   value={code}
                   onChange={e => setCode(e.target.value.replace(/[^0-9]/g, ''))}
-                  style={{ textAlign: 'center', fontSize: '1.5rem', letterSpacing: '.3em', fontFamily: 'monospace' }}
+                  style={{ textAlign: 'center', fontSize: '1.5rem', letterSpacing: '.3em', fontFamily: 'monospace', paddingLeft: 14 }}
                 />
                 {primaryBtn(code.length === 6, verifyOTP, 'Verify code', 'Verifying...')}
                 <button onClick={() => setStep(1)} style={{ fontSize: '.8rem', color: 'var(--t4)', background: 'none', border: 'none', cursor: 'pointer' }}>Back</button>
               </div>
             )}
 
-            {/* Step 3 */}
             {step === 3 && (
               <div style={{ display: 'flex', flexDirection: 'column', gap: 14 }}>
                 <div>
@@ -213,20 +199,13 @@ export default function AuthPage() {
                   placeholder="midnight_writer"
                   value={nickname}
                   onChange={e => setNickname(e.target.value.replace(/[^a-zA-Z0-9_]/g, ''))}
+                  style={inputStyle}
                 />
                 <div>
                   <label style={{ fontSize: '.75rem', fontWeight: 600, color: 'var(--t2)', display: 'block', marginBottom: 8 }}>Gender</label>
                   <div style={{ display: 'flex', gap: 8 }}>
                     {['male', 'female', 'other'].map(g => (
-                      <button key={g} onClick={() => setGender(g)} style={{
-                        flex: 1, padding: '9px', borderRadius: 'var(--r)',
-                        border: '1px solid var(--bd)',
-                        background: gender === g ? 'var(--blue)' : 'none',
-                        color: gender === g ? '#fff' : 'var(--t2)',
-                        fontSize: '.8125rem', fontWeight: 500,
-                        cursor: 'pointer', fontFamily: 'inherit',
-                        textTransform: 'capitalize', transition: 'all .15s'
-                      }}>{g}</button>
+                      <button key={g} onClick={() => setGender(g)} style={{ flex: 1, padding: '9px', borderRadius: 'var(--r)', border: '1px solid var(--bd)', background: gender === g ? 'var(--blue)' : 'none', color: gender === g ? '#fff' : 'var(--t2)', fontSize: '.8125rem', fontWeight: 500, cursor: 'pointer', fontFamily: 'inherit', textTransform: 'capitalize', transition: 'all .15s' }}>{g}</button>
                     ))}
                   </div>
                 </div>
