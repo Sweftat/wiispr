@@ -1,5 +1,6 @@
 'use client'
 import { useState } from 'react'
+import CategoryIcon from './CategoryIcon'
 
 interface Category {
   id: number
@@ -50,7 +51,7 @@ export default function CategoryFilter({ categories, onSelect }: { categories: C
             cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 5
           }}
         >
-          <span style={{ fontSize: '.875rem' }}>{cat.icon}</span>
+          <CategoryIcon slug={cat.icon} />
           {cat.name}
         </button>
       ))}

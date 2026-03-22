@@ -1,5 +1,6 @@
 import Nav from '@/components/Nav'
 import Feed from '@/components/Feed'
+import CategoryIcon from '@/components/CategoryIcon'
 import { createClient } from '@supabase/supabase-js'
 
 export const dynamic = 'force-dynamic'
@@ -22,7 +23,7 @@ export default async function Home() {
             <div style={{ background: 'var(--sur)', border: '1px solid var(--bd)', borderRadius: 'var(--rm)', overflow: 'hidden' }}>
               {categories?.map((cat: any, i: number) => (
                 <div key={cat.id} style={{ display: 'flex', alignItems: 'center', gap: 10, padding: '10px 14px', borderBottom: i < categories.length-1 ? '1px solid var(--bd)' : 'none', cursor: 'pointer' }}>
-                  <span>{cat.icon}</span>
+                  <CategoryIcon slug={cat.icon} />
                   <span style={{ fontSize: '.8375rem', color: 'var(--t2)', fontWeight: 500 }}>{cat.name}</span>
                   {cat.women_only && <span style={{ marginLeft: 'auto', fontSize: '.55rem', fontWeight: 700, color: 'var(--rose)', background: 'var(--rose-d)', padding: '1px 5px', borderRadius: 3 }}>Women</span>}
                 </div>
