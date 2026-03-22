@@ -50,7 +50,6 @@ export default function PostPanel({ post, onClose }: { post: any, onClose: () =>
       }}>
         <style>{`@keyframes slideIn { from { transform: translateX(100%) } to { transform: translateX(0) } }`}</style>
 
-        {/* Header */}
         <div style={{
           display: 'flex', alignItems: 'center', justifyContent: 'space-between',
           padding: '14px 20px', borderBottom: '1px solid var(--bd)',
@@ -72,7 +71,6 @@ export default function PostPanel({ post, onClose }: { post: any, onClose: () =>
         </div>
 
         <div style={{ padding: '16px 20px' }}>
-          {/* Post */}
           <div style={{ background: 'var(--sur)', border: '1px solid var(--bd)', borderRadius: 'var(--rm)', padding: '18px', marginBottom: 12 }}>
             <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 12, flexWrap: 'wrap' }}>
               <span style={{ fontSize: '.6rem', fontWeight: 700, letterSpacing: '.06em', textTransform: 'uppercase', color: 'var(--blue)', background: 'var(--blue-d)', padding: '2px 7px', borderRadius: 3 }}>{post.categories?.name}</span>
@@ -84,8 +82,8 @@ export default function PostPanel({ post, onClose }: { post: any, onClose: () =>
               <FollowButton ghostId={post.ghost_id} />
               <span style={{ fontFamily: 'monospace', fontSize: '.65rem', color: 'var(--t4)', marginLeft: 'auto' }}>{timeAgo(post.created_at)}</span>
             </div>
-            <h1 style={{ fontSize: '1.125rem', fontWeight: 800, color: 'var(--t1)', marginBottom: 10, lineHeight: 1.35 }}>{post.title}</h1>
-            {post.body && <p style={{ fontSize: '.9rem', color: 'var(--t2)', lineHeight: 1.8, marginBottom: 14 }}>{post.body}</p>}
+            <h1 className="auto-dir" style={{ fontSize: '1.125rem', fontWeight: 800, color: 'var(--t1)', marginBottom: 10, lineHeight: 1.35 }}>{post.title}</h1>
+            {post.body && <p className="auto-dir" style={{ fontSize: '.9rem', color: 'var(--t2)', lineHeight: 1.8, marginBottom: 14 }}>{post.body}</p>}
             <div style={{ display: 'flex', gap: 6, paddingTop: 12, borderTop: '1px solid var(--bd)', alignItems: 'center' }}>
               <UpvoteButton postId={post.id} upvotes={post.upvotes} />
               <span style={{ marginLeft: 'auto', display: 'flex', gap: 6 }}>
@@ -95,7 +93,6 @@ export default function PostPanel({ post, onClose }: { post: any, onClose: () =>
             </div>
           </div>
 
-          {/* Reply composer */}
           {user ? (
             <div style={{ background: 'var(--sur)', border: '1px solid var(--bd)', borderRadius: 'var(--rm)', padding: '14px', marginBottom: 12 }}>
               <textarea
@@ -103,6 +100,7 @@ export default function PostPanel({ post, onClose }: { post: any, onClose: () =>
                 value={body}
                 onChange={e => setBody(e.target.value)}
                 rows={3}
+                className="auto-dir"
                 style={{ width: '100%', fontSize: '.875rem', color: 'var(--t1)', background: 'none', border: 'none', outline: 'none', resize: 'none', lineHeight: 1.6, fontFamily: 'inherit', marginBottom: 8 }}
               />
               <div style={{ display: 'flex', justifyContent: 'flex-end', paddingTop: 8, borderTop: '1px solid var(--bd)' }}>
@@ -127,7 +125,6 @@ export default function PostPanel({ post, onClose }: { post: any, onClose: () =>
             </div>
           )}
 
-          {/* Replies */}
           <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
             {replies.length > 0 ? replies.map((reply: any) => (
               <div key={reply.id} style={{ background: 'var(--sur)', border: '1px solid var(--bd)', borderRadius: 'var(--r)', padding: '13px 15px' }}>
@@ -136,7 +133,7 @@ export default function PostPanel({ post, onClose }: { post: any, onClose: () =>
                   <span style={{ fontFamily: 'monospace', fontSize: '.7rem', color: 'var(--t4)' }}>{reply.ghost_id}</span>
                   <span style={{ fontFamily: 'monospace', fontSize: '.65rem', color: 'var(--t4)', marginLeft: 'auto' }}>{timeAgo(reply.created_at)}</span>
                 </div>
-                <p style={{ fontSize: '.875rem', color: 'var(--t2)', lineHeight: 1.7 }}>{reply.body}</p>
+                <p className="auto-dir" style={{ fontSize: '.875rem', color: 'var(--t2)', lineHeight: 1.7 }}>{reply.body}</p>
               </div>
             )) : (
               <p style={{ textAlign: 'center', color: 'var(--t4)', fontSize: '.875rem', padding: '24px 0' }}>No replies yet. Be the first.</p>
