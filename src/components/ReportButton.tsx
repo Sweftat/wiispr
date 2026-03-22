@@ -1,5 +1,6 @@
 'use client'
 import { useState, useEffect } from 'react'
+import { Flag } from 'lucide-react'
 
 export default function ReportButton({ postId }: { postId: string }) {
   const [reported, setReported] = useState(false)
@@ -34,15 +35,14 @@ export default function ReportButton({ postId }: { postId: string }) {
       style={{
         fontSize: '.75rem', fontWeight: 600, padding: '5px 10px',
         borderRadius: 'var(--rs)', border: '1px solid var(--bd)',
-        background: 'none', color: reported ? 'var(--t4)' : 'var(--t3)',
+        background: 'none',
+        color: reported ? 'var(--rose)' : 'var(--t3)',
         cursor: reported ? 'default' : 'pointer',
-        display: 'flex', alignItems: 'center', gap: 4
+        display: 'flex', alignItems: 'center', gap: 4,
+        transition: 'color .15s'
       }}
     >
-      <svg width="12" height="12" fill="none" viewBox="0 0 16 16">
-        <path d="M3 2h8l-2 4 2 4H3V2z" stroke="currentColor" strokeWidth="1.5" strokeLinejoin="round"/>
-        <path d="M3 2v12" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round"/>
-      </svg>
+      <Flag size={12} fill={reported ? 'currentColor' : 'none'} />
       {reported ? 'Reported' : loading ? '...' : 'Report'}
     </button>
   )

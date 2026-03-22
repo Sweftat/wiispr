@@ -1,5 +1,6 @@
 'use client'
 import { useState } from 'react'
+import { ArrowUp } from 'lucide-react'
 
 export default function UpvoteButton({ postId, upvotes }: { postId: string, upvotes: number }) {
   const [count, setCount] = useState(upvotes)
@@ -22,13 +23,15 @@ export default function UpvoteButton({ postId, upvotes }: { postId: string, upvo
       style={{
         fontSize: '.75rem', fontWeight: 600, padding: '5px 10px',
         borderRadius: 'var(--rs)', border: '1px solid var(--bd)',
-        background: voted ? '#18181B' : 'none',
+        background: voted ? 'var(--blue)' : 'none',
         color: voted ? '#fff' : 'var(--t3)',
         cursor: voted ? 'default' : 'pointer',
-        transition: 'all .12s'
+        transition: 'all .15s',
+        display: 'flex', alignItems: 'center', gap: 4
       }}
     >
-      ↑ {count}
+      <ArrowUp size={12} strokeWidth={voted ? 2.5 : 1.75} />
+      {count}
     </button>
   )
 }

@@ -1,5 +1,6 @@
 'use client'
 import { useState } from 'react'
+import { Share2, Check } from 'lucide-react'
 
 export default function ShareButton({ postId }: { postId: string }) {
   const [copied, setCopied] = useState(false)
@@ -19,10 +20,7 @@ export default function ShareButton({ postId }: { postId: string }) {
       cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 4,
       transition: 'color .15s'
     }}>
-      <svg width="12" height="12" fill="none" viewBox="0 0 16 16">
-        <path d="M10.5 9.5l2.5-2-2.5-2" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
-        <path d="M13 7.5H7C5.3 7.5 4 8.8 4 10.5v1" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round"/>
-      </svg>
+      {copied ? <Check size={12} /> : <Share2 size={12} />}
       {copied ? 'Copied!' : 'Share'}
     </button>
   )

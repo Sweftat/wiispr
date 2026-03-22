@@ -2,7 +2,6 @@
 import { useState, useEffect } from 'react'
 import Nav from '@/components/Nav'
 import { useRouter } from 'next/navigation'
-import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 
 export default function AuthPage() {
@@ -74,6 +73,23 @@ export default function AuthPage() {
 
   const canSend = email.includes('@') && (isSignIn || (!!ageRange && agreed))
 
+  const primaryBtn = (active: boolean, onClick: () => void, label: string, loadingLabel: string) => (
+    <button
+      onClick={onClick}
+      disabled={!active || loading}
+      style={{
+        width: '100%', padding: '11px', borderRadius: 'var(--r)',
+        background: active && !loading ? 'var(--blue)' : 'var(--bd)',
+        color: '#fff', border: 'none',
+        cursor: active && !loading ? 'pointer' : 'not-allowed',
+        fontSize: '.875rem', fontWeight: 600, fontFamily: 'inherit',
+        transition: 'background .15s'
+      }}
+    >
+      {loading ? loadingLabel : label}
+    </button>
+  )
+
   return (
     <main style={{ minHeight: '100vh', background: 'var(--bg)' }}>
       <Nav />
@@ -102,7 +118,7 @@ export default function AuthPage() {
               {[1, 2, 3].map(s => (
                 <div key={s} style={{
                   height: 3, flex: 1, borderRadius: 2,
-                  background: s <= step ? 'var(--t1)' : 'var(--bd)',
+                  background: s <= step ? 'var(--blue)' : 'var(--bd)',
                   transition: 'background .2s'
                 }} />
               ))}
@@ -141,16 +157,7 @@ export default function AuthPage() {
                   <>
                     <div>
                       <label style={{ fontSize: '.75rem', fontWeight: 600, color: 'var(--t2)', display: 'block', marginBottom: 6 }}>Age range</label>
-                      <select
-                        value={ageRange}
-                        onChange={e => setAgeRange(e.target.value)}
-                        style={{
-                          width: '100%', fontSize: '.875rem', color: 'var(--t1)',
-                          background: 'var(--bg)', border: '1px solid var(--bd)',
-                          borderRadius: 'var(--r)', padding: '9px 12px', outline: 'none',
-                          cursor: 'pointer', fontFamily: 'inherit'
-                        }}
-                      >
+                      <select value={ageRange} onChange={e => setAgeRange(e.target.value)} style={{ width: '100%', fontSize: '.875rem', color: 'var(--t1)', background: 'var(--bg)', border: '1px solid var(--bd)', borderRadius: 'var(--r)', padding: '9px 12px', outline: 'none', cursor: 'pointer', fontFamily: 'inherit' }}>
                         <option value="">Select age range</option>
                         <option>15-17</option>
                         <option>18-23</option>
@@ -165,9 +172,7 @@ export default function AuthPage() {
                     </label>
                   </>
                 )}
-                <Button onClick={sendOTP} disabled={!canSend || loading} className="w-full">
-                  {loading ? 'Sending...' : 'Send code'}
-                </Button>
+                {primaryBtn(canSend, sendOTP, 'Send code', 'Sending...')}
                 {isSignIn && (
                   <p style={{ textAlign: 'center', fontSize: '.8rem', color: 'var(--t4)' }}>
                     No account? <a href="/auth" style={{ color: 'var(--blue)' }}>Join free</a>
@@ -191,12 +196,8 @@ export default function AuthPage() {
                   onChange={e => setCode(e.target.value.replace(/[^0-9]/g, ''))}
                   style={{ textAlign: 'center', fontSize: '1.5rem', letterSpacing: '.3em', fontFamily: 'monospace' }}
                 />
-                <Button onClick={verifyOTP} disabled={code.length !== 6 || loading} className="w-full">
-                  {loading ? 'Verifying...' : 'Verify code'}
-                </Button>
-                <button onClick={() => setStep(1)} style={{ fontSize: '.8rem', color: 'var(--t4)', background: 'none', border: 'none', cursor: 'pointer' }}>
-                  Back
-                </button>
+                {primaryBtn(code.length === 6, verifyOTP, 'Verify code', 'Verifying...')}
+                <button onClick={() => setStep(1)} style={{ fontSize: '.8rem', color: 'var(--t4)', background: 'none', border: 'none', cursor: 'pointer' }}>Back</button>
               </div>
             )}
 
@@ -217,25 +218,19 @@ export default function AuthPage() {
                   <label style={{ fontSize: '.75rem', fontWeight: 600, color: 'var(--t2)', display: 'block', marginBottom: 8 }}>Gender</label>
                   <div style={{ display: 'flex', gap: 8 }}>
                     {['male', 'female', 'other'].map(g => (
-                      <button
-                        key={g}
-                        onClick={() => setGender(g)}
-                        style={{
-                          flex: 1, padding: '9px', borderRadius: 'var(--r)',
-                          border: '1px solid var(--bd)',
-                          background: gender === g ? '#18181B' : 'none',
-                          color: gender === g ? '#fff' : 'var(--t2)',
-                          fontSize: '.8125rem', fontWeight: 500,
-                          cursor: 'pointer', fontFamily: 'inherit',
-                          textTransform: 'capitalize'
-                        }}
-                      >{g}</button>
+                      <button key={g} onClick={() => setGender(g)} style={{
+                        flex: 1, padding: '9px', borderRadius: 'var(--r)',
+                        border: '1px solid var(--bd)',
+                        background: gender === g ? 'var(--blue)' : 'none',
+                        color: gender === g ? '#fff' : 'var(--t2)',
+                        fontSize: '.8125rem', fontWeight: 500,
+                        cursor: 'pointer', fontFamily: 'inherit',
+                        textTransform: 'capitalize', transition: 'all .15s'
+                      }}>{g}</button>
                     ))}
                   </div>
                 </div>
-                <Button onClick={createAccount} disabled={nickname.length < 3 || !gender || loading} className="w-full">
-                  {loading ? 'Creating...' : 'Create account'}
-                </Button>
+                {primaryBtn(nickname.length >= 3 && !!gender, createAccount, 'Create account', 'Creating...')}
               </div>
             )}
           </div>
