@@ -38,6 +38,12 @@ export default async function AdminPage() {
     .order('created_at', { ascending: false })
     .limit(20)
 
+  const { data: activityLogs } = await supabase
+    .from('activity_logs')
+    .select('*, users(nickname)')
+    .order('created_at', { ascending: false })
+    .limit(50)
+
   const { count: totalPosts } = await supabase
     .from('posts')
     .select('*', { count: 'exact', head: true })
@@ -57,6 +63,7 @@ export default async function AdminPage() {
       <AdminDashboard
         flaggedPosts={flaggedPosts || []}
         recentUsers={recentUsers || []}
+        activityLogs={activityLogs || []}
         stats={{ totalPosts: totalPosts || 0, totalUsers: totalUsers || 0, totalReports: totalReports || 0 }}
       />
     </main>

@@ -1,9 +1,11 @@
 'use client'
 import { useState } from 'react'
+import { timeAgo } from '@/lib/time'
 
-export default function AdminDashboard({ flaggedPosts, recentUsers, stats }: {
+export default function AdminDashboard({ flaggedPosts, recentUsers, activityLogs, stats }: {
   flaggedPosts: any[]
   recentUsers: any[]
+  activityLogs: any[]
   stats: { totalPosts: number, totalUsers: number, totalReports: number }
 }) {
   const [tab, setTab] = useState('flagged')
@@ -46,6 +48,15 @@ export default function AdminDashboard({ flaggedPosts, recentUsers, stats }: {
     setUsers(users.map(u => u.id === userId ? { ...u, is_suspended: false } : u))
   }
 
+  const actionColors: Record<string, string> = {
+    post_created: 'var(--blue)',
+    reply_created: 'var(--grn)',
+    post_reported: 'var(--rose)',
+    post_deleted: 'var(--rose)',
+    user_suspended: 'var(--rose)',
+    user_unsuspended: 'var(--grn)',
+  }
+
   const tabStyle = (t: string) => ({
     fontSize: '.8rem', fontWeight: 600, padding: '7px 16px',
     borderRadius: 'var(--r)', border: 'none', cursor: 'pointer',
@@ -79,6 +90,7 @@ export default function AdminDashboard({ flaggedPosts, recentUsers, stats }: {
       <div style={{ display: 'flex', gap: 4, marginBottom: 20, background: 'var(--sur)', border: '1px solid var(--bd)', borderRadius: 'var(--r)', padding: 4, width: 'fit-content' }}>
         <button style={tabStyle('flagged')} onClick={() => setTab('flagged')}>Flagged ({posts.length})</button>
         <button style={tabStyle('users')} onClick={() => setTab('users')}>Users ({users.length})</button>
+        <button style={tabStyle('logs')} onClick={() => setTab('logs')}>Logs ({activityLogs.length})</button>
       </div>
 
       {/* Flagged Posts */}
@@ -139,6 +151,32 @@ export default function AdminDashboard({ flaggedPosts, recentUsers, stats }: {
               </div>
             ))}
           </div>
+        </div>
+      )}
+
+      {/* Logs */}
+      {tab === 'logs' && (
+        <div style={{ background: 'var(--sur)', border: '1px solid var(--bd)', borderRadius: 'var(--rm)', overflow: 'hidden' }}>
+          {activityLogs.length === 0 ? (
+            <div style={{ padding: '48px 24px', textAlign: 'center' }}>
+              <p style={{ fontSize: '1rem', fontWeight: 700, color: 'var(--t1)', marginBottom: 6 }}>No activity yet</p>
+              <p style={{ fontSize: '.875rem', color: 'var(--t3)' }}>Actions will appear here.</p>
+            </div>
+          ) : activityLogs.map((log, i) => (
+            <div key={log.id} style={{ display: 'flex', alignItems: 'center', gap: 12, padding: '10px 16px', borderBottom: i < activityLogs.length - 1 ? '1px solid var(--bd)' : 'none' }}>
+              <span style={{
+                fontSize: '.6rem', fontWeight: 700, letterSpacing: '.04em', textTransform: 'uppercase',
+                color: actionColors[log.action] || 'var(--t3)',
+                background: 'var(--bg)', padding: '2px 7px', borderRadius: 3, whiteSpace: 'nowrap'
+              }}>{log.action.replace(/_/g, ' ')}</span>
+              <span style={{ fontSize: '.8rem', color: 'var(--t2)', flex: 1 }}>
+                {log.users?.nickname || 'Anonymous'}
+              </span>
+              <span style={{ fontSize: '.7rem', color: 'var(--t4)', fontFamily: 'monospace', whiteSpace: 'nowrap' }}>
+                {timeAgo(log.created_at)}
+              </span>
+            </div>
+          ))}
         </div>
       )}
     </div>

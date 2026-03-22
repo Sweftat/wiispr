@@ -35,5 +35,12 @@ export async function POST(req: NextRequest) {
 
   if (error) return NextResponse.json({ error: error.message }, { status: 500 })
 
+  await supabase.from('activity_logs').insert({
+    user_id: userId,
+    action: 'post_created',
+    target_type: 'post',
+    meta: { title, category_id: parseInt(categoryId), ghost_id: ghostId }
+  })
+
   return NextResponse.json({ success: true })
 }
