@@ -16,6 +16,7 @@ export default function Feed({ initialPosts, categories }: { initialPosts: any[]
     setLoading(true)
     let url = '/api/posts/feed'
     if (categoryId === 'following') url = '/api/posts/following'
+    else if (categoryId === 'trending') url = '/api/posts/trending'
     else if (categoryId) url = '/api/posts/feed?category=' + categoryId
     const res = await fetch(url)
     const data = await res.json()
@@ -96,7 +97,7 @@ export default function Feed({ initialPosts, categories }: { initialPosts: any[]
       )) : !loading && (
         <div style={{ background: 'var(--sur)', border: '1px solid var(--bd)', borderRadius: 'var(--rm)', padding: '48px 24px', textAlign: 'center' }}>
           <p style={{ fontSize: '1rem', fontWeight: 700, color: 'var(--t1)', marginBottom: 6 }}>Nothing here yet</p>
-          <p style={{ fontSize: '.875rem', color: 'var(--t3)' }}>Be the first to whisper.</p>
+          <p style={{ fontSize: '.875rem', color: 'var(--t3)' }}>Be the first to wiispr.</p>
         </div>
       )}
 
