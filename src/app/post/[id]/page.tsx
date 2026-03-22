@@ -1,6 +1,7 @@
 import { timeAgo } from "@/lib/time"
 import Nav from "@/components/Nav"
 import ReportButton from "@/components/ReportButton"
+import FollowButton from "@/components/FollowButton"
 import ShareButton from "@/components/ShareButton"
 import RepBadge from "@/components/RepBadge"
 import UpvoteButton from "@/components/UpvoteButton"
@@ -40,6 +41,7 @@ export default async function PostPage({ params }: { params: Promise<{ id: strin
           <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 12 }}>
             <span style={{ fontSize: ".6rem", fontWeight: 700, letterSpacing: ".06em", textTransform: "uppercase", color: "var(--blue)", background: "var(--blue-d)", padding: "2px 7px", borderRadius: 3 }}>{post.categories?.name}</span>
             <span style={{ fontFamily: "monospace", fontSize: ".7rem", color: "var(--t4)" }}>{post.ghost_id}</span>
+            <FollowButton ghostId={post.ghost_id} />
             {post.users?.trust_level && <RepBadge level={post.users.trust_level} />}
             <span style={{ fontFamily: "monospace", fontSize: ".65rem", color: "var(--t4)", marginLeft: "auto" }}>{timeAgo(post.created_at)}</span>
           </div>

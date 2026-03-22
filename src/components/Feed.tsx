@@ -1,5 +1,6 @@
 'use client'
 import { timeAgo } from '@/lib/time'
+import FollowButton from './FollowButton'
 import { useState } from 'react'
 import Compose from './Compose'
 import CategoryFilter from './CategoryFilter'
@@ -8,9 +9,11 @@ export default function Feed({ initialPosts, categories }: { initialPosts: any[]
   const [posts, setPosts] = useState<any[]>(initialPosts)
   const [loading, setLoading] = useState(false)
 
-  async function filterByCategory(categoryId: number | null) {
+  async function filterByCategory(categoryId: number | null | string) {
     setLoading(true)
-    const url = categoryId ? '/api/posts/feed?category=' + categoryId : '/api/posts/feed'
+    let url = '/api/posts/feed'
+    if (categoryId === 'following') url = '/api/posts/following'
+    else if (categoryId) url = '/api/posts/feed?category=' + categoryId
     const res = await fetch(url)
     const data = await res.json()
     setPosts(data.posts || [])
@@ -30,6 +33,7 @@ export default function Feed({ initialPosts, categories }: { initialPosts: any[]
             <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 10 }}>
               <span style={{ fontSize: '.6rem', fontWeight: 700, letterSpacing: '.06em', textTransform: 'uppercase', color: 'var(--blue)', background: 'var(--blue-d)', padding: '2px 7px', borderRadius: 3 }}>{post.categories?.name}</span>
               <span style={{ fontFamily: 'monospace', fontSize: '.7rem', color: 'var(--t4)' }}>{post.ghost_id}</span>
+              <FollowButton ghostId={post.ghost_id} />
               <span style={{ fontFamily: 'monospace', fontSize: '.65rem', color: 'var(--t4)', marginLeft: 'auto' }}>{timeAgo(post.created_at)}</span>
             </div>
             <h2 style={{ fontSize: '1rem', fontWeight: 700, color: 'var(--t1)', marginBottom: 6 }}>{post.title}</h2>
