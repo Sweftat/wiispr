@@ -22,6 +22,7 @@
   --rs: 6px;
   --rm: 12px;
 }
+
 [data-theme="dark"] {
   --bg: #09090B;
   --sur: #18181B;
@@ -51,6 +52,7 @@ body {
 a { text-decoration: none; color: inherit; }
 button { font-family: inherit; cursor: pointer; }
 input, textarea, select { font-family: inherit; }
+
 @media (max-width: 640px) {
   .feed-grid {
     grid-template-columns: 1fr !important;
@@ -58,4 +60,9 @@ input, textarea, select { font-family: inherit; }
   .feed-sidebar {
     display: none !important;
   }
+}
+
+.auto-dir {
+  unicode-bidi: plaintext;
+  text-align: start;
 }

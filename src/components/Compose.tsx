@@ -88,7 +88,7 @@ export default function Compose({ categories }: { categories: Category[] }) {
           </select>
           <input
             type="text"
-            placeholder="Title"
+            placeholder="Title" className="auto-dir"
             value={title}
             onChange={e => setTitle(e.target.value)}
             maxLength={200}
@@ -100,7 +100,7 @@ export default function Compose({ categories }: { categories: Category[] }) {
             }}
           />
           <textarea
-            placeholder="Add more detail… (optional)"
+            placeholder="Add more detail… (optional)" className="auto-dir"
             value={body}
             onChange={e => setBody(e.target.value)}
             rows={3}

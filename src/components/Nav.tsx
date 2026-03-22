@@ -46,6 +46,16 @@ export default function Nav() {
         <span style={{ width: 6, height: 6, background: 'var(--blue)', borderRadius: '50%', display: 'inline-block' }}></span>
         wiispr
       </Link>
+      <Link href="/search" style={{
+        fontSize: '.8rem', fontWeight: 500, color: 'var(--t3)',
+        display: 'flex', alignItems: 'center', gap: 5
+      }}>
+        <svg width="14" height="14" fill="none" viewBox="0 0 16 16">
+          <circle cx="6.5" cy="6.5" r="4" stroke="currentColor" strokeWidth="1.5"/>
+          <path d="M13 13l-3-3" stroke="currentColor" strokeWidth="1.75" strokeLinecap="round"/>
+        </svg>
+        Search
+      </Link>
       <span style={{ flex: 1 }}></span>
       <button onClick={toggleTheme} style={{
         display: 'flex', alignItems: 'center', justifyContent: 'center',
