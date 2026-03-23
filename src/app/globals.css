@@ -78,8 +78,10 @@
 }
 
 body {
- font-family: var(--font-geist-sans), system-ui, sans-serif;
-  background: var(--bg);
+  font-family: var(--font-geist-sans), system-ui, sans-serif;
+  background-color: var(--bg);
+  background-image: radial-gradient(circle, var(--bd2) 1.5px, transparent 1.5px);
+  background-size: 20px 20px;
   color: var(--t1);
   line-height: 1.6;
   -webkit-font-smoothing: antialiased;
@@ -101,4 +103,14 @@ input, textarea, select { font-family: inherit; }
 .auto-dir {
   unicode-bidi: plaintext;
   text-align: start;
+}
+
+.footer-link:hover { color: var(--t1) !important; }
+
+.post-card:hover {
+  border-color: #2563EB !important;
+}
+
+[data-theme="dark"] .post-card:hover {
+  border-color: #3F3F46 !important;
 }

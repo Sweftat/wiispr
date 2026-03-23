@@ -1,12 +1,19 @@
 'use client'
 import Link from 'next/link'
-import { useEffect, useState } from 'react'
+import { useEffect, useState, useRef } from 'react'
 import { Search, Moon, Sun, Bell, LogOut } from 'lucide-react'
+import { useRouter } from 'next/navigation'
 
 export default function Nav() {
+  const router = useRouter()
   const [user, setUser] = useState<{nickname: string} | null>(null)
   const [dark, setDark] = useState(false)
   const [unread, setUnread] = useState(0)
+  const [searchOpen, setSearchOpen] = useState(false)
+  const [searchQuery, setSearchQuery] = useState('')
+  const [results, setResults] = useState<any[]>([])
+  const searchRef = useRef<HTMLInputElement>(null)
+  const dropdownRef = useRef<HTMLDivElement>(null)
 
   useEffect(() => {
     fetch('/api/auth/session')
@@ -26,6 +33,35 @@ export default function Nav() {
     }
   }, [])
 
+  useEffect(() => {
+    if (searchOpen) searchRef.current?.focus()
+  }, [searchOpen])
+
+  useEffect(() => {
+    if (searchQuery.length >= 2) {
+      const timer = setTimeout(() => {
+        fetch('/api/posts/search?q=' + encodeURIComponent(searchQuery))
+          .then(r => r.json())
+          .then(d => setResults(d.posts?.slice(0, 5) || []))
+      }, 300)
+      return () => clearTimeout(timer)
+    } else {
+      setResults([])
+    }
+  }, [searchQuery])
+
+  useEffect(() => {
+    function handleClickOutside(e: MouseEvent) {
+      if (dropdownRef.current && !dropdownRef.current.contains(e.target as Node)) {
+        setSearchOpen(false)
+        setSearchQuery('')
+        setResults([])
+      }
+    }
+    document.addEventListener('mousedown', handleClickOutside)
+    return () => document.removeEventListener('mousedown', handleClickOutside)
+  }, [])
+
   async function signOut() {
     await fetch('/api/auth/session', { method: 'DELETE' })
     setUser(null)
@@ -39,6 +75,20 @@ export default function Nav() {
     localStorage.setItem('theme', isDark ? 'dark' : 'light')
   }
 
+  function handleKeyDown(e: React.KeyboardEvent) {
+    if (e.key === 'Enter' && searchQuery.trim().length >= 2) {
+      router.push('/search?q=' + encodeURIComponent(searchQuery.trim()))
+      setSearchOpen(false)
+      setSearchQuery('')
+      setResults([])
+    }
+    if (e.key === 'Escape') {
+      setSearchOpen(false)
+      setSearchQuery('')
+      setResults([])
+    }
+  }
+
   return (
     <nav style={{
       height: 52, background: 'var(--sur)', borderBottom: '1px solid var(--bd)',
@@ -48,20 +98,87 @@ export default function Nav() {
       <Link href="/" style={{
         fontFamily: 'Georgia, serif', fontStyle: 'italic', fontWeight: 700,
         fontSize: '1.0625rem', display: 'flex', alignItems: 'center', gap: 6, color: 'var(--t1)',
-        textDecoration: 'none', marginRight: 4
+        textDecoration: 'none', marginRight: 4, flexShrink: 0
       }}>
         <span style={{ width: 6, height: 6, background: 'var(--blue)', borderRadius: '50%', display: 'inline-block' }}></span>
         wiispr
       </Link>
 
-      <Link href="/search" style={{
-        fontSize: '.8rem', fontWeight: 500, color: 'var(--t3)',
-        display: 'flex', alignItems: 'center', gap: 5, textDecoration: 'none',
-        padding: '5px 10px', borderRadius: 'var(--r)'
-      }}>
-        <Search size={14} />
-        Search
-      </Link>
+      {/* Search icon + dropdown */}
+      <div ref={dropdownRef} style={{ position: 'relative' }}>
+        <button onClick={() => setSearchOpen(o => !o)} style={{
+          fontSize: '.8rem', fontWeight: 500, color: searchOpen ? 'var(--blue)' : 'var(--t3)',
+          display: 'flex', alignItems: 'center', gap: 5,
+          padding: '5px 10px', borderRadius: 'var(--r)',
+          background: 'none', border: 'none', cursor: 'pointer', fontFamily: 'inherit'
+        }}>
+          <Search size={14} />
+          Search
+        </button>
+
+        {searchOpen && (
+          <div style={{
+            position: 'absolute', top: 40, left: 0,
+            width: 340, background: 'var(--sur)',
+            border: '1px solid var(--bd)', borderRadius: 'var(--rm)',
+            boxShadow: '0 8px 24px rgba(0,0,0,.1)', zIndex: 200, overflow: 'hidden'
+          }}>
+            <div style={{ padding: '10px 12px', borderBottom: '1px solid var(--bd)' }}>
+              <div style={{ position: 'relative' }}>
+                <Search size={13} style={{ position: 'absolute', left: 10, top: '50%', transform: 'translateY(-50%)', color: 'var(--t4)', pointerEvents: 'none' }} />
+                <input
+                  ref={searchRef}
+                  type="text"
+                  placeholder="Search posts, topics..."
+                  value={searchQuery}
+                  onChange={e => setSearchQuery(e.target.value)}
+                  onKeyDown={handleKeyDown}
+                  style={{
+                    width: '100%', height: 34, paddingLeft: 30, paddingRight: 12,
+                    fontSize: '.8rem', color: 'var(--t1)',
+                    background: 'var(--bg)', border: '1px solid var(--bd)',
+                    borderRadius: 'var(--r)', outline: 'none', fontFamily: 'inherit'
+                  }}
+                />
+              </div>
+            </div>
+
+            {results.length > 0 && (
+              <div>
+                {results.map(post => (
+                  <a key={post.id} href={'/post/' + post.id}
+                    onClick={() => { setSearchOpen(false); setSearchQuery(''); setResults([]) }}
+                    style={{ display: 'block', padding: '10px 14px', borderBottom: '1px solid var(--bd)', textDecoration: 'none', color: 'inherit' }}
+                    onMouseEnter={e => (e.currentTarget.style.background = 'var(--bg)')}
+                    onMouseLeave={e => (e.currentTarget.style.background = 'none')}
+                  >
+                    <p style={{ fontSize: '.8rem', fontWeight: 600, color: 'var(--t1)', marginBottom: 2 }}>{post.title}</p>
+                    <p style={{ fontSize: '.7rem', color: 'var(--t4)' }}>{post.categories?.name} · {post.ghost_id}</p>
+                  </a>
+                ))}
+                <a href={'/search?q=' + encodeURIComponent(searchQuery)}
+                  onClick={() => { setSearchOpen(false); setSearchQuery(''); setResults([]) }}
+                  style={{ display: 'block', padding: '10px 14px', fontSize: '.75rem', color: 'var(--blue)', fontWeight: 600, textDecoration: 'none', textAlign: 'center' }}
+                >
+                  See all results →
+                </a>
+              </div>
+            )}
+
+            {searchQuery.length >= 2 && results.length === 0 && (
+              <div style={{ padding: '20px 14px', textAlign: 'center' }}>
+                <p style={{ fontSize: '.8rem', color: 'var(--t4)' }}>No results for "{searchQuery}"</p>
+              </div>
+            )}
+
+            {searchQuery.length < 2 && (
+              <div style={{ padding: '14px', textAlign: 'center' }}>
+                <p style={{ fontSize: '.75rem', color: 'var(--t4)' }}>Type to search posts</p>
+              </div>
+            )}
+          </div>
+        )}
+      </div>
 
       <span style={{ flex: 1 }}></span>
 
@@ -94,13 +211,11 @@ export default function Nav() {
               }}>{unread > 9 ? '9+' : unread}</span>
             )}
           </a>
-
           <a href="/profile" style={{
             fontSize: '.8rem', color: 'var(--t2)', fontWeight: 600,
             padding: '5px 10px', borderRadius: 'var(--r)',
-            border: '1px solid var(--bd)', textDecoration: 'none'
+            border: '1px solid var(--bd)', textDecoration: 'none', flexShrink: 0
           }}>{user.nickname}</a>
-
           <button onClick={signOut} style={{
             display: 'flex', alignItems: 'center',
             width: 32, height: 32, justifyContent: 'center',

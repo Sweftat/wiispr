@@ -1,6 +1,7 @@
 'use client'
 import { useState, useEffect } from 'react'
 import Nav from '@/components/Nav'
+import Footer from '@/components/Footer'
 import { timeAgo } from '@/lib/time'
 import { Bell, MessageCircle, ArrowUp, Users } from 'lucide-react'
 
@@ -33,9 +34,9 @@ export default function NotificationsPage() {
   }
 
   return (
-    <main style={{ minHeight: '100vh', background: 'var(--bg)' }}>
+    <main style={{ minHeight: '100vh', background: 'var(--bg)', display: 'flex', flexDirection: 'column' }}>
       <Nav />
-      <div style={{ maxWidth: 640, margin: '0 auto', padding: '20px' }}>
+      <div style={{ flex: 1, maxWidth: 640, margin: '0 auto', padding: '20px', width: '100%' }}>
         <h1 style={{ fontSize: '1.125rem', fontWeight: 700, color: 'var(--t1)', marginBottom: 16 }}>Notifications</h1>
 
         {loading && <p style={{ color: 'var(--t4)', fontSize: '.875rem' }}>Loading...</p>}
@@ -78,6 +79,7 @@ export default function NotificationsPage() {
           ))}
         </div>
       </div>
+      <Footer />
     </main>
   )
 }

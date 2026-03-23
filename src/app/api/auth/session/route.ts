@@ -6,16 +6,17 @@ export const dynamic = 'force-dynamic'
 export async function GET(req: NextRequest) {
   const userId = req.cookies.get('wiispr_user_id')?.value
   const nickname = req.cookies.get('wiispr_nickname')?.value
+  const gender = req.cookies.get('wiispr_gender')?.value
 
   if (!userId || !nickname) {
     return NextResponse.json({ user: null })
   }
 
-  return NextResponse.json({ user: { id: userId, nickname } })
+  return NextResponse.json({ user: { id: userId, nickname, gender } })
 }
 
 export async function POST(req: NextRequest) {
-  const { userId, nickname } = await req.json()
+  const { userId, nickname, gender } = await req.json()
 
   const response = NextResponse.json({ success: true })
 
@@ -33,6 +34,15 @@ export async function POST(req: NextRequest) {
     maxAge: 60 * 60 * 24 * 30
   })
 
+  if (gender) {
+    response.cookies.set('wiispr_gender', gender, {
+      httpOnly: true,
+      secure: process.env.NODE_ENV === 'production',
+      sameSite: 'lax',
+      maxAge: 60 * 60 * 24 * 30
+    })
+  }
+
   return response
 }
 
@@ -40,8 +50,10 @@ export async function DELETE() {
   const response = NextResponse.json({ success: true })
   response.cookies.delete('wiispr_user_id')
   response.cookies.delete('wiispr_nickname')
+  response.cookies.delete('wiispr_gender')
   return response
 }
+
 export async function PATCH(req: NextRequest) {
   const supabase = createClient(
     process.env.NEXT_PUBLIC_SUPABASE_URL!,
@@ -49,8 +61,35 @@ export async function PATCH(req: NextRequest) {
   )
   const userId = req.cookies.get('wiispr_user_id')?.value
   if (!userId) return NextResponse.json({ error: 'Not logged in' }, { status: 401 })
-  const { nickname } = await req.json()
-  if (!nickname || nickname.length < 3) return NextResponse.json({ error: 'Invalid nickname' }, { status: 400 })
-  await supabase.from('users').update({ nickname }).eq('id', userId)
-  return NextResponse.json({ success: true })
+
+  const body = await req.json()
+  const updates: any = {}
+
+  if (body.nickname) {
+    if (body.nickname.length < 3) return NextResponse.json({ error: 'Invalid nickname' }, { status: 400 })
+    updates.nickname = body.nickname
+  }
+
+  if (body.ageRange) {
+    updates.age_range = body.ageRange
+  }
+
+  if (Object.keys(updates).length === 0) {
+    return NextResponse.json({ error: 'Nothing to update' }, { status: 400 })
+  }
+
+  await supabase.from('users').update(updates).eq('id', userId)
+
+  const response = NextResponse.json({ success: true })
+
+  if (body.nickname) {
+    response.cookies.set('wiispr_nickname', body.nickname, {
+      httpOnly: true,
+      secure: process.env.NODE_ENV === 'production',
+      sameSite: 'lax',
+      maxAge: 60 * 60 * 24 * 30
+    })
+  }
+
+  return response
 }

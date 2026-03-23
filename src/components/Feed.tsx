@@ -5,7 +5,26 @@ import FollowButton from './FollowButton'
 import PostPanel from './PostPanel'
 import CategoryFilter from './CategoryFilter'
 import Compose from './Compose'
-import { ArrowUp, MessageCircle } from 'lucide-react'
+import { ArrowUp, MessageCircle, Ghost } from 'lucide-react'
+
+function Skeleton() {
+  return (
+    <div style={{ background: 'var(--sur)', border: '1px solid var(--bd)', borderRadius: 'var(--rm)', padding: '16px 18px', marginBottom: 10 }}>
+      <style>{`@keyframes pulse { 0%,100%{opacity:1} 50%{opacity:.35} }`}</style>
+      <div style={{ display: 'flex', gap: 8, marginBottom: 12, alignItems: 'center' }}>
+        <div style={{ width: 64, height: 16, borderRadius: 4, background: 'var(--bd)', animation: 'pulse 1.5s ease-in-out infinite' }} />
+        <div style={{ width: 80, height: 14, borderRadius: 4, background: 'var(--bd)', animation: 'pulse 1.5s ease-in-out infinite .2s' }} />
+      </div>
+      <div style={{ width: '70%', height: 18, borderRadius: 4, background: 'var(--bd)', marginBottom: 10, animation: 'pulse 1.5s ease-in-out infinite .1s' }} />
+      <div style={{ width: '100%', height: 13, borderRadius: 4, background: 'var(--bd)', marginBottom: 6, animation: 'pulse 1.5s ease-in-out infinite .15s' }} />
+      <div style={{ width: '55%', height: 13, borderRadius: 4, background: 'var(--bd)', marginBottom: 14, animation: 'pulse 1.5s ease-in-out infinite .25s' }} />
+      <div style={{ display: 'flex', gap: 6, paddingTop: 10, borderTop: '1px solid var(--bd)' }}>
+        <div style={{ width: 48, height: 26, borderRadius: 'var(--rs)', background: 'var(--bd)', animation: 'pulse 1.5s ease-in-out infinite' }} />
+        <div style={{ width: 64, height: 26, borderRadius: 'var(--rs)', background: 'var(--bd)', animation: 'pulse 1.5s ease-in-out infinite .1s' }} />
+      </div>
+    </div>
+  )
+}
 
 export default function Feed({ initialPosts, categories }: { initialPosts: any[], categories: any[] }) {
   const [posts, setPosts] = useState<any[]>(initialPosts)
@@ -38,17 +57,21 @@ export default function Feed({ initialPosts, categories }: { initialPosts: any[]
     <div style={{ position: 'relative' }}>
       <Compose categories={categories} />
       <CategoryFilter categories={categories} onSelect={filterByCategory} />
-      {loading && <p style={{ fontSize: '.875rem', color: 'var(--t4)', textAlign: 'center', padding: '20px 0' }}>Loading...</p>}
-      {!loading && posts.length > 0 ? posts.map((post: any) => (
-        <div key={post.id} style={{
+
+      {loading && (
+        <>
+          <Skeleton />
+          <Skeleton />
+          <Skeleton />
+        </>
+      )}
+
+      {!loading && posts.length > 0 && posts.map((post: any) => (
+        <div key={post.id} className="post-card" style={{
           background: 'var(--sur)', border: '1px solid var(--bd)',
           borderRadius: 'var(--rm)', padding: '16px 18px', marginBottom: 10,
-          cursor: 'pointer', transition: 'border-color .15s',
-        }}
-          onClick={() => openPost(post)}
-          onMouseEnter={e => (e.currentTarget.style.borderColor = 'var(--bd2)')}
-          onMouseLeave={e => (e.currentTarget.style.borderColor = 'var(--bd)')}
-        >
+          cursor: 'pointer', transition: 'all .15s',
+        }} onClick={() => openPost(post)}>
           <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 10 }}>
             <span style={{
               fontSize: '.6rem', fontWeight: 700, letterSpacing: '.06em',
@@ -94,10 +117,14 @@ export default function Feed({ initialPosts, categories }: { initialPosts: any[]
             </button>
           </div>
         </div>
-      )) : !loading && (
-        <div style={{ background: 'var(--sur)', border: '1px solid var(--bd)', borderRadius: 'var(--rm)', padding: '48px 24px', textAlign: 'center' }}>
-          <p style={{ fontSize: '1rem', fontWeight: 700, color: 'var(--t1)', marginBottom: 6 }}>Nothing here yet</p>
-          <p style={{ fontSize: '.875rem', color: 'var(--t3)' }}>Be the first to wiispr.</p>
+      ))}
+
+      {!loading && posts.length === 0 && (
+        <div style={{ background: 'var(--sur)', border: '1px solid var(--bd)', borderRadius: 'var(--rm)', padding: '56px 24px', textAlign: 'center' }}>
+          <Ghost size={36} style={{ color: 'var(--t4)', margin: '0 auto 16px' }} />
+          <p style={{ fontSize: '1rem', fontWeight: 700, color: 'var(--t1)', marginBottom: 8 }}>Nothing here yet</p>
+          <p style={{ fontSize: '.875rem', color: 'var(--t3)', marginBottom: 20 }}>Be the first to wiispr something honest.</p>
+          <a href="/auth" style={{ fontSize: '.8rem', fontWeight: 600, padding: '8px 18px', borderRadius: 'var(--r)', background: 'var(--blue)', color: '#fff', textDecoration: 'none' }}>Join free</a>
         </div>
       )}
 

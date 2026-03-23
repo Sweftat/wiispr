@@ -13,9 +13,30 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "wiispr — Say what you actually think",
-  description: "Anonymous. Honest. Built for Saudi Arabia.",
-};
+  title: {
+    default: 'wiispr — Say what you actually think',
+    template: '%s — wiispr'
+  },
+  description: 'An anonymous forum built for Saudi Arabia. Share your thoughts honestly with a Ghost ID. No name, no face, just your voice.',
+  keywords: ['anonymous forum', 'saudi arabia', 'wiispr', 'anonymous posts', 'ghost id'],
+  openGraph: {
+    title: 'wiispr — Say what you actually think',
+    description: 'Anonymous. Honest. Built for Saudi Arabia.',
+    url: 'https://wiispr.vercel.app',
+    siteName: 'wiispr',
+    locale: 'en_US',
+    type: 'website',
+  },
+  twitter: {
+    card: 'summary',
+    title: 'wiispr — Say what you actually think',
+    description: 'Anonymous. Honest. Built for Saudi Arabia.',
+  },
+  robots: {
+    index: true,
+    follow: true,
+  }
+}
 
 export default function RootLayout({
   children,

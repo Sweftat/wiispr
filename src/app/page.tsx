@@ -1,6 +1,7 @@
 import Nav from '@/components/Nav'
 import Feed from '@/components/Feed'
 import SidebarCategories from '@/components/SidebarCategories'
+import Footer from '@/components/Footer'
 import { createClient } from '@supabase/supabase-js'
 
 export const dynamic = 'force-dynamic'
@@ -11,9 +12,9 @@ export default async function Home() {
   const { data: posts } = await supabase.from('posts').select('*, categories(name, slug), users(trust_level)').eq('is_deleted', false).eq('is_blurred', false).order('created_at', { ascending: false }).limit(20)
 
   return (
-    <main style={{ minHeight: '100vh', background: 'var(--bg)' }}>
+    <main style={{ minHeight: '100vh', background: 'var(--bg)', display: 'flex', flexDirection: 'column' }}>
       <Nav />
-      <div style={{ maxWidth: 960, margin: '0 auto', padding: '20px' }}>
+      <div style={{ flex: 1, maxWidth: 960, margin: '0 auto', padding: '20px', width: '100%' }}>
         <div className="feed-grid" style={{ display: 'grid', gridTemplateColumns: '1fr 280px', gap: 20 }}>
           <div>
             <Feed initialPosts={posts || []} categories={categories || []} />
@@ -24,6 +25,7 @@ export default async function Home() {
           </div>
         </div>
       </div>
+      <Footer />
     </main>
   )
 }

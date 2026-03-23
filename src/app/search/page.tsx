@@ -1,6 +1,7 @@
 'use client'
 import { useState } from 'react'
 import Nav from '@/components/Nav'
+import Footer from '@/components/Footer'
 import { timeAgo } from '@/lib/time'
 import { Search, ArrowUp, MessageCircle, Ghost, SearchX } from 'lucide-react'
 
@@ -21,11 +22,10 @@ export default function SearchPage() {
   }
 
   return (
-    <main style={{ minHeight: '100vh', background: 'var(--bg)' }}>
+    <main style={{ minHeight: '100vh', background: 'var(--bg)', display: 'flex', flexDirection: 'column' }}>
       <Nav />
-      <div style={{ maxWidth: 680, margin: '0 auto', padding: '20px' }}>
+      <div style={{ flex: 1, maxWidth: 680, margin: '0 auto', padding: '20px', width: '100%' }}>
 
-        {/* Search bar */}
         <div style={{ display: 'flex', gap: 8, marginBottom: 24 }}>
           <div style={{ flex: 1, position: 'relative' }}>
             <Search size={15} style={{ position: 'absolute', left: 12, top: '50%', transform: 'translateY(-50%)', color: 'var(--t4)', pointerEvents: 'none' }} />
@@ -62,7 +62,6 @@ export default function SearchPage() {
           </button>
         </div>
 
-        {/* No results */}
         {!loading && searched && posts.length === 0 && (
           <div style={{ background: 'var(--sur)', border: '1px solid var(--bd)', borderRadius: 'var(--rm)', padding: '48px 24px', textAlign: 'center' }}>
             <SearchX size={28} style={{ color: 'var(--t4)', margin: '0 auto 12px' }} />
@@ -71,7 +70,6 @@ export default function SearchPage() {
           </div>
         )}
 
-        {/* Results */}
         {!loading && posts.map(post => (
           <a key={post.id} href={'/post/' + post.id} style={{ display: 'block', textDecoration: 'none', color: 'inherit', marginBottom: 10 }}>
             <div style={{
@@ -90,8 +88,8 @@ export default function SearchPage() {
                 </span>
                 <span style={{ fontFamily: 'monospace', fontSize: '.65rem', color: 'var(--t4)', marginLeft: 'auto' }}>{timeAgo(post.created_at)}</span>
               </div>
-              <h2 style={{ fontSize: '1rem', fontWeight: 700, color: 'var(--t1)', marginBottom: 6 }}>{post.title}</h2>
-              {post.body && <p style={{ fontSize: '.875rem', color: 'var(--t2)', lineHeight: 1.7, marginBottom: 12 }}>{post.body}</p>}
+              <h2 className="auto-dir" style={{ fontSize: '1rem', fontWeight: 700, color: 'var(--t1)', marginBottom: 6 }}>{post.title}</h2>
+              {post.body && <p className="auto-dir" style={{ fontSize: '.875rem', color: 'var(--t2)', lineHeight: 1.7, marginBottom: 12 }}>{post.body}</p>}
               <div style={{ display: 'flex', gap: 6, paddingTop: 10, borderTop: '1px solid var(--bd)' }}>
                 <span style={{ fontSize: '.75rem', color: 'var(--t3)', display: 'flex', alignItems: 'center', gap: 4 }}>
                   <ArrowUp size={12} /> {post.upvotes}
@@ -104,6 +102,7 @@ export default function SearchPage() {
           </a>
         ))}
       </div>
+      <Footer />
     </main>
   )
 }
