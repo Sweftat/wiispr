@@ -8,7 +8,6 @@ export default function AdminAnalytics({ stats, postsPerDay, usersPerDay, catego
   usersPerDay: any[]
   categoryStats: any[]
 }) {
-  // Process category stats
   const catCounts: Record<string, number> = {}
   categoryStats.forEach((p: any) => {
     const name = p.categories?.name || 'Unknown'
@@ -18,7 +17,6 @@ export default function AdminAnalytics({ stats, postsPerDay, usersPerDay, catego
     .map(([name, value]) => ({ name, value }))
     .sort((a, b) => b.value - a.value)
 
-  // Format dates for charts
   const postsChart = postsPerDay.map(d => ({
     date: new Date(d.date).toLocaleDateString('en-US', { month: 'short', day: 'numeric' }),
     posts: Number(d.count)
@@ -37,12 +35,26 @@ export default function AdminAnalytics({ stats, postsPerDay, usersPerDay, catego
     { label: 'Total Reports', value: stats.totalReports, icon: Flag, color: 'var(--rose)', bg: 'var(--rose-d)' },
   ]
 
+  const reportRate = stats.totalPosts > 0
+    ? ((stats.totalReports / stats.totalPosts) * 100).toFixed(1)
+    : '0'
+
+  const avgPostsPerDay = postsChart.length > 0
+    ? (postsChart.reduce((a, b) => a + b.posts, 0) / postsChart.length).toFixed(1)
+    : '0'
+
+  const derived = [
+    { label: 'Posts per user', value: stats.totalUsers > 0 ? (stats.totalPosts / stats.totalUsers).toFixed(1) : '0' },
+    { label: 'Report rate', value: reportRate + '%' },
+    { label: 'Avg posts/day', value: avgPostsPerDay },
+    { label: 'Active categories', value: String(catData.length) },
+  ]
+
   return (
     <div>
       <h1 style={{ fontSize: '1.25rem', fontWeight: 800, color: 'var(--t1)', marginBottom: 4 }}>Analytics</h1>
       <p style={{ fontSize: '.875rem', color: 'var(--t3)', marginBottom: 24 }}>Platform performance over the last 30 days.</p>
 
-      {/* Stat cards */}
       <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 12, marginBottom: 20 }}>
         {statCards.map(c => {
           const Icon = c.icon
@@ -60,7 +72,6 @@ export default function AdminAnalytics({ stats, postsPerDay, usersPerDay, catego
         })}
       </div>
 
-      {/* Posts per day chart */}
       <div style={{ background: 'var(--sur)', border: '1px solid var(--bd)', borderRadius: 'var(--rm)', padding: '20px', marginBottom: 16 }}>
         <h2 style={{ fontSize: '.9rem', fontWeight: 700, color: 'var(--t1)', marginBottom: 18 }}>Posts per day (last 30 days)</h2>
         {postsChart.length > 0 ? (
@@ -84,7 +95,6 @@ export default function AdminAnalytics({ stats, postsPerDay, usersPerDay, catego
         )}
       </div>
 
-      {/* Users per day chart */}
       <div style={{ background: 'var(--sur)', border: '1px solid var(--bd)', borderRadius: 'var(--rm)', padding: '20px', marginBottom: 16 }}>
         <h2 style={{ fontSize: '.9rem', fontWeight: 700, color: 'var(--t1)', marginBottom: 18 }}>New users per day (last 30 days)</h2>
         {usersChart.length > 0 ? (
@@ -102,7 +112,6 @@ export default function AdminAnalytics({ stats, postsPerDay, usersPerDay, catego
         )}
       </div>
 
-      {/* Category breakdown */}
       <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 16, marginBottom: 16 }}>
         <div style={{ background: 'var(--sur)', border: '1px solid var(--bd)', borderRadius: 'var(--rm)', padding: '20px' }}>
           <h2 style={{ fontSize: '.9rem', fontWeight: 700, color: 'var(--t1)', marginBottom: 18 }}>Posts by category</h2>
@@ -125,6 +134,14 @@ export default function AdminAnalytics({ stats, postsPerDay, usersPerDay, catego
 
         <div style={{ background: 'var(--sur)', border: '1px solid var(--bd)', borderRadius: 'var(--rm)', padding: '20px' }}>
           <h2 style={{ fontSize: '.9rem', fontWeight: 700, color: 'var(--t1)', marginBottom: 16 }}>Derived metrics</h2>
-          {[
-            { label: 'Posts per user', value: stats.totalUsers > 0 ? (stats.totalPosts / stats.totalUsers).toFixed(1) : '0' },
-            { label: 'Report rate', value: stats.totalPosts > 0 ? ((stats.totalReports / stats.totalPosts) * 100).toFixed(1) + '
+          {derived.map(s => (
+            <div key={s.label} style={{ display: 'flex', justifyContent: 'space-between', padding: '10px 0', borderBottom: '1px solid var(--bd)' }}>
+              <span style={{ fontSize: '.8rem', color: 'var(--t3)' }}>{s.label}</span>
+              <span style={{ fontSize: '.875rem', fontWeight: 700, color: 'var(--t1)' }}>{s.value}</span>
+            </div>
+          ))}
+        </div>
+      </div>
+    </div>
+  )
+}

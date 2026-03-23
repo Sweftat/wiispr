@@ -67,6 +67,17 @@ export default async function AdminPage() {
     .order('created_at', { ascending: false })
     .limit(7)
 
+  const { data: postsPerDay } = await supabase
+    .rpc('get_posts_per_day', { days_back: 30 })
+
+  const { data: usersPerDay } = await supabase
+    .rpc('get_users_per_day', { days_back: 30 })
+
+  const { data: categoryStats } = await supabase
+    .from('posts')
+    .select('categories(name)')
+    .eq('is_deleted', false)
+
   return (
     <AdminShell
       admin={user}
@@ -75,6 +86,9 @@ export default async function AdminPage() {
       activityLogs={activityLogs || []}
       categories={categories || []}
       recentPosts={recentPosts || []}
+      postsPerDay={postsPerDay || []}
+      usersPerDay={usersPerDay || []}
+      categoryStats={categoryStats || []}
       stats={{ totalPosts: totalPosts || 0, totalUsers: totalUsers || 0, totalReports: totalReports || 0 }}
     />
   )
