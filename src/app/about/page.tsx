@@ -1,8 +1,9 @@
 import Nav from '@/components/Nav'
+import Footer from '@/components/Footer'
 export const metadata = { title: 'About — wiispr' }
 export default function AboutPage() {
   return (
-    <main style={{ minHeight: '100vh', background: 'var(--bg)' }}>
+    <main style={{ minHeight: '100vh', background: 'var(--bg)', display: 'flex', flexDirection: 'column' }}>
       <Nav />
       <div style={{ maxWidth: 680, margin: '0 auto', padding: '40px 20px' }}>
         <div style={{ marginBottom: 40 }}>
@@ -25,6 +26,7 @@ export default function AboutPage() {
         ))}
         <p style={{ fontSize: '.875rem', color: 'var(--t4)', marginTop: 40 }}>Made in Saudi Arabia 🇸🇦</p>
       </div>
+      <Footer />
     </main>
   )
 }

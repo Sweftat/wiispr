@@ -1,5 +1,5 @@
 'use client'
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import Nav from '@/components/Nav'
 import Footer from '@/components/Footer'
 import { timeAgo } from '@/lib/time'
@@ -10,6 +10,18 @@ export default function SearchPage() {
   const [posts, setPosts] = useState<any[]>([])
   const [loading, setLoading] = useState(false)
   const [searched, setSearched] = useState(false)
+
+  useEffect(() => {
+    const q = new URLSearchParams(window.location.search).get('q')
+    if (q && q.length >= 2) {
+      setQuery(q)
+      setLoading(true)
+      setSearched(true)
+      fetch('/api/posts/search?q=' + encodeURIComponent(q))
+        .then(r => r.json())
+        .then(d => { setPosts(d.posts || []); setLoading(false) })
+    }
+  }, [])
 
   async function search() {
     if (!query.trim() || query.length < 2) return
@@ -72,14 +84,11 @@ export default function SearchPage() {
 
         {!loading && posts.map(post => (
           <a key={post.id} href={'/post/' + post.id} style={{ display: 'block', textDecoration: 'none', color: 'inherit', marginBottom: 10 }}>
-            <div style={{
+            <div className="post-card" style={{
               background: 'var(--sur)', border: '1px solid var(--bd)',
               borderRadius: 'var(--rm)', padding: '16px 18px', cursor: 'pointer',
-              transition: 'border-color .15s'
-            }}
-              onMouseEnter={e => (e.currentTarget.style.borderColor = 'var(--bd2)')}
-              onMouseLeave={e => (e.currentTarget.style.borderColor = 'var(--bd)')}
-            >
+              transition: 'all .15s'
+            }}>
               <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 10 }}>
                 <span style={{ fontSize: '.6rem', fontWeight: 700, letterSpacing: '.06em', textTransform: 'uppercase', color: 'var(--blue)', background: 'var(--blue-d)', padding: '2px 7px', borderRadius: 3 }}>{post.categories?.name}</span>
                 <span style={{ fontFamily: 'monospace', fontSize: '.7rem', color: 'var(--t4)', display: 'flex', alignItems: 'center', gap: 3 }}>

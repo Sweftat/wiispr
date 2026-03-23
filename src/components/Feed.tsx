@@ -1,5 +1,5 @@
 'use client'
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { timeAgo } from '@/lib/time'
 import FollowButton from './FollowButton'
 import PostPanel from './PostPanel'
@@ -43,6 +43,14 @@ export default function Feed({ initialPosts, categories }: { initialPosts: any[]
     setPosts(data.posts || [])
     setLoading(false)
   }
+
+  useEffect(() => {
+    function handleSidebarSelect(e: CustomEvent) {
+      filterByCategory(e.detail)
+    }
+    window.addEventListener('sidebarCategorySelect', handleSidebarSelect as EventListener)
+    return () => window.removeEventListener('sidebarCategorySelect', handleSidebarSelect as EventListener)
+  }, [])
 
   function openPost(post: any) {
     setActivePost(post)

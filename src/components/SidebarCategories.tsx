@@ -6,6 +6,7 @@ import { ShieldX } from 'lucide-react'
 export default function SidebarCategories({ categories }: { categories: any[] }) {
   const [gender, setGender] = useState<string | null>(null)
   const [showGate, setShowGate] = useState(false)
+  const [selected, setSelected] = useState<number | null>(null)
 
   useEffect(() => {
     fetch('/api/auth/session')
@@ -18,6 +19,8 @@ export default function SidebarCategories({ categories }: { categories: any[] })
       setShowGate(true)
       return
     }
+    setSelected(cat.id)
+    window.dispatchEvent(new CustomEvent('sidebarCategorySelect', { detail: cat.id }))
   }
 
   return (
@@ -27,12 +30,18 @@ export default function SidebarCategories({ categories }: { categories: any[] })
           <div
             key={cat.id}
             onClick={() => handleClick(cat)}
-            style={{ display: 'flex', alignItems: 'center', gap: 10, padding: '10px 14px', borderBottom: i < categories.length - 1 ? '1px solid var(--bd)' : 'none', cursor: 'pointer', transition: 'background .15s' }}
-            onMouseEnter={e => (e.currentTarget.style.background = 'var(--bg)')}
-            onMouseLeave={e => (e.currentTarget.style.background = 'none')}
+            style={{
+              display: 'flex', alignItems: 'center', gap: 10, padding: '10px 14px',
+              borderBottom: i < categories.length - 1 ? '1px solid var(--bd)' : 'none',
+              cursor: 'pointer', transition: 'background .15s',
+              background: selected === cat.id ? 'var(--blue-d)' : 'none',
+              borderLeft: selected === cat.id ? '2px solid var(--blue)' : '2px solid transparent'
+            }}
+            onMouseEnter={e => { if (selected !== cat.id) e.currentTarget.style.background = 'var(--bg)' }}
+            onMouseLeave={e => { if (selected !== cat.id) e.currentTarget.style.background = 'none' }}
           >
             <CategoryIcon slug={cat.icon} />
-            <span style={{ fontSize: '.8375rem', color: 'var(--t2)', fontWeight: 500 }}>{cat.name}</span>
+            <span style={{ fontSize: '.8375rem', color: selected === cat.id ? 'var(--blue)' : 'var(--t2)', fontWeight: selected === cat.id ? 600 : 500 }}>{cat.name}</span>
             {cat.women_only && <span style={{ marginLeft: 'auto', fontSize: '.55rem', fontWeight: 700, color: 'var(--rose)', background: 'var(--rose-d)', padding: '1px 5px', borderRadius: 3 }}>Women</span>}
           </div>
         ))}

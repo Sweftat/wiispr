@@ -1,8 +1,9 @@
 import Nav from '@/components/Nav'
+import Footer from '@/components/Footer'
 export const metadata = { title: 'Terms of Service — wiispr' }
 export default function TermsPage() {
   return (
-    <main style={{ minHeight: '100vh', background: 'var(--bg)' }}>
+    <main style={{ minHeight: '100vh', background: 'var(--bg)', display: 'flex', flexDirection: 'column' }}>
       <Nav />
       <div style={{ maxWidth: 680, margin: '0 auto', padding: '40px 20px' }}>
         <h1 style={{ fontSize: '1.5rem', fontWeight: 800, color: 'var(--t1)', marginBottom: 8 }}>Terms of Service</h1>
@@ -23,6 +24,7 @@ export default function TermsPage() {
           </div>
         ))}
       </div>
+      <Footer />
     </main>
   )
 }
