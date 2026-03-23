@@ -5,6 +5,7 @@ import FollowButton from './FollowButton'
 import PostPanel from './PostPanel'
 import CategoryFilter from './CategoryFilter'
 import Compose from './Compose'
+import ShareButton from './ShareButton'
 import { ArrowUp, MessageCircle, Ghost } from 'lucide-react'
 
 function Skeleton() {
@@ -96,7 +97,7 @@ export default function Feed({ initialPosts, categories }: { initialPosts: any[]
           </div>
           <h2 className="auto-dir" style={{ fontSize: '1rem', fontWeight: 700, color: 'var(--t1)', marginBottom: 6 }}>{post.title}</h2>
           {post.body && <p className="auto-dir" style={{ fontSize: '.875rem', color: 'var(--t2)', lineHeight: 1.7, marginBottom: 12 }}>{post.body}</p>}
-          <div style={{ display: 'flex', gap: 6, paddingTop: 10, borderTop: '1px solid var(--bd)' }}>
+          <div style={{ display: 'flex', gap: 6, paddingTop: 10, borderTop: '1px solid var(--bd)', alignItems: 'center' }}>
             <button style={{
               fontSize: '.75rem', fontWeight: 600, padding: '5px 10px',
               borderRadius: 'var(--rs)', border: '1px solid var(--bd)',
@@ -115,6 +116,9 @@ export default function Feed({ initialPosts, categories }: { initialPosts: any[]
               <MessageCircle size={12} />
               {post.reply_count}
             </button>
+            <span style={{ marginLeft: 'auto' }} onClick={e => e.stopPropagation()}>
+              <ShareButton postId={post.id} />
+            </span>
           </div>
         </div>
       ))}

@@ -5,11 +5,25 @@ import { Share2, Check } from 'lucide-react'
 export default function ShareButton({ postId }: { postId: string }) {
   const [copied, setCopied] = useState(false)
 
-  function share() {
+  async function share() {
     const url = window.location.origin + '/post/' + postId
-    navigator.clipboard.writeText(url)
-    setCopied(true)
-    setTimeout(() => setCopied(false), 2000)
+
+    if (navigator.share) {
+      try {
+        await navigator.share({
+          title: 'wiispr',
+          text: 'Check this out on wiispr',
+          url
+        })
+      } catch (e) {
+        // user cancelled — do nothing
+      }
+    } else {
+      // fallback — copy to clipboard
+      navigator.clipboard.writeText(url)
+      setCopied(true)
+      setTimeout(() => setCopied(false), 2000)
+    }
   }
 
   return (
