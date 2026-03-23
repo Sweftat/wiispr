@@ -1,7 +1,6 @@
 'use client'
 import { useState } from 'react'
-import { LayoutDashboard, Flag, Users, Activity, Layers, BarChart2, Settings, LogOut, ChevronRight, Menu } from 'lucide-react'
-import { Badge } from '@/components/ui/badge'
+import { LayoutDashboard, Flag, Users, Activity, Layers, BarChart2, Settings, LogOut, ChevronRight, Menu, Megaphone } from 'lucide-react'
 import AdminOverview from './AdminOverview'
 import AdminFlagged from './AdminFlagged'
 import AdminUsers from './AdminUsers'
@@ -9,6 +8,7 @@ import AdminLogs from './AdminLogs'
 import AdminCategories from './AdminCategories'
 import AdminAnalytics from './AdminAnalytics'
 import AdminSettings from './AdminSettings'
+import AdminAnnouncements from './AdminAnnouncements'
 
 const navItems = [
   { id: 'overview', label: 'Overview', icon: LayoutDashboard },
@@ -16,6 +16,7 @@ const navItems = [
   { id: 'users', label: 'Users', icon: Users },
   { id: 'logs', label: 'Activity Logs', icon: Activity },
   { id: 'categories', label: 'Categories', icon: Layers },
+  { id: 'announcements', label: 'Announcements', icon: Megaphone },
   { id: 'analytics', label: 'Analytics', icon: BarChart2 },
   { id: 'settings', label: 'Site Settings', icon: Settings },
 ]
@@ -162,6 +163,7 @@ export default function AdminShell({ admin, flaggedPosts, allUsers, activityLogs
           {active === 'users' && <AdminUsers initialUsers={allUsers} />}
           {active === 'logs' && <AdminLogs logs={activityLogs} />}
           {active === 'categories' && <AdminCategories initialCategories={categories} />}
+          {active === 'announcements' && <AdminAnnouncements />}
           {active === 'analytics' && <AdminAnalytics stats={stats} />}
           {active === 'settings' && <AdminSettings />}
         </main>

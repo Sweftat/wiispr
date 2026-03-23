@@ -2,6 +2,7 @@ import Nav from '@/components/Nav'
 import Feed from '@/components/Feed'
 import SidebarCategories from '@/components/SidebarCategories'
 import Footer from '@/components/Footer'
+import AnnouncementBanner from '@/components/AnnouncementBanner'
 import { createClient } from '@supabase/supabase-js'
 
 export const dynamic = 'force-dynamic'
@@ -14,6 +15,7 @@ export default async function Home() {
   return (
     <main style={{ minHeight: '100vh', background: 'var(--bg)', display: 'flex', flexDirection: 'column' }}>
       <Nav />
+      <AnnouncementBanner />
       <div style={{ flex: 1, maxWidth: 960, margin: '0 auto', padding: '20px', width: '100%' }}>
         <div className="feed-grid" style={{ display: 'grid', gridTemplateColumns: '1fr 280px', gap: 20 }}>
           <div>
