@@ -1,42 +1,84 @@
-export default function AdminAnalytics({ stats }: { stats: { totalPosts: number, totalUsers: number, totalReports: number } }) {
+'use client'
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
+import { Badge } from '@/components/ui/badge'
+import { FileText, Users, Flag, TrendingUp } from 'lucide-react'
+
+export default function AdminAnalytics({ stats }: {
+  stats: { totalPosts: number, totalUsers: number, totalReports: number }
+}) {
+  const max = Math.max(stats.totalPosts, stats.totalUsers, stats.totalReports, 1)
+
   const bars = [
-    { label: 'Posts', value: stats.totalPosts, color: 'var(--blue)', max: Math.max(stats.totalPosts, stats.totalUsers, stats.totalReports, 1) },
-    { label: 'Users', value: stats.totalUsers, color: 'var(--grn)', max: Math.max(stats.totalPosts, stats.totalUsers, stats.totalReports, 1) },
-    { label: 'Reports', value: stats.totalReports, color: 'var(--rose)', max: Math.max(stats.totalPosts, stats.totalUsers, stats.totalReports, 1) },
+    { label: 'Total Posts', value: stats.totalPosts, color: 'bg-blue-500', icon: FileText, textColor: 'text-blue-600', bg: 'bg-blue-50' },
+    { label: 'Total Users', value: stats.totalUsers, color: 'bg-green-500', icon: Users, textColor: 'text-green-600', bg: 'bg-green-50' },
+    { label: 'Total Reports', value: stats.totalReports, color: 'bg-red-500', icon: Flag, textColor: 'text-red-600', bg: 'bg-red-50' },
+  ]
+
+  const derived = [
+    { label: 'Posts per user', value: stats.totalUsers > 0 ? (stats.totalPosts / stats.totalUsers).toFixed(1) : '0' },
+    { label: 'Report rate', value: stats.totalPosts > 0 ? ((stats.totalReports / stats.totalPosts) * 100).toFixed(1) + '%' : '0%' },
+    { label: 'Active categories', value: '8' },
   ]
 
   return (
-    <div>
-      <h1 style={{ fontSize: '1.25rem', fontWeight: 800, color: 'var(--t1)', marginBottom: 4 }}>Analytics</h1>
-      <p style={{ fontSize: '.875rem', color: 'var(--t3)', marginBottom: 24 }}>Platform stats at a glance.</p>
+    <div className="space-y-6">
+      <div>
+        <h1 className="text-2xl font-bold text-foreground">Analytics</h1>
+        <p className="text-sm text-muted-foreground mt-1">Platform stats at a glance.</p>
+      </div>
 
-      <div style={{ background: 'var(--sur)', border: '1px solid var(--bd)', borderRadius: 'var(--rm)', padding: '24px', marginBottom: 16 }}>
-        <h2 style={{ fontSize: '.9375rem', fontWeight: 700, color: 'var(--t1)', marginBottom: 20 }}>Platform Overview</h2>
-        <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
+      {/* Stat cards */}
+      <div className="grid grid-cols-3 gap-4">
+        {bars.map(b => {
+          const Icon = b.icon
+          return (
+            <Card key={b.label}>
+              <CardContent className="p-5">
+                <div className="flex items-center justify-between mb-3">
+                  <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">{b.label}</p>
+                  <div className={`w-8 h-8 rounded-lg ${b.bg} flex items-center justify-center`}>
+                    <Icon size={15} className={b.textColor} />
+                  </div>
+                </div>
+                <p className="text-3xl font-bold text-foreground">{b.value}</p>
+              </CardContent>
+            </Card>
+          )
+        })}
+      </div>
+
+      {/* Bar chart */}
+      <Card>
+        <CardHeader className="pb-3">
+          <CardTitle className="text-base">Platform Overview</CardTitle>
+        </CardHeader>
+        <CardContent className="space-y-5">
           {bars.map(bar => (
             <div key={bar.label}>
-              <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 6 }}>
-                <span style={{ fontSize: '.8rem', fontWeight: 600, color: 'var(--t2)' }}>{bar.label}</span>
-                <span style={{ fontSize: '.8rem', fontWeight: 700, color: 'var(--t1)' }}>{bar.value}</span>
+              <div className="flex justify-between mb-2">
+                <span className="text-sm font-medium text-foreground">{bar.label}</span>
+                <span className="text-sm font-bold text-foreground">{bar.value}</span>
               </div>
-              <div style={{ height: 8, background: 'var(--bg)', borderRadius: 99, overflow: 'hidden' }}>
-                <div style={{ height: '100%', width: `${Math.round((bar.value / bar.max) * 100)}%`, background: bar.color, borderRadius: 99, transition: 'width .6s ease' }} />
+              <div className="h-2.5 bg-muted rounded-full overflow-hidden">
+                <div
+                  className={`h-full ${bar.color} rounded-full transition-all duration-700`}
+                  style={{ width: `${Math.round((bar.value / max) * 100)}%` }}
+                />
               </div>
             </div>
           ))}
-        </div>
-      </div>
+        </CardContent>
+      </Card>
 
-      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 12 }}>
-        {[
-          { label: 'Posts per user', value: stats.totalUsers > 0 ? (stats.totalPosts / stats.totalUsers).toFixed(1) : '0' },
-          { label: 'Report rate', value: stats.totalPosts > 0 ? ((stats.totalReports / stats.totalPosts) * 100).toFixed(1) + '%' : '0%' },
-          { label: 'Active categories', value: '8' },
-        ].map(s => (
-          <div key={s.label} style={{ background: 'var(--sur)', border: '1px solid var(--bd)', borderRadius: 'var(--rm)', padding: '16px 18px' }}>
-            <p style={{ fontSize: '.75rem', fontWeight: 600, color: 'var(--t4)', textTransform: 'uppercase', letterSpacing: '.06em', marginBottom: 8 }}>{s.label}</p>
-            <p style={{ fontSize: '1.5rem', fontWeight: 800, color: 'var(--t1)' }}>{s.value}</p>
-          </div>
+      {/* Derived stats */}
+      <div className="grid grid-cols-3 gap-4">
+        {derived.map(s => (
+          <Card key={s.label}>
+            <CardContent className="p-5">
+              <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wider mb-2">{s.label}</p>
+              <p className="text-2xl font-bold text-foreground">{s.value}</p>
+            </CardContent>
+          </Card>
         ))}
       </div>
     </div>

@@ -1,44 +1,65 @@
-import { FileText, Users, Flag, TrendingUp } from 'lucide-react'
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
+import { Badge } from '@/components/ui/badge'
+import { FileText, Users, Flag, AlertTriangle } from 'lucide-react'
 
 export default function AdminOverview({ stats, recentPosts, flaggedCount }: {
   stats: { totalPosts: number, totalUsers: number, totalReports: number }
   recentPosts: any[]
   flaggedCount: number
 }) {
+  const statCards = [
+    { label: 'Total Posts', value: stats.totalPosts, icon: FileText, color: 'text-blue-600', bg: 'bg-blue-50' },
+    { label: 'Total Users', value: stats.totalUsers, icon: Users, color: 'text-green-600', bg: 'bg-green-50' },
+    { label: 'Total Reports', value: stats.totalReports, icon: Flag, color: 'text-red-600', bg: 'bg-red-50' },
+    { label: 'Flagged Now', value: flaggedCount, icon: AlertTriangle, color: 'text-amber-600', bg: 'bg-amber-50' },
+  ]
+
   return (
-    <div>
-      <h1 style={{ fontSize: '1.25rem', fontWeight: 800, color: 'var(--t1)', marginBottom: 4 }}>Overview</h1>
-      <p style={{ fontSize: '.875rem', color: 'var(--t3)', marginBottom: 24 }}>Welcome back. Here's what's happening on wiispr.</p>
+    <div className="space-y-6">
+      <div>
+        <h1 className="text-2xl font-bold text-foreground">Overview</h1>
+        <p className="text-sm text-muted-foreground mt-1">Welcome back. Here's what's happening on wiispr.</p>
+      </div>
 
-      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: 12, marginBottom: 28 }}>
-        {[
-          { label: 'Total Posts', value: stats.totalPosts, icon: <FileText size={18} />, color: 'var(--blue)' },
-          { label: 'Total Users', value: stats.totalUsers, icon: <Users size={18} />, color: 'var(--grn)' },
-          { label: 'Total Reports', value: stats.totalReports, icon: <Flag size={18} />, color: 'var(--rose)' },
-          { label: 'Flagged Now', value: flaggedCount, icon: <TrendingUp size={18} />, color: '#D97706' },
-        ].map(s => (
-          <div key={s.label} style={{ background: 'var(--sur)', border: '1px solid var(--bd)', borderRadius: 'var(--rm)', padding: '18px 20px' }}>
-            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 12 }}>
-              <p style={{ fontSize: '.75rem', fontWeight: 600, color: 'var(--t4)', textTransform: 'uppercase', letterSpacing: '.06em' }}>{s.label}</p>
-              <span style={{ color: s.color }}>{s.icon}</span>
+      {/* Stats grid */}
+      <div className="grid grid-cols-4 gap-4">
+        {statCards.map(s => {
+          const Icon = s.icon
+          return (
+            <Card key={s.label}>
+              <CardContent className="p-5">
+                <div className="flex items-center justify-between mb-3">
+                  <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">{s.label}</p>
+                  <div className={`w-8 h-8 rounded-lg ${s.bg} flex items-center justify-center`}>
+                    <Icon size={16} className={s.color} />
+                  </div>
+                </div>
+                <p className="text-3xl font-bold text-foreground">{s.value}</p>
+              </CardContent>
+            </Card>
+          )
+        })}
+      </div>
+
+      {/* Recent posts */}
+      <Card>
+        <CardHeader className="pb-3">
+          <CardTitle className="text-base">Recent Posts</CardTitle>
+        </CardHeader>
+        <CardContent className="p-0">
+          {recentPosts.length === 0 ? (
+            <p className="text-sm text-muted-foreground p-6 text-center">No posts yet.</p>
+          ) : recentPosts.map((post, i) => (
+            <div key={post.id} className={`flex items-center gap-3 px-6 py-3 ${i < recentPosts.length - 1 ? 'border-b border-border' : ''}`}>
+              <Badge variant="secondary" className="text-[10px] uppercase tracking-wide shrink-0">
+                {post.categories?.name}
+              </Badge>
+              <p className="text-sm font-medium text-foreground flex-1 truncate">{post.title}</p>
+              <span className="text-xs text-muted-foreground font-mono shrink-0">{post.ghost_id}</span>
             </div>
-            <p style={{ fontSize: '1.75rem', fontWeight: 800, color: 'var(--t1)' }}>{s.value}</p>
-          </div>
-        ))}
-      </div>
-
-      <div style={{ background: 'var(--sur)', border: '1px solid var(--bd)', borderRadius: 'var(--rm)', overflow: 'hidden' }}>
-        <div style={{ padding: '16px 20px', borderBottom: '1px solid var(--bd)' }}>
-          <h2 style={{ fontSize: '.9375rem', fontWeight: 700, color: 'var(--t1)' }}>Recent Posts</h2>
-        </div>
-        {recentPosts.map((post, i) => (
-          <div key={post.id} style={{ display: 'flex', alignItems: 'center', gap: 12, padding: '12px 20px', borderBottom: i < recentPosts.length - 1 ? '1px solid var(--bd)' : 'none' }}>
-            <span style={{ fontSize: '.6rem', fontWeight: 700, letterSpacing: '.06em', textTransform: 'uppercase', color: 'var(--blue)', background: 'var(--blue-d)', padding: '2px 7px', borderRadius: 3, flexShrink: 0 }}>{post.categories?.name}</span>
-            <p style={{ fontSize: '.8375rem', color: 'var(--t1)', fontWeight: 500, flex: 1, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{post.title}</p>
-            <span style={{ fontSize: '.7rem', color: 'var(--t4)', fontFamily: 'monospace', flexShrink: 0 }}>{post.ghost_id}</span>
-          </div>
-        ))}
-      </div>
+          ))}
+        </CardContent>
+      </Card>
     </div>
   )
 }
