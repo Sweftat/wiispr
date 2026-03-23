@@ -1,11 +1,6 @@
 'use client'
 import { useState } from 'react'
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
-import { Button } from '@/components/ui/button'
-import { Input } from '@/components/ui/input'
 import { Switch } from '@/components/ui/switch'
-import { Separator } from '@/components/ui/separator'
-import { Badge } from '@/components/ui/badge'
 
 export default function AdminSettings() {
   const [saved, setSaved] = useState(false)
@@ -18,81 +13,49 @@ export default function AdminSettings() {
   }
 
   return (
-    <div className="space-y-6 max-w-2xl">
-      <div>
-        <h1 className="text-2xl font-bold text-foreground">Site Settings</h1>
-        <p className="text-sm text-muted-foreground mt-1">Global platform configuration.</p>
+    <div style={{ maxWidth: 560 }}>
+      <h1 style={{ fontSize: '1.25rem', fontWeight: 800, color: 'var(--t1)', marginBottom: 4 }}>Site Settings</h1>
+      <p style={{ fontSize: '.875rem', color: 'var(--t3)', marginBottom: 24 }}>Global platform configuration.</p>
+
+      <div style={{ background: 'var(--sur)', border: '1px solid var(--bd)', borderRadius: 'var(--rm)', padding: '20px', marginBottom: 12 }}>
+        <h2 style={{ fontSize: '.9rem', fontWeight: 700, color: 'var(--t1)', marginBottom: 16 }}>Platform</h2>
+        {[
+          { label: 'Platform name', value: 'wiispr', type: 'text' },
+          { label: 'Tagline', value: 'Say what you actually think', type: 'text' },
+          { label: 'Contact email', value: 'hello@wiispr.com', type: 'email' },
+        ].map(field => (
+          <div key={field.label} style={{ marginBottom: 14 }}>
+            <label style={{ fontSize: '.75rem', fontWeight: 600, color: 'var(--t2)', display: 'block', marginBottom: 6 }}>{field.label}</label>
+            <input type={field.type} defaultValue={field.value} style={{ width: '100%', height: 38, padding: '0 12px', fontSize: '.875rem', color: 'var(--t1)', background: 'var(--bg)', border: '1px solid var(--bd)', borderRadius: 'var(--r)', outline: 'none', fontFamily: 'inherit' }} />
+          </div>
+        ))}
       </div>
 
-      {/* Platform info */}
-      <Card>
-        <CardHeader className="pb-3">
-          <CardTitle className="text-base">Platform</CardTitle>
-        </CardHeader>
-        <CardContent className="space-y-4">
-          {[
-            { label: 'Platform name', value: 'wiispr', type: 'text' },
-            { label: 'Tagline', value: 'Say what you actually think', type: 'text' },
-            { label: 'Contact email', value: 'hello@wiispr.com', type: 'email' },
-          ].map(field => (
-            <div key={field.label} className="space-y-1.5">
-              <label className="text-sm font-medium text-foreground">{field.label}</label>
-              <Input type={field.type} defaultValue={field.value} />
-            </div>
-          ))}
-        </CardContent>
-      </Card>
-
-      {/* Toggles */}
-      <Card>
-        <CardHeader className="pb-3">
-          <CardTitle className="text-base">Platform Controls</CardTitle>
-        </CardHeader>
-        <CardContent className="space-y-0 p-0">
-          <div className="flex items-center justify-between px-6 py-4 border-b border-border">
+      <div style={{ background: 'var(--sur)', border: '1px solid var(--bd)', borderRadius: 'var(--rm)', overflow: 'hidden', marginBottom: 12 }}>
+        <h2 style={{ fontSize: '.9rem', fontWeight: 700, color: 'var(--t1)', padding: '16px 18px', borderBottom: '1px solid var(--bd)' }}>Platform Controls</h2>
+        {[
+          { label: 'Maintenance mode', desc: 'Disables new posts and shows a maintenance message', value: maintenance, set: setMaintenance },
+          { label: 'Open registrations', desc: 'Allow new users to sign up', value: registrations, set: setRegistrations },
+        ].map((toggle, i) => (
+          <div key={toggle.label} style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '14px 18px', borderBottom: i === 0 ? '1px solid var(--bd)' : 'none' }}>
             <div>
-              <p className="text-sm font-semibold text-foreground">Maintenance mode</p>
-              <p className="text-xs text-muted-foreground mt-0.5">Disables new posts and shows maintenance message</p>
+              <p style={{ fontSize: '.875rem', fontWeight: 600, color: 'var(--t1)', marginBottom: 2 }}>{toggle.label}</p>
+              <p style={{ fontSize: '.75rem', color: 'var(--t3)' }}>{toggle.desc}</p>
             </div>
-            <div className="flex items-center gap-2">
-              {maintenance && <Badge variant="destructive" className="text-[10px]">Active</Badge>}
-              <Switch checked={maintenance} onCheckedChange={setMaintenance} />
-            </div>
+            <Switch checked={toggle.value} onCheckedChange={toggle.set} />
           </div>
-          <div className="flex items-center justify-between px-6 py-4">
-            <div>
-              <p className="text-sm font-semibold text-foreground">Open registrations</p>
-              <p className="text-xs text-muted-foreground mt-0.5">Allow new users to sign up</p>
-            </div>
-            <div className="flex items-center gap-2">
-              {!registrations && <Badge variant="secondary" className="text-[10px]">Closed</Badge>}
-              <Switch checked={registrations} onCheckedChange={setRegistrations} />
-            </div>
-          </div>
-        </CardContent>
-      </Card>
+        ))}
+      </div>
 
-      {/* Danger zone */}
-      <Card className="border-destructive/30">
-        <CardHeader className="pb-3">
-          <CardTitle className="text-base text-destructive">Danger Zone</CardTitle>
-        </CardHeader>
-        <CardContent className="space-y-3">
-          <div className="flex items-center justify-between">
-            <div>
-              <p className="text-sm font-semibold text-foreground">Clear all reports</p>
-              <p className="text-xs text-muted-foreground">Permanently delete all report records</p>
-            </div>
-            <Button variant="outline" size="sm" className="text-destructive border-destructive/30 hover:bg-destructive/10">
-              Clear reports
-            </Button>
-          </div>
-        </CardContent>
-      </Card>
+      <div style={{ background: 'var(--sur)', border: '1px solid var(--rose)', borderRadius: 'var(--rm)', padding: '18px', marginBottom: 16 }}>
+        <h2 style={{ fontSize: '.9rem', fontWeight: 700, color: 'var(--rose)', marginBottom: 4 }}>Danger Zone</h2>
+        <p style={{ fontSize: '.8rem', color: 'var(--t3)', marginBottom: 12 }}>Permanently delete all report records.</p>
+        <button style={{ padding: '7px 16px', borderRadius: 'var(--r)', border: '1px solid var(--rose)', background: 'none', color: 'var(--rose)', fontSize: '.8rem', fontWeight: 600, cursor: 'pointer', fontFamily: 'inherit' }}>Clear all reports</button>
+      </div>
 
-      <Button onClick={save} className="w-full" variant={saved ? 'outline' : 'default'}>
+      <button onClick={save} style={{ width: '100%', padding: '11px', borderRadius: 'var(--r)', border: 'none', background: saved ? 'var(--grn)' : 'var(--blue)', color: '#fff', fontSize: '.875rem', fontWeight: 600, cursor: 'pointer', fontFamily: 'inherit', transition: 'background .2s' }}>
         {saved ? '✓ Saved!' : 'Save settings'}
-      </Button>
+      </button>
     </div>
   )
 }

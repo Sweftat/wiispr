@@ -1,46 +1,30 @@
-'use client'
-import { Badge } from '@/components/ui/badge'
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { timeAgo } from '@/lib/time'
 
-const actionConfig: Record<string, { label: string, variant: 'default' | 'secondary' | 'destructive' | 'outline' }> = {
-  post_created: { label: 'Post Created', variant: 'secondary' },
-  reply_created: { label: 'Reply Created', variant: 'outline' },
-  post_reported: { label: 'Post Reported', variant: 'destructive' },
-  post_deleted: { label: 'Post Deleted', variant: 'destructive' },
-  user_suspended: { label: 'User Suspended', variant: 'destructive' },
-  user_unsuspended: { label: 'User Unsuspended', variant: 'default' },
+const actionColors: Record<string, string> = {
+  post_created: 'var(--blue)', reply_created: 'var(--grn)',
+  post_reported: 'var(--rose)', post_deleted: 'var(--rose)',
+  user_suspended: 'var(--rose)', user_unsuspended: 'var(--grn)',
 }
 
 export default function AdminLogs({ logs }: { logs: any[] }) {
   return (
-    <div className="space-y-6">
-      <div>
-        <h1 className="text-2xl font-bold text-foreground">Activity Logs</h1>
-        <p className="text-sm text-muted-foreground mt-1">Last {logs.length} actions on the platform.</p>
-      </div>
+    <div style={{ maxWidth: 760 }}>
+      <h1 style={{ fontSize: '1.25rem', fontWeight: 800, color: 'var(--t1)', marginBottom: 4 }}>Activity Logs</h1>
+      <p style={{ fontSize: '.875rem', color: 'var(--t3)', marginBottom: 24 }}>Last {logs.length} actions on the platform.</p>
 
-      <Card>
-        <CardHeader className="pb-3">
-          <CardTitle className="text-base">Recent Activity</CardTitle>
-        </CardHeader>
-        <CardContent className="p-0">
-          {logs.length === 0 ? (
-            <p className="text-sm text-muted-foreground p-6 text-center">No activity yet.</p>
-          ) : logs.map((log, i) => {
-            const config = actionConfig[log.action] || { label: log.action.replace(/_/g, ' '), variant: 'outline' as const }
-            return (
-              <div key={log.id} className={`flex items-center gap-3 px-6 py-3 ${i < logs.length - 1 ? 'border-b border-border' : ''}`}>
-                <Badge variant={config.variant} className="text-[10px] shrink-0 capitalize">
-                  {config.label}
-                </Badge>
-                <span className="text-sm text-foreground flex-1">{log.users?.nickname || 'Anonymous'}</span>
-                <span className="text-xs text-muted-foreground font-mono shrink-0">{timeAgo(log.created_at)}</span>
-              </div>
-            )
-          })}
-        </CardContent>
-      </Card>
+      <div style={{ background: 'var(--sur)', border: '1px solid var(--bd)', borderRadius: 'var(--rm)', overflow: 'hidden' }}>
+        {logs.length === 0 ? (
+          <p style={{ padding: '48px 24px', textAlign: 'center', fontSize: '.875rem', color: 'var(--t4)' }}>No activity yet.</p>
+        ) : logs.map((log, i) => (
+          <div key={log.id} style={{ display: 'flex', alignItems: 'center', gap: 12, padding: '11px 18px', borderBottom: i < logs.length - 1 ? '1px solid var(--bd)' : 'none' }}>
+            <span style={{ fontSize: '.6rem', fontWeight: 700, letterSpacing: '.04em', textTransform: 'uppercase', color: actionColors[log.action] || 'var(--t3)', background: 'var(--bg)', padding: '2px 8px', borderRadius: 3, whiteSpace: 'nowrap', flexShrink: 0 }}>
+              {log.action.replace(/_/g, ' ')}
+            </span>
+            <span style={{ fontSize: '.8rem', color: 'var(--t1)', flex: 1 }}>{log.users?.nickname || 'Anonymous'}</span>
+            <span style={{ fontSize: '.7rem', color: 'var(--t4)', fontFamily: 'monospace', whiteSpace: 'nowrap' }}>{timeAgo(log.created_at)}</span>
+          </div>
+        ))}
+      </div>
     </div>
   )
 }

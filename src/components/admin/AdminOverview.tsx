@@ -1,5 +1,3 @@
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
-import { Badge } from '@/components/ui/badge'
 import { FileText, Users, Flag, AlertTriangle } from 'lucide-react'
 
 export default function AdminOverview({ stats, recentPosts, flaggedCount }: {
@@ -7,59 +5,40 @@ export default function AdminOverview({ stats, recentPosts, flaggedCount }: {
   recentPosts: any[]
   flaggedCount: number
 }) {
-  const statCards = [
-    { label: 'Total Posts', value: stats.totalPosts, icon: FileText, color: 'text-blue-600', bg: 'bg-blue-50' },
-    { label: 'Total Users', value: stats.totalUsers, icon: Users, color: 'text-green-600', bg: 'bg-green-50' },
-    { label: 'Total Reports', value: stats.totalReports, icon: Flag, color: 'text-red-600', bg: 'bg-red-50' },
-    { label: 'Flagged Now', value: flaggedCount, icon: AlertTriangle, color: 'text-amber-600', bg: 'bg-amber-50' },
+  const cards = [
+    { label: 'Total Posts', value: stats.totalPosts, icon: FileText, color: 'var(--blue)', bg: 'var(--blue-d)' },
+    { label: 'Total Users', value: stats.totalUsers, icon: Users, color: 'var(--grn)', bg: 'var(--grn-d)' },
+    { label: 'Total Reports', value: stats.totalReports, icon: Flag, color: 'var(--rose)', bg: 'var(--rose-d)' },
+    { label: 'Flagged Now', value: flaggedCount, icon: AlertTriangle, color: '#D97706', bg: '#FFFBEB' },
   ]
 
   return (
-    <div className="space-y-6">
-      <div>
-        <h1 className="text-2xl font-bold text-foreground">Overview</h1>
-        <p className="text-sm text-muted-foreground mt-1">Welcome back. Here's what's happening on wiispr.</p>
-      </div>
+    <div style={{ maxWidth: 900 }}>
+      <h1 style={{ fontSize: '1.25rem', fontWeight: 800, color: 'var(--t1)', marginBottom: 4 }}>Overview</h1>
+      <p style={{ fontSize: '.875rem', color: 'var(--t3)', marginBottom: 24 }}>Welcome back. Here's what's happening on wiispr.</p>
 
-      {/* Stats grid */}
-      <div className="grid grid-cols-4 gap-4">
-        {statCards.map(s => {
-          const Icon = s.icon
+      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: 12, marginBottom: 24 }}>
+        {cards.map(c => {
+          const Icon = c.icon
           return (
-            <Card key={s.label}>
-              <CardContent className="p-5">
-                <div className="flex items-center justify-between mb-3">
-                  <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">{s.label}</p>
-                  <div className={`w-8 h-8 rounded-lg ${s.bg} flex items-center justify-center`}>
-                    <Icon size={16} className={s.color} />
-                  </div>
+            <div key={c.label} style={{ background: 'var(--sur)', border: '1px solid var(--bd)', borderRadius: 'var(--rm)', padding: '18px 20px' }}>
+              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 12 }}>
+                <p style={{ fontSize: '.7rem', fontWeight: 600, color: 'var(--t4)', textTransform: 'uppercase', letterSpacing: '.06em' }}>{c.label}</p>
+                <div style={{ width: 32, height: 32, borderRadius: 8, background: c.bg, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                  <Icon size={15} style={{ color: c.color }} />
                 </div>
-                <p className="text-3xl font-bold text-foreground">{s.value}</p>
-              </CardContent>
-            </Card>
+              </div>
+              <p style={{ fontSize: '2rem', fontWeight: 800, color: 'var(--t1)', lineHeight: 1 }}>{c.value}</p>
+            </div>
           )
         })}
       </div>
 
-      {/* Recent posts */}
-      <Card>
-        <CardHeader className="pb-3">
-          <CardTitle className="text-base">Recent Posts</CardTitle>
-        </CardHeader>
-        <CardContent className="p-0">
-          {recentPosts.length === 0 ? (
-            <p className="text-sm text-muted-foreground p-6 text-center">No posts yet.</p>
-          ) : recentPosts.map((post, i) => (
-            <div key={post.id} className={`flex items-center gap-3 px-6 py-3 ${i < recentPosts.length - 1 ? 'border-b border-border' : ''}`}>
-              <Badge variant="secondary" className="text-[10px] uppercase tracking-wide shrink-0">
-                {post.categories?.name}
-              </Badge>
-              <p className="text-sm font-medium text-foreground flex-1 truncate">{post.title}</p>
-              <span className="text-xs text-muted-foreground font-mono shrink-0">{post.ghost_id}</span>
-            </div>
-          ))}
-        </CardContent>
-      </Card>
-    </div>
-  )
-}
+      <div style={{ background: 'var(--sur)', border: '1px solid var(--bd)', borderRadius: 'var(--rm)', overflow: 'hidden' }}>
+        <div style={{ padding: '14px 20px', borderBottom: '1px solid var(--bd)' }}>
+          <h2 style={{ fontSize: '.9rem', fontWeight: 700, color: 'var(--t1)' }}>Recent Posts</h2>
+        </div>
+        {recentPosts.length === 0 ? (
+          <p style={{ padding: '24px', textAlign: 'center', fontSize: '.875rem', color: 'var(--t4)' }}>No posts yet.</p>
+        ) : recentPosts.map((post, i) => (
+          <div key={post.id} style={{ display: 'flex', alignItems: 'center', gap: 12, paddin
