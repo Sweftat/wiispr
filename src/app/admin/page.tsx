@@ -1,21 +1,13 @@
 import { createClient } from '@supabase/supabase-js'
 import { cookies } from 'next/headers'
 import { redirect } from 'next/navigation'
-import Nav from '@/components/Nav'
-import AdminDashboard from '@/components/AdminDashboard'
+import AdminShell from '@/components/admin/AdminShell'
 
 export const dynamic = 'force-dynamic'
-
-export const metadata = {
-  title: 'Admin — wiispr',
-  description: 'admin dashboard',
-}
-
 
 export default async function AdminPage() {
   const cookieStore = await cookies()
   const userId = cookieStore.get('wiispr_user_id')?.value
-
   if (!userId) redirect('/')
 
   const supabase = createClient(
@@ -38,17 +30,22 @@ export default async function AdminPage() {
     .eq('is_deleted', false)
     .order('created_at', { ascending: false })
 
-  const { data: recentUsers } = await supabase
+  const { data: allUsers } = await supabase
     .from('users')
     .select('*')
     .order('created_at', { ascending: false })
-    .limit(20)
+    .limit(50)
 
   const { data: activityLogs } = await supabase
     .from('activity_logs')
     .select('*, users(nickname)')
     .order('created_at', { ascending: false })
     .limit(50)
+
+  const { data: categories } = await supabase
+    .from('categories')
+    .select('*')
+    .order('sort_order')
 
   const { count: totalPosts } = await supabase
     .from('posts')
@@ -63,15 +60,22 @@ export default async function AdminPage() {
     .from('reports')
     .select('*', { count: 'exact', head: true })
 
+  const { data: recentPosts } = await supabase
+    .from('posts')
+    .select('*, categories(name)')
+    .eq('is_deleted', false)
+    .order('created_at', { ascending: false })
+    .limit(7)
+
   return (
-    <main style={{ minHeight: '100vh', background: 'var(--bg)' }}>
-      <Nav />
-      <AdminDashboard
-        flaggedPosts={flaggedPosts || []}
-        recentUsers={recentUsers || []}
-        activityLogs={activityLogs || []}
-        stats={{ totalPosts: totalPosts || 0, totalUsers: totalUsers || 0, totalReports: totalReports || 0 }}
-      />
-    </main>
+    <AdminShell
+      admin={user}
+      flaggedPosts={flaggedPosts || []}
+      allUsers={allUsers || []}
+      activityLogs={activityLogs || []}
+      categories={categories || []}
+      recentPosts={recentPosts || []}
+      stats={{ totalPosts: totalPosts || 0, totalUsers: totalUsers || 0, totalReports: totalReports || 0 }}
+    />
   )
 }
