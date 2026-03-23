@@ -1,3 +1,4 @@
+'use client'
 import { FileText, Users, Flag, AlertTriangle } from 'lucide-react'
 
 export default function AdminOverview({ stats, recentPosts, flaggedCount }: {
@@ -41,4 +42,13 @@ export default function AdminOverview({ stats, recentPosts, flaggedCount }: {
         {recentPosts.length === 0 ? (
           <p style={{ padding: '24px', textAlign: 'center', fontSize: '.875rem', color: 'var(--t4)' }}>No posts yet.</p>
         ) : recentPosts.map((post, i) => (
-          <div key={post.id} style={{ display: 'flex', alignItems: 'center', gap: 12, paddin
+          <div key={post.id} style={{ display: 'flex', alignItems: 'center', gap: 12, padding: '11px 20px', borderBottom: i < recentPosts.length - 1 ? '1px solid var(--bd)' : 'none' }}>
+            <span style={{ fontSize: '.6rem', fontWeight: 700, letterSpacing: '.06em', textTransform: 'uppercase', color: 'var(--blue)', background: 'var(--blue-d)', padding: '2px 7px', borderRadius: 3, flexShrink: 0 }}>{post.categories?.name}</span>
+            <p style={{ fontSize: '.8rem', fontWeight: 500, color: 'var(--t1)', flex: 1, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{post.title}</p>
+            <span style={{ fontSize: '.7rem', color: 'var(--t4)', fontFamily: 'monospace', flexShrink: 0 }}>{post.ghost_id}</span>
+          </div>
+        ))}
+      </div>
+    </div>
+  )
+}
