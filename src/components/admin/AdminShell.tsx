@@ -21,13 +21,16 @@ const navItems = [
   { id: 'settings', label: 'Site Settings', icon: Settings },
 ]
 
-export default function AdminShell({ admin, flaggedPosts, allUsers, activityLogs, categories, recentPosts, stats }: {
+export default function AdminShell({ admin, flaggedPosts, allUsers, activityLogs, categories, recentPosts, stats, postsPerDay, usersPerDay, categoryStats }: {
   admin: any
   flaggedPosts: any[]
   allUsers: any[]
   activityLogs: any[]
   categories: any[]
   recentPosts: any[]
+  postsPerDay: any[]
+  usersPerDay: any[]
+  categoryStats: any[]
   stats: { totalPosts: number, totalUsers: number, totalReports: number }
 }) {
   const [active, setActive] = useState('overview')
@@ -38,7 +41,6 @@ export default function AdminShell({ admin, flaggedPosts, allUsers, activityLogs
   return (
     <div style={{ display: 'flex', minHeight: '100vh', background: 'var(--bg)', fontFamily: 'var(--font-geist-sans), system-ui, sans-serif' }}>
 
-      {/* Sidebar */}
       <aside style={{
         width: collapsed ? 56 : 220,
         background: 'var(--sur)',
@@ -51,7 +53,6 @@ export default function AdminShell({ admin, flaggedPosts, allUsers, activityLogs
         transition: 'width .2s ease',
         overflow: 'hidden'
       }}>
-        {/* Logo + toggle */}
         <div style={{ padding: '16px 12px', borderBottom: '1px solid var(--bd)', display: 'flex', alignItems: 'center', gap: 10, minHeight: 52 }}>
           {!collapsed && (
             <a href="/" style={{ display: 'flex', alignItems: 'center', gap: 7, textDecoration: 'none', flex: 1 }}>
@@ -64,7 +65,6 @@ export default function AdminShell({ admin, flaggedPosts, allUsers, activityLogs
           </button>
         </div>
 
-        {/* Admin info */}
         {!collapsed && (
           <div style={{ padding: '12px 14px', borderBottom: '1px solid var(--bd)', display: 'flex', alignItems: 'center', gap: 9 }}>
             <div style={{ width: 28, height: 28, borderRadius: '50%', background: 'var(--blue-d)', border: '1.5px solid var(--blue)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '.7rem', fontWeight: 800, color: 'var(--blue)', flexShrink: 0 }}>
@@ -77,7 +77,6 @@ export default function AdminShell({ admin, flaggedPosts, allUsers, activityLogs
           </div>
         )}
 
-        {/* Nav items */}
         <nav style={{ flex: 1, padding: '10px 8px', overflowY: 'auto' }}>
           {navItems.map(item => {
             const Icon = item.icon
@@ -88,25 +87,15 @@ export default function AdminShell({ admin, flaggedPosts, allUsers, activityLogs
                 onClick={() => setActive(item.id)}
                 title={collapsed ? item.label : undefined}
                 style={{
-                  width: '100%',
-                  display: 'flex',
-                  alignItems: 'center',
-                  gap: 9,
+                  width: '100%', display: 'flex', alignItems: 'center', gap: 9,
                   padding: collapsed ? '9px 0' : '8px 10px',
                   justifyContent: collapsed ? 'center' : 'flex-start',
-                  borderRadius: 7,
-                  border: 'none',
+                  borderRadius: 7, border: 'none',
                   background: isActive ? 'var(--blue-d)' : 'none',
                   color: isActive ? 'var(--blue)' : 'var(--t3)',
-                  cursor: 'pointer',
-                  fontFamily: 'inherit',
-                  fontSize: '.8rem',
-                  fontWeight: isActive ? 600 : 500,
-                  marginBottom: 2,
-                  transition: 'all .12s',
-                  position: 'relative',
-                  whiteSpace: 'nowrap',
-                  overflow: 'hidden'
+                  cursor: 'pointer', fontFamily: 'inherit', fontSize: '.8rem',
+                  fontWeight: isActive ? 600 : 500, marginBottom: 2,
+                  transition: 'all .12s', whiteSpace: 'nowrap', overflow: 'hidden'
                 }}
                 onMouseEnter={e => { if (!isActive) e.currentTarget.style.background = 'var(--bg)' }}
                 onMouseLeave={e => { if (!isActive) e.currentTarget.style.background = 'none' }}
@@ -123,14 +112,12 @@ export default function AdminShell({ admin, flaggedPosts, allUsers, activityLogs
           })}
         </nav>
 
-        {/* Back to site */}
         <div style={{ padding: '8px', borderTop: '1px solid var(--bd)' }}>
           <a href="/" style={{
             display: 'flex', alignItems: 'center', gap: 9,
             padding: collapsed ? '9px 0' : '8px 10px',
             justifyContent: collapsed ? 'center' : 'flex-start',
-            borderRadius: 7, color: 'var(--t3)',
-            fontSize: '.8rem', fontWeight: 500,
+            borderRadius: 7, color: 'var(--t3)', fontSize: '.8rem', fontWeight: 500,
             textDecoration: 'none', transition: 'background .12s'
           }}
             onMouseEnter={e => (e.currentTarget.style.background = 'var(--bg)')}
@@ -142,10 +129,7 @@ export default function AdminShell({ admin, flaggedPosts, allUsers, activityLogs
         </div>
       </aside>
 
-      {/* Main */}
       <div style={{ marginLeft: collapsed ? 56 : 220, flex: 1, display: 'flex', flexDirection: 'column', transition: 'margin-left .2s ease', minWidth: 0 }}>
-
-        {/* Topbar */}
         <header style={{
           height: 52, background: 'var(--sur)', borderBottom: '1px solid var(--bd)',
           display: 'flex', alignItems: 'center', padding: '0 24px', gap: 8,
@@ -156,7 +140,6 @@ export default function AdminShell({ admin, flaggedPosts, allUsers, activityLogs
           <span style={{ fontSize: '.75rem', fontWeight: 600, color: 'var(--t1)' }}>{activeLabel}</span>
         </header>
 
-        {/* Content */}
         <main style={{ flex: 1, padding: 24, overflowX: 'hidden' }}>
           {active === 'overview' && <AdminOverview stats={stats} recentPosts={recentPosts} flaggedCount={flaggedPosts.length} />}
           {active === 'flagged' && <AdminFlagged initialPosts={flaggedPosts} />}
@@ -164,7 +147,7 @@ export default function AdminShell({ admin, flaggedPosts, allUsers, activityLogs
           {active === 'logs' && <AdminLogs logs={activityLogs} />}
           {active === 'categories' && <AdminCategories initialCategories={categories} />}
           {active === 'announcements' && <AdminAnnouncements />}
-          {active === 'analytics' && <AdminAnalytics stats={stats} />}
+          {active === 'analytics' && <AdminAnalytics stats={stats} postsPerDay={postsPerDay} usersPerDay={usersPerDay} categoryStats={categoryStats} />}
           {active === 'settings' && <AdminSettings />}
         </main>
       </div>
