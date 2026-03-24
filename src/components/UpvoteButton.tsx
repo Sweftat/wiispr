@@ -1,13 +1,24 @@
 'use client'
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { ArrowUp } from 'lucide-react'
 
 export default function UpvoteButton({ postId, upvotes }: { postId: string, upvotes: number }) {
   const [count, setCount] = useState(upvotes)
   const [voted, setVoted] = useState(false)
+  const [loggedIn, setLoggedIn] = useState(false)
+
+  useEffect(() => {
+    fetch('/api/auth/session').then(r => r.json()).then(d => {
+      if (d.user) setLoggedIn(true)
+    })
+  }, [])
 
   async function upvote() {
     if (voted) return
+    if (!loggedIn) {
+      window.location.href = '/auth?signin=1'
+      return
+    }
     setVoted(true)
     setCount(c => c + 1)
     await fetch('/api/posts/upvote', {

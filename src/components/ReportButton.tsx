@@ -13,10 +13,9 @@ export default function ReportButton({ postId }: { postId: string }) {
       .then(d => { if (d.user) setLoggedIn(true) })
   }, [])
 
-  if (!loggedIn) return null
-
   async function report() {
     if (reported) return
+    if (!loggedIn) { window.location.href = '/auth?signin=1'; return }
     setLoading(true)
     const res = await fetch('/api/posts/report', {
       method: 'POST',

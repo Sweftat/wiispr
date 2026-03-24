@@ -19,9 +19,8 @@ export default function FollowButton({ ghostId }: { ghostId: string }) {
       })
   }, [ghostId])
 
-  if (!loggedIn) return null
-
   async function toggle() {
+    if (!loggedIn) { window.location.href = '/auth?signin=1'; return }
     setLoading(true)
     await fetch('/api/follows', {
       method: 'POST',
