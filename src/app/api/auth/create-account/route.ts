@@ -42,7 +42,7 @@ async function getLocation(ip: string) {
 
 export async function POST(req: NextRequest) {
   const supabase = createClient(process.env.NEXT_PUBLIC_SUPABASE_URL!, process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!)
-  const { email, nickname, gender, ageRange } = await req.json()
+  const { email, nickname, gender, ageRange, referralCode } = await req.json()
   if (!email) return NextResponse.json({ error: 'Missing email' }, { status: 400 })
   const emailHash = hashEmail(email)
 
@@ -87,7 +87,32 @@ export async function POST(req: NextRequest) {
     device, browser
   })
 
-  const response = NextResponse.json({ success: true })
+  // Handle referral
+  if (referralCode) {
+    const { data: referrer } = await supabase
+      .from('users')
+      .select('id, rep_score, referral_count')
+      .eq('referral_code', referralCode.toUpperCase())
+      .single()
+    if (referrer && referrer.id !== user.id) {
+      await supabase.from('users').update({
+        rep_score: (referrer.rep_score || 0) + 5,
+        referral_count: (referrer.referral_count || 0) + 1,
+      }).eq('id', referrer.id)
+      await supabase.from('notifications').insert({
+        user_id: referrer.id,
+        type: 'referral',
+        message: `Someone joined wiispr using your referral link! +5 rep`,
+        post_id: null,
+        is_read: false,
+      })
+    }
+  }
+
+  // Generate a preview ghost ID to show in the welcome screen
+  const previewGhostId = 'Ghost #' + Math.floor(1000 + Math.random() * 9000)
+
+  const response = NextResponse.json({ success: true, isNew: true, ghostId: previewGhostId })
   response.cookies.set('wiispr_user_id', user.id, { httpOnly: true, secure: process.env.NODE_ENV === 'production', sameSite: 'lax', maxAge: 60 * 60 * 24 * 30 })
   response.cookies.set('wiispr_nickname', nickname, { httpOnly: true, secure: process.env.NODE_ENV === 'production', sameSite: 'lax', maxAge: 60 * 60 * 24 * 30 })
   response.cookies.set('wiispr_gender', gender, { httpOnly: true, secure: process.env.NODE_ENV === 'production', sameSite: 'lax', maxAge: 60 * 60 * 24 * 30 })

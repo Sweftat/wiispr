@@ -23,5 +23,13 @@ export async function POST(req: NextRequest) {
     }
   }
 
+  await supabase.from('admin_logs').insert({
+    admin_id: userId,
+    action,
+    target_type: 'category',
+    target_id: categoryId || null,
+    meta: name ? { name, slug } : {},
+  })
+
   return NextResponse.json({ success: true })
 }

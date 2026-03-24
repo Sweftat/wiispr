@@ -42,5 +42,13 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ error: insertError.message }, { status: 500 })
   }
 
+  await supabase.from('admin_logs').insert({
+    admin_id: userId,
+    action: 'notify_all',
+    target_type: 'broadcast',
+    target_id: null,
+    meta: { message: message.trim(), sent: notifications.length },
+  })
+
   return NextResponse.json({ success: true, sent: notifications.length })
 }

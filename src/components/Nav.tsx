@@ -1,7 +1,7 @@
 'use client'
 import Link from 'next/link'
 import { useEffect, useState, useRef } from 'react'
-import { Search, Moon, Sun, Bell, LogOut } from 'lucide-react'
+import { Search, Moon, Sun, Bell, LogOut, Flame } from 'lucide-react'
 import { useRouter } from 'next/navigation'
 
 export default function Nav() {
@@ -102,6 +102,16 @@ export default function Nav() {
       }}>
         <span style={{ width: 6, height: 6, background: 'var(--blue)', borderRadius: '50%', display: 'inline-block' }}></span>
         wiispr
+      </Link>
+
+      <Link href="/trending" style={{
+        fontSize: '.8rem', fontWeight: 500, color: 'var(--t3)',
+        display: 'flex', alignItems: 'center', gap: 5,
+        padding: '5px 10px', borderRadius: 'var(--r)',
+        textDecoration: 'none', flexShrink: 0,
+      }}>
+        <Flame size={14} />
+        Trending
       </Link>
 
       {/* Search icon + dropdown */}

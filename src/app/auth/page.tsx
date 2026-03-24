@@ -60,15 +60,24 @@ export default function AuthPage() {
   async function createAccount() {
     setLoading(true)
     setError('')
+    const referralCode = sessionStorage.getItem('wiispr_referral_code') || undefined
     const res = await fetch('/api/auth/create-account', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ email, nickname, gender, ageRange })
+      body: JSON.stringify({ email, nickname, gender, ageRange, referralCode })
     })
     const data = await res.json()
     setLoading(false)
-    if (data.success) { router.push('/'); router.refresh() }
-    else setError(data.error || 'Something went wrong')
+    if (data.success) {
+      if (data.isNew && data.ghostId) {
+        sessionStorage.removeItem('wiispr_referral_code')
+        sessionStorage.setItem('wiispr_new_ghost_id', data.ghostId)
+        router.push('/welcome')
+      } else {
+        router.push('/')
+      }
+      router.refresh()
+    } else setError(data.error || 'Something went wrong')
   }
 
   const canSend = email.includes('@') && (isSignIn || (!!ageRange && agreed))

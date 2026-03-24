@@ -3,6 +3,7 @@ import Feed from '@/components/Feed'
 import SidebarCategories from '@/components/SidebarCategories'
 import Footer from '@/components/Footer'
 import AnnouncementBanner from '@/components/AnnouncementBanner'
+import TrendingWidget from '@/components/TrendingWidget'
 import { createClient } from '@supabase/supabase-js'
 
 export const dynamic = 'force-dynamic'
@@ -33,6 +34,7 @@ export default async function Home() {
           <div className="feed-sidebar">
             <p style={{ fontSize: '.625rem', fontWeight: 700, letterSpacing: '.08em', textTransform: 'uppercase', color: 'var(--t4)', marginBottom: 10 }}>Categories</p>
             <SidebarCategories categories={categories || []} />
+            <TrendingWidget />
           </div>
         </div>
       </div>

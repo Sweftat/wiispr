@@ -2,17 +2,34 @@
 import { useState, useEffect } from 'react'
 import Nav from '@/components/Nav'
 import Footer from '@/components/Footer'
-import { User, MessageCircle, ArrowUp, Star } from 'lucide-react'
+import { User, MessageCircle, ArrowUp, Star, Copy, Check, Users, Award } from 'lucide-react'
 
 export default function ProfilePage() {
   const [data, setData] = useState<any>(null)
   const [loading, setLoading] = useState(true)
+  const [referral, setReferral] = useState<{ code: string, count: number } | null>(null)
+  const [copied, setCopied] = useState(false)
+  const [badges, setBadges] = useState<any[]>([])
 
   useEffect(() => {
     fetch('/api/profile')
       .then(r => r.json())
       .then(d => { setData(d); setLoading(false) })
+    fetch('/api/referral')
+      .then(r => r.json())
+      .then(d => { if (d.code) setReferral(d) })
+    fetch('/api/badges')
+      .then(r => r.json())
+      .then(d => { if (d.badges) setBadges(d.badges) })
   }, [])
+
+  function copyLink() {
+    if (!referral) return
+    const url = `${window.location.origin}/join/${referral.code}`
+    navigator.clipboard.writeText(url)
+    setCopied(true)
+    setTimeout(() => setCopied(false), 2000)
+  }
 
   if (loading) return (
     <main style={{ minHeight: '100vh', background: 'var(--bg)', display: 'flex', flexDirection: 'column' }}>
@@ -89,6 +106,53 @@ export default function ProfilePage() {
             </div>
           ))}
         </div>
+
+        {badges.length > 0 && (
+          <div style={{ background: 'var(--sur)', border: '1px solid var(--bd)', borderRadius: 'var(--rm)', padding: '20px', marginBottom: 16 }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 14 }}>
+              <Award size={15} style={{ color: '#F59E0B' }} />
+              <h2 style={{ fontSize: '.875rem', fontWeight: 700, color: 'var(--t1)' }}>Badges</h2>
+              <span style={{ marginLeft: 'auto', fontSize: '.72rem', color: 'var(--t4)' }}>{badges.length} earned</span>
+            </div>
+            <div style={{ display: 'flex', flexWrap: 'wrap', gap: 8 }}>
+              {badges.map(badge => (
+                <div
+                  key={badge.id}
+                  title={badge.description}
+                  style={{
+                    display: 'flex', alignItems: 'center', gap: 6,
+                    background: 'var(--bg)', border: '1px solid var(--bd)',
+                    borderRadius: 'var(--r)', padding: '6px 10px',
+                  }}
+                >
+                  <span style={{ fontSize: '1rem' }}>{badge.emoji}</span>
+                  <span style={{ fontSize: '.75rem', fontWeight: 600, color: 'var(--t2)' }}>{badge.label}</span>
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
+
+        {referral && (
+          <div style={{ background: 'var(--sur)', border: '1px solid var(--bd)', borderRadius: 'var(--rm)', padding: '20px', marginBottom: 16 }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 12 }}>
+              <Users size={15} style={{ color: 'var(--blue)' }} />
+              <h2 style={{ fontSize: '.875rem', fontWeight: 700, color: 'var(--t1)' }}>Referral</h2>
+              <span style={{ marginLeft: 'auto', fontSize: '.75rem', fontWeight: 700, color: 'var(--blue)' }}>{referral.count} {referral.count === 1 ? 'person' : 'people'} joined</span>
+            </div>
+            <p style={{ fontSize: '.78rem', color: 'var(--t3)', marginBottom: 12, lineHeight: 1.5 }}>
+              Share your link. You get +5 rep for each person who joins wiispr.
+            </p>
+            <div style={{ display: 'flex', gap: 8, alignItems: 'center', background: 'var(--bg)', border: '1px solid var(--bd)', borderRadius: 'var(--r)', padding: '9px 12px' }}>
+              <span style={{ flex: 1, fontSize: '.8rem', color: 'var(--t2)', fontFamily: 'monospace', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                {typeof window !== 'undefined' ? `${window.location.origin}/join/${referral.code}` : `/join/${referral.code}`}
+              </span>
+              <button onClick={copyLink} style={{ border: 'none', background: 'none', cursor: 'pointer', color: 'var(--t4)', flexShrink: 0, display: 'flex', alignItems: 'center' }}>
+                {copied ? <Check size={14} style={{ color: '#10b981' }} /> : <Copy size={14} />}
+              </button>
+            </div>
+          </div>
+        )}
 
         <div style={{ display: 'flex', gap: 8 }}>
           <a href="/settings" style={{ flex: 1, padding: '10px', borderRadius: 'var(--r)', border: '1px solid var(--bd)', background: 'none', color: 'var(--t2)', fontSize: '.8rem', fontWeight: 600, textAlign: 'center', textDecoration: 'none' }}>Settings</a>

@@ -1,6 +1,6 @@
 'use client'
 import { useState } from 'react'
-import { LayoutDashboard, Flag, Users, Activity, Layers, BarChart2, Settings, LogOut, ChevronRight, Menu, Megaphone, FileText, SlidersHorizontal, Bell, Share2, Download, Pin, Star, ShieldAlert } from 'lucide-react'
+import { LayoutDashboard, Flag, Users, Activity, Layers, BarChart2, Settings, LogOut, ChevronRight, Menu, Megaphone, FileText, SlidersHorizontal, Bell, Share2, Download, Pin, Star, ShieldAlert, ScrollText, ShieldCheck } from 'lucide-react'
 import AdminOverview from './AdminOverview'
 import AdminFlagged from './AdminFlagged'
 import AdminUsers from './AdminUsers'
@@ -17,6 +17,8 @@ import AdminExport from './AdminExport'
 import AdminPinnedPost from './AdminPinnedPost'
 import AdminPostOfDay from './AdminPostOfDay'
 import AdminContentWarnings from './AdminContentWarnings'
+import AdminAuditLog from './AdminAuditLog'
+import Admin2FA from './Admin2FA'
 
 const navItems = [
   { id: 'overview', label: 'Overview', icon: LayoutDashboard },
@@ -34,6 +36,8 @@ const navItems = [
   { id: 'analytics', label: 'Analytics', icon: BarChart2 },
   { id: 'export', label: 'Export Data', icon: Download },
   { id: 'social', label: 'Social Links', icon: Share2 },
+  { id: 'audit', label: 'Audit Log', icon: ScrollText },
+  { id: '2fa', label: '2FA Security', icon: ShieldCheck },
   { id: 'settings', label: 'Site Settings', icon: Settings },
 ]
 
@@ -172,6 +176,8 @@ export default function AdminShell({ admin, flaggedPosts, allUsers, activityLogs
           {active === 'analytics' && <AdminAnalytics stats={stats} postsPerDay={postsPerDay} usersPerDay={usersPerDay} categoryStats={categoryStats} />}
           {active === 'export' && <AdminExport />}
           {active === 'social' && <AdminSocialLinks />}
+          {active === 'audit' && <AdminAuditLog />}
+          {active === '2fa' && <Admin2FA />}
           {active === 'settings' && <AdminSettings />}
         </main>
       </div>

@@ -5,18 +5,32 @@ import UpvoteButton from './UpvoteButton'
 import ReportButton from './ReportButton'
 import ShareButton from './ShareButton'
 import FollowButton from './FollowButton'
-import { X, MessageCircle, Ghost } from 'lucide-react'
+import { X, MessageCircle, Ghost, ArrowUp } from 'lucide-react'
 
 export default function PostPanel({ post, onClose }: { post: any, onClose: () => void }) {
   const [replies, setReplies] = useState<any[]>([])
   const [body, setBody] = useState('')
   const [loading, setLoading] = useState(false)
   const [user, setUser] = useState<any>(null)
+  const [replyUpvotes, setReplyUpvotes] = useState<Record<string, number>>({})
 
   useEffect(() => {
     fetch('/api/auth/session').then(r => r.json()).then(d => { if (d.user) setUser(d.user) })
-    fetch('/api/posts/replies?postId=' + post.id).then(r => r.json()).then(d => setReplies(d.replies || []))
+    fetch('/api/posts/replies?postId=' + post.id).then(r => r.json()).then(d => {
+      const replies = d.replies || []
+      setReplies(replies)
+      const init: Record<string, number> = {}
+      replies.forEach((r: any) => { init[r.id] = r.upvotes || 0 })
+      setReplyUpvotes(init)
+    })
+    // Track view
+    fetch('/api/posts/view', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ postId: post.id }) })
   }, [post.id])
+
+  async function upvoteReply(replyId: string) {
+    setReplyUpvotes(u => ({ ...u, [replyId]: (u[replyId] || 0) + 1 }))
+    await fetch('/api/posts/upvote', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ replyId }) })
+  }
 
   async function submitReply() {
     if (!body.trim()) return
@@ -131,7 +145,14 @@ export default function PostPanel({ post, onClose }: { post: any, onClose: () =>
                   <span style={{ fontFamily: 'monospace', fontSize: '.7rem', color: 'var(--t4)' }}>{reply.ghost_id}</span>
                   <span style={{ fontFamily: 'monospace', fontSize: '.65rem', color: 'var(--t4)', marginLeft: 'auto' }}>{timeAgo(reply.created_at)}</span>
                 </div>
-                <p className="auto-dir" style={{ fontSize: '.875rem', color: 'var(--t2)', lineHeight: 1.7 }}>{reply.body}</p>
+                <p className="auto-dir" style={{ fontSize: '.875rem', color: 'var(--t2)', lineHeight: 1.7, marginBottom: 10 }}>{reply.body}</p>
+                <button
+                  onClick={() => upvoteReply(reply.id)}
+                  style={{ display: 'flex', alignItems: 'center', gap: 4, padding: '4px 9px', borderRadius: 'var(--rs)', border: '1px solid var(--bd)', background: 'none', color: 'var(--t4)', fontSize: '.75rem', fontWeight: 600, cursor: 'pointer', fontFamily: 'inherit' }}
+                >
+                  <ArrowUp size={11} />
+                  {replyUpvotes[reply.id] ?? reply.upvotes ?? 0}
+                </button>
               </div>
             )) : (
               <p style={{ textAlign: 'center', color: 'var(--t4)', fontSize: '.875rem', padding: '24px 0' }}>No replies yet. Be the first.</p>

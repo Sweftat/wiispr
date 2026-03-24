@@ -38,5 +38,13 @@ export async function POST(req: NextRequest) {
     await supabase.from('posts').update({ content_warning: null }).eq('id', postId)
   }
 
+  await supabase.from('admin_logs').insert({
+    admin_id: userId,
+    action,
+    target_type: 'post',
+    target_id: postId,
+    meta: warning ? { warning } : {},
+  })
+
   return NextResponse.json({ success: true })
 }

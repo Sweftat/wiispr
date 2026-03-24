@@ -28,5 +28,13 @@ export async function POST(req: NextRequest) {
     }
   }
 
+  await supabase.from('admin_logs').insert({
+    admin_id: userId,
+    action,
+    target_type: 'user',
+    target_id: targetId,
+    meta: trustLevel ? { trustLevel } : {},
+  })
+
   return NextResponse.json({ success: true })
 }

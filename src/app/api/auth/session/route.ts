@@ -12,7 +12,26 @@ export async function GET(req: NextRequest) {
     return NextResponse.json({ user: null })
   }
 
-  return NextResponse.json({ user: { id: userId, nickname, gender } })
+  // Fetch DB fields needed for admin features
+  const supabase = createClient(
+    process.env.NEXT_PUBLIC_SUPABASE_URL!,
+    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
+  )
+  const { data: dbUser } = await supabase
+    .from('users')
+    .select('is_admin, totp_enabled')
+    .eq('id', userId)
+    .single()
+
+  return NextResponse.json({
+    user: {
+      id: userId,
+      nickname,
+      gender,
+      is_admin: dbUser?.is_admin || false,
+      totp_enabled: dbUser?.totp_enabled || false,
+    },
+  })
 }
 
 export async function POST(req: NextRequest) {
