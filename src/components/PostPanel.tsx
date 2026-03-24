@@ -5,6 +5,7 @@ import UpvoteButton from './UpvoteButton'
 import ReportButton from './ReportButton'
 import ShareButton from './ShareButton'
 import FollowButton from './FollowButton'
+import { motion, AnimatePresence } from 'framer-motion'
 import { X, MessageCircle, Ghost, ArrowUp } from 'lucide-react'
 
 export default function PostPanel({ post, onClose }: { post: any, onClose: () => void }) {
@@ -23,7 +24,6 @@ export default function PostPanel({ post, onClose }: { post: any, onClose: () =>
       replies.forEach((r: any) => { init[r.id] = r.upvotes || 0 })
       setReplyUpvotes(init)
     })
-    // Track view
     fetch('/api/posts/view', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ postId: post.id }) })
   }, [post.id])
 
@@ -51,18 +51,29 @@ export default function PostPanel({ post, onClose }: { post: any, onClose: () =>
   }
 
   return (
-    <>
-      <div onClick={onClose} style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.4)', zIndex: 200, backdropFilter: 'blur(2px)' }} />
+    <AnimatePresence>
+      <motion.div
+        key="backdrop"
+        initial={{ opacity: 0 }}
+        animate={{ opacity: 1 }}
+        exit={{ opacity: 0 }}
+        onClick={onClose}
+        style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.4)', zIndex: 200, backdropFilter: 'blur(2px)' }}
+      />
 
-      <div style={{
-        position: 'fixed', top: 0, right: 0, bottom: 0,
-        width: '100%', maxWidth: 560,
-        background: 'var(--bg)', borderLeft: '1px solid var(--bd)',
-        zIndex: 201, overflowY: 'auto',
-        animation: 'slideIn .2s cubic-bezier(0.16, 1, 0.3, 1)'
-      }}>
-        <style>{`@keyframes slideIn { from { transform: translateX(100%) } to { transform: translateX(0) } }`}</style>
-
+      <motion.div
+        key="panel"
+        initial={{ x: '100%' }}
+        animate={{ x: 0 }}
+        exit={{ x: '100%' }}
+        transition={{ type: 'spring', stiffness: 380, damping: 36 }}
+        style={{
+          position: 'fixed', top: 0, right: 0, bottom: 0,
+          width: '100%', maxWidth: 560,
+          background: 'var(--bg)', borderLeft: '1px solid var(--bd)',
+          zIndex: 201, overflowY: 'auto'
+        }}
+      >
         <div style={{
           display: 'flex', alignItems: 'center', justifyContent: 'space-between',
           padding: '14px 20px', borderBottom: '1px solid var(--bd)',
@@ -94,7 +105,7 @@ export default function PostPanel({ post, onClose }: { post: any, onClose: () =>
               <FollowButton ghostId={post.ghost_id} />
               <span style={{ fontFamily: 'monospace', fontSize: '.65rem', color: 'var(--t4)', marginLeft: 'auto' }}>{timeAgo(post.created_at)}</span>
             </div>
-            <h1 className="auto-dir" style={{ fontSize: '1.125rem', fontWeight: 800, color: 'var(--t1)', marginBottom: 10, lineHeight: 1.35 }}>{post.title}</h1>
+            <h1 className="auto-dir post-title" style={{ fontSize: '1.125rem', fontWeight: 900, color: 'var(--t1)', marginBottom: 10, lineHeight: 1.35, letterSpacing: '-.02em' }}>{post.title}</h1>
             {post.body && <p className="auto-dir" style={{ fontSize: '.9rem', color: 'var(--t2)', lineHeight: 1.8, marginBottom: 14 }}>{post.body}</p>}
             <div style={{ display: 'flex', gap: 6, paddingTop: 12, borderTop: '1px solid var(--bd)', alignItems: 'center' }}>
               <UpvoteButton postId={post.id} upvotes={post.upvotes} />
@@ -138,8 +149,14 @@ export default function PostPanel({ post, onClose }: { post: any, onClose: () =>
           )}
 
           <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
-            {replies.length > 0 ? replies.map((reply: any) => (
-              <div key={reply.id} style={{ background: 'var(--sur)', border: '1px solid var(--bd)', borderRadius: 'var(--r)', padding: '13px 15px' }}>
+            {replies.length > 0 ? replies.map((reply: any, i: number) => (
+              <motion.div
+                key={reply.id}
+                initial={{ opacity: 0, y: 12 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ delay: i * 0.04, duration: 0.25 }}
+                style={{ background: 'var(--sur)', border: '1px solid var(--bd)', borderRadius: 'var(--r)', padding: '13px 15px' }}
+              >
                 <div style={{ display: 'flex', alignItems: 'center', gap: 6, marginBottom: 7 }}>
                   <Ghost size={11} style={{ color: 'var(--t4)' }} />
                   <span style={{ fontFamily: 'monospace', fontSize: '.7rem', color: 'var(--t4)' }}>{reply.ghost_id}</span>
@@ -153,13 +170,13 @@ export default function PostPanel({ post, onClose }: { post: any, onClose: () =>
                   <ArrowUp size={11} />
                   {replyUpvotes[reply.id] ?? reply.upvotes ?? 0}
                 </button>
-              </div>
+              </motion.div>
             )) : (
               <p style={{ textAlign: 'center', color: 'var(--t4)', fontSize: '.875rem', padding: '24px 0' }}>No replies yet. Be the first.</p>
             )}
           </div>
         </div>
-      </div>
-    </>
+      </motion.div>
+    </AnimatePresence>
   )
 }

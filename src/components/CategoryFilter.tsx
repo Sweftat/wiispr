@@ -2,7 +2,7 @@
 import { useState, useEffect } from 'react'
 import { motion } from 'framer-motion'
 import CategoryIcon from './CategoryIcon'
-import { Users, TrendingUp, ShieldX } from 'lucide-react'
+import { Users, ShieldX } from 'lucide-react'
 
 interface Category {
   id: number
@@ -40,29 +40,56 @@ export default function CategoryFilter({ categories, onSelect }: { categories: C
     color: isActive ? '#fff' : 'var(--t3)',
     cursor: 'pointer', transition: 'color .15s, border-color .15s',
     display: 'flex', alignItems: 'center', gap: 5,
-    flexShrink: 0, whiteSpace: 'nowrap',
-    position: 'relative', overflow: 'hidden',
-  } as React.CSSProperties)
+    flexShrink: 0, whiteSpace: 'nowrap' as const,
+    position: 'relative' as const, overflow: 'hidden',
+  })
 
   return (
     <>
-      <div className="category-filter category-scroll" style={{ display: 'flex', gap: 8, marginBottom: 16, padding: '0 0 8px', flexWrap: 'nowrap', overflowX: 'auto', WebkitOverflowScrolling: 'touch' as any, scrollbarWidth: 'none', msOverflowStyle: 'none' } as React.CSSProperties}>
+      <style>{`
+        @keyframes fireFlicker {
+          0%, 100% { transform: scale(1) rotate(-3deg); }
+          25% { transform: scale(1.15) rotate(3deg); }
+          50% { transform: scale(0.95) rotate(-2deg); }
+          75% { transform: scale(1.1) rotate(2deg); }
+        }
+        .fire-icon {
+          display: inline-block;
+          animation: fireFlicker 1.2s ease-in-out infinite;
+          font-size: 14px;
+          line-height: 1;
+        }
+        .category-scroll::-webkit-scrollbar { display: none; }
+      `}</style>
+
+      <div className="category-scroll" style={{ display: 'flex', gap: 8, marginBottom: 16, padding: '0 0 8px', flexWrap: 'nowrap', overflowX: 'auto', WebkitOverflowScrolling: 'touch' as any, scrollbarWidth: 'none' } as React.CSSProperties}>
+
         <button onClick={() => select('following')} style={chipStyle(selected === 'following')}>
           {selected === 'following' && <motion.span layoutId="pill-bg" style={{ position: 'absolute', inset: 0, background: 'var(--blue)', borderRadius: 'inherit', zIndex: 0 }} transition={{ type: 'spring', bounce: 0.2, duration: 0.35 }} />}
-          <span style={{ position: 'relative', zIndex: 1, display: 'flex', alignItems: 'center', gap: 5 }}><Users size={12} />Following</span>
+          <span style={{ position: 'relative', zIndex: 1, display: 'flex', alignItems: 'center', gap: 5 }}>
+            <Users size={12} />Following
+          </span>
         </button>
+
         <button onClick={() => select(null)} style={chipStyle(selected === null)}>
           {selected === null && <motion.span layoutId="pill-bg" style={{ position: 'absolute', inset: 0, background: 'var(--blue)', borderRadius: 'inherit', zIndex: 0 }} transition={{ type: 'spring', bounce: 0.2, duration: 0.35 }} />}
           <span style={{ position: 'relative', zIndex: 1 }}>All</span>
         </button>
+
         <button onClick={() => select('trending')} style={chipStyle(selected === 'trending')}>
           {selected === 'trending' && <motion.span layoutId="pill-bg" style={{ position: 'absolute', inset: 0, background: 'var(--blue)', borderRadius: 'inherit', zIndex: 0 }} transition={{ type: 'spring', bounce: 0.2, duration: 0.35 }} />}
-          <span style={{ position: 'relative', zIndex: 1, display: 'flex', alignItems: 'center', gap: 5 }}><TrendingUp size={12} className={selected !== 'trending' ? 'trending-icon' : ''} />Trending</span>
+          <span style={{ position: 'relative', zIndex: 1, display: 'flex', alignItems: 'center', gap: 5 }}>
+            <span className="fire-icon" style={{ color: selected === 'trending' ? '#fff' : '#F97316' }}>🔥</span>
+            Trending
+          </span>
         </button>
+
         {categories.map(cat => (
           <button key={cat.id} onClick={() => select(cat.id)} style={chipStyle(selected === cat.id)}>
             {selected === cat.id && <motion.span layoutId="pill-bg" style={{ position: 'absolute', inset: 0, background: 'var(--blue)', borderRadius: 'inherit', zIndex: 0 }} transition={{ type: 'spring', bounce: 0.2, duration: 0.35 }} />}
-            <span style={{ position: 'relative', zIndex: 1, display: 'flex', alignItems: 'center', gap: 5 }}><CategoryIcon slug={cat.icon} />{cat.name}</span>
+            <span style={{ position: 'relative', zIndex: 1, display: 'flex', alignItems: 'center', gap: 5 }}>
+              <CategoryIcon slug={cat.icon} />{cat.name}
+            </span>
           </button>
         ))}
       </div>
@@ -75,7 +102,7 @@ export default function CategoryFilter({ categories, onSelect }: { categories: C
               <ShieldX size={24} style={{ color: 'var(--rose)' }} />
             </div>
             <h2 style={{ fontSize: '1rem', fontWeight: 800, color: 'var(--t1)', marginBottom: 8 }}>Women's Space</h2>
-            <p style={{ fontSize: '.875rem', color: 'var(--t3)', lineHeight: 1.7, marginBottom: 12 }}>This space is reserved for female members only. It's a safe space for women to speak freely without interference.</p>
+            <p style={{ fontSize: '.875rem', color: 'var(--t3)', lineHeight: 1.7, marginBottom: 12 }}>This space is reserved for female members only. A safe space for women to speak freely.</p>
             <p style={{ fontSize: '.8rem', color: 'var(--t4)', marginBottom: 20 }}>If you registered as female and are seeing this, contact support.</p>
             <button onClick={() => setShowGate(false)} style={{ width: '100%', padding: '10px', borderRadius: 'var(--r)', background: 'var(--blue)', color: '#fff', border: 'none', fontWeight: 600, fontSize: '.875rem', cursor: 'pointer', fontFamily: 'inherit' }}>
               Got it
