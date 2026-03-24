@@ -185,6 +185,7 @@ input, textarea, select { font-family: inherit; }
 
 .post-card:hover {
   box-shadow: 0 4px 14px rgba(0,0,0,.08) !important;
+  border-left-color: var(--card-accent, var(--blue)) !important;
 }
 
 [data-theme="dark"] .post-card {
@@ -193,20 +194,5 @@ input, textarea, select { font-family: inherit; }
 
 [data-theme="dark"] .post-card:hover {
   box-shadow: 0 4px 12px rgba(0,0,0,.4) !important;
-}
-
-/* Category accent bar via ::before pseudo-element */
-.post-card::before {
-  content: '';
-  position: absolute;
-  left: 0; top: 0; bottom: 0; width: 3px;
-  background: var(--card-accent, var(--blue));
-  opacity: 0;
-  transition: opacity .2s ease;
-  border-radius: 12px 0 0 12px;
-  z-index: 1;
-}
-
-.post-card:hover::before {
-  opacity: 1;
+  border-left-color: var(--card-accent, var(--blue)) !important;
 }
