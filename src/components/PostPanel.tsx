@@ -5,7 +5,6 @@ import UpvoteButton from './UpvoteButton'
 import ReportButton from './ReportButton'
 import ShareButton from './ShareButton'
 import FollowButton from './FollowButton'
-import RepBadge from './RepBadge'
 import { X, MessageCircle, Ghost } from 'lucide-react'
 
 export default function PostPanel({ post, onClose }: { post: any, onClose: () => void }) {
@@ -78,7 +77,6 @@ export default function PostPanel({ post, onClose }: { post: any, onClose: () =>
                 <Ghost size={11} />
                 {post.ghost_id}
               </span>
-              {post.users?.trust_level && <RepBadge level={post.users.trust_level} />}
               <FollowButton ghostId={post.ghost_id} />
               <span style={{ fontFamily: 'monospace', fontSize: '.65rem', color: 'var(--t4)', marginLeft: 'auto' }}>{timeAgo(post.created_at)}</span>
             </div>

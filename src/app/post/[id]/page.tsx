@@ -3,7 +3,6 @@ import Nav from "@/components/Nav"
 import ReportButton from "@/components/ReportButton"
 import FollowButton from "@/components/FollowButton"
 import ShareButton from "@/components/ShareButton"
-import RepBadge from "@/components/RepBadge"
 import UpvoteButton from "@/components/UpvoteButton"
 import { createClient } from "@supabase/supabase-js"
 import { notFound } from "next/navigation"
@@ -42,7 +41,6 @@ export default async function PostPage({ params }: { params: Promise<{ id: strin
             <span style={{ fontSize: ".6rem", fontWeight: 700, letterSpacing: ".06em", textTransform: "uppercase", color: "var(--blue)", background: "var(--blue-d)", padding: "2px 7px", borderRadius: 3 }}>{post.categories?.name}</span>
             <span style={{ fontFamily: "monospace", fontSize: ".7rem", color: "var(--t4)" }}>{post.ghost_id}</span>
             <FollowButton ghostId={post.ghost_id} />
-            {post.users?.trust_level && <RepBadge level={post.users.trust_level} />}
             <span style={{ fontFamily: "monospace", fontSize: ".65rem", color: "var(--t4)", marginLeft: "auto" }}>{timeAgo(post.created_at)}</span>
           </div>
           <h1 style={{ fontSize: "1.25rem", fontWeight: 800, color: "var(--t1)", marginBottom: 10, lineHeight: 1.35 }}>{post.title}</h1>
