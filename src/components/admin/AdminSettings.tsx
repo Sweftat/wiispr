@@ -13,7 +13,7 @@ export default function AdminSettings() {
   }
 
   return (
-    <div style={{ maxWidth: 560 }}>
+    <div style={{ width: "100%" }}>
       <h1 style={{ fontSize: '1.25rem', fontWeight: 800, color: 'var(--t1)', marginBottom: 4 }}>Site Settings</h1>
       <p style={{ fontSize: '.875rem', color: 'var(--t3)', marginBottom: 24 }}>Global platform configuration.</p>
 

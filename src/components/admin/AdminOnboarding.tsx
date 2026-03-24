@@ -36,7 +36,7 @@ export default function AdminOnboarding() {
   if (loading) return <p style={{ color: 'var(--t4)', fontSize: '.875rem' }}>Loading...</p>
 
   return (
-    <div style={{ maxWidth: 760 }}>
+    <div style={{ width: "100%" }}>
       <h1 style={{ fontSize: '1.25rem', fontWeight: 800, color: 'var(--t1)', marginBottom: 4 }}>Onboarding Slides</h1>
       <p style={{ fontSize: '.875rem', color: 'var(--t3)', marginBottom: 24 }}>Edit the 5 onboarding slides shown to new users.</p>
 

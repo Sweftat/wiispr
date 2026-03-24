@@ -14,7 +14,7 @@ export default function AdminOverview({ stats, recentPosts, flaggedCount }: {
   ]
 
   return (
-    <div style={{ maxWidth: 900 }}>
+    <div style={{ width: "100%" }}>
       <h1 style={{ fontSize: '1.25rem', fontWeight: 800, color: 'var(--t1)', marginBottom: 4 }}>Overview</h1>
       <p style={{ fontSize: '.875rem', color: 'var(--t3)', marginBottom: 24 }}>Welcome back. Here's what's happening on wiispr.</p>
 

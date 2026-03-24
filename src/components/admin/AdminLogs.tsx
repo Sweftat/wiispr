@@ -8,7 +8,7 @@ const actionColors: Record<string, string> = {
 
 export default function AdminLogs({ logs }: { logs: any[] }) {
   return (
-    <div style={{ maxWidth: 760 }}>
+    <div style={{ width: "100%" }}>
       <h1 style={{ fontSize: '1.25rem', fontWeight: 800, color: 'var(--t1)', marginBottom: 4 }}>Activity Logs</h1>
       <p style={{ fontSize: '.875rem', color: 'var(--t3)', marginBottom: 24 }}>Last {logs.length} actions on the platform.</p>
 

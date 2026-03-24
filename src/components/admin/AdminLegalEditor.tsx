@@ -38,7 +38,7 @@ export default function AdminLegalEditor() {
   }
 
   return (
-    <div style={{ maxWidth: 760 }}>
+    <div style={{ width: "100%" }}>
       <h1 style={{ fontSize: '1.25rem', fontWeight: 800, color: 'var(--t1)', marginBottom: 4 }}>Legal Pages</h1>
       <p style={{ fontSize: '.875rem', color: 'var(--t3)', marginBottom: 24 }}>Edit content for all legal pages. Changes appear instantly on the site.</p>
 

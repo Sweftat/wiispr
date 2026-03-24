@@ -16,7 +16,7 @@ export default function AdminFlagged({ initialPosts }: { initialPosts: any[] }) 
   }
 
   return (
-    <div style={{ maxWidth: 760 }}>
+    <div style={{ width: "100%" }}>
       <h1 style={{ fontSize: '1.25rem', fontWeight: 800, color: 'var(--t1)', marginBottom: 4 }}>Flagged Posts</h1>
       <p style={{ fontSize: '.875rem', color: 'var(--t3)', marginBottom: 24 }}>{posts.length} post{posts.length !== 1 ? 's' : ''} awaiting review.</p>
 

@@ -54,7 +54,7 @@ export default function AdminAnnouncements() {
   }
 
   return (
-    <div style={{ maxWidth: 760 }}>
+    <div style={{ width: "100%" }}>
       <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 24 }}>
         <div>
           <h1 style={{ fontSize: '1.25rem', fontWeight: 800, color: 'var(--t1)', marginBottom: 4 }}>Announcements</h1>
