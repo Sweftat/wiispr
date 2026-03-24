@@ -1,5 +1,6 @@
 'use client'
 import { useState, useEffect } from 'react'
+import { motion } from 'framer-motion'
 import { timeAgo } from '@/lib/time'
 import FollowButton from './FollowButton'
 import PostPanel from './PostPanel'
@@ -133,6 +134,7 @@ export default function Feed({ initialPosts, initialPinnedPost, initialPostOfDay
 
       {/* Post of the Day */}
       {postOfDay && !loading && (
+        <motion.div initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.25, ease: 'easeOut' }}>
         <div className="post-card" style={{
           background: 'linear-gradient(135deg, #FFFBEB 0%, var(--sur) 100%)',
           border: '1px solid #D97706',
@@ -159,10 +161,12 @@ export default function Feed({ initialPosts, initialPinnedPost, initialPostOfDay
             </button>
           </div>
         </div>
+        </motion.div>
       )}
 
       {/* Pinned post */}
       {pinnedPost && !loading && (
+        <motion.div initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.25, delay: 0.05, ease: 'easeOut' }}>
         <div className="post-card" style={{
           background: 'var(--sur)', border: '1px solid var(--blue)',
           borderRadius: 'var(--rm)', padding: '16px 18px', marginBottom: 10,
@@ -188,6 +192,7 @@ export default function Feed({ initialPosts, initialPinnedPost, initialPostOfDay
             </button>
           </div>
         </div>
+        </motion.div>
       )}
 
       {loading && (
@@ -198,8 +203,15 @@ export default function Feed({ initialPosts, initialPinnedPost, initialPostOfDay
         </>
       )}
 
-      {!loading && posts.map((post: any) => (
-        <PostCard key={post.id} post={post} onOpen={() => openPost(post)} />
+      {!loading && posts.map((post: any, i: number) => (
+        <motion.div
+          key={post.id}
+          initial={{ opacity: 0, y: 12 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.25, delay: i * 0.05, ease: 'easeOut' }}
+        >
+          <PostCard post={post} onOpen={() => openPost(post)} />
+        </motion.div>
       ))}
 
       {!loading && posts.length === 0 && (
