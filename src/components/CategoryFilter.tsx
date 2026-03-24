@@ -36,7 +36,7 @@ export default function CategoryFilter({ categories, onSelect }: { categories: C
     fontSize: '.8rem', fontWeight: isActive ? 700 : 500, padding: '4px 10px',
     borderRadius: 'var(--rs)',
     border: isActive ? '1px solid var(--blue)' : '1px solid var(--bd)',
-    background: 'var(--bg)',
+    background: isActive ? 'var(--blue)' : 'var(--bg)',
     color: isActive ? '#fff' : 'var(--t3)',
     cursor: 'pointer', transition: 'color .15s, border-color .15s',
     display: 'flex', alignItems: 'center', gap: 5,
