@@ -13,19 +13,30 @@ export default function AdminAnalytics({ stats, postsPerDay, usersPerDay, catego
     const name = p.categories?.name || 'Unknown'
     catCounts[name] = (catCounts[name] || 0) + 1
   })
-  const catData = Object.entries(catCounts)
+  const catDataRaw = Object.entries(catCounts)
     .map(([name, value]) => ({ name, value }))
     .sort((a, b) => b.value - a.value)
+  const catData = catDataRaw.length > 0 ? catDataRaw : [{ name: 'No data', value: 1 }]
 
-  const postsChart = postsPerDay.map(d => ({
-    date: new Date(d.date).toLocaleDateString('en-US', { month: 'short', day: 'numeric' }),
-    posts: Number(d.count)
-  }))
+  const postsChart = postsPerDay.length > 0
+    ? postsPerDay.map(d => ({
+        date: new Date(d.date).toLocaleDateString('en-US', { month: 'short', day: 'numeric' }),
+        posts: Number(d.count)
+      }))
+    : Array.from({ length: 7 }, (_, i) => {
+        const d = new Date(); d.setDate(d.getDate() - (6 - i))
+        return { date: d.toLocaleDateString('en-US', { month: 'short', day: 'numeric' }), posts: 0 }
+      })
 
-  const usersChart = usersPerDay.map(d => ({
-    date: new Date(d.date).toLocaleDateString('en-US', { month: 'short', day: 'numeric' }),
-    users: Number(d.count)
-  }))
+  const usersChart = usersPerDay.length > 0
+    ? usersPerDay.map(d => ({
+        date: new Date(d.date).toLocaleDateString('en-US', { month: 'short', day: 'numeric' }),
+        users: Number(d.count)
+      }))
+    : Array.from({ length: 7 }, (_, i) => {
+        const d = new Date(); d.setDate(d.getDate() - (6 - i))
+        return { date: d.toLocaleDateString('en-US', { month: 'short', day: 'numeric' }), users: 0 }
+      })
 
   const PIE_COLORS = ['#2563EB', '#16A34A', '#E11D48', '#D97706', '#7C3AED', '#0891B2', '#DC2626', '#65A30D']
 
@@ -47,7 +58,7 @@ export default function AdminAnalytics({ stats, postsPerDay, usersPerDay, catego
     { label: 'Posts per user', value: stats.totalUsers > 0 ? (stats.totalPosts / stats.totalUsers).toFixed(1) : '0' },
     { label: 'Report rate', value: reportRate + '%' },
     { label: 'Avg posts/day', value: avgPostsPerDay },
-    { label: 'Active categories', value: String(catData.length) },
+    { label: 'Active categories', value: String(catDataRaw.length) },
   ]
 
   return (
@@ -74,62 +85,50 @@ export default function AdminAnalytics({ stats, postsPerDay, usersPerDay, catego
 
       <div style={{ background: 'var(--sur)', border: '1px solid var(--bd)', borderRadius: 'var(--rm)', padding: '20px', marginBottom: 16 }}>
         <h2 style={{ fontSize: '.9rem', fontWeight: 700, color: 'var(--t1)', marginBottom: 18 }}>Posts per day (last 30 days)</h2>
-        {postsChart.length > 0 ? (
-          <ResponsiveContainer width="100%" height={200}>
-            <AreaChart data={postsChart}>
-              <defs>
-                <linearGradient id="postsGrad" x1="0" y1="0" x2="0" y2="1">
-                  <stop offset="5%" stopColor="#2563EB" stopOpacity={0.15} />
-                  <stop offset="95%" stopColor="#2563EB" stopOpacity={0} />
-                </linearGradient>
-              </defs>
-              <CartesianGrid strokeDasharray="3 3" stroke="var(--bd)" />
-              <XAxis dataKey="date" tick={{ fontSize: 11, fill: 'var(--t4)' }} tickLine={false} axisLine={false} interval="preserveStartEnd" />
-              <YAxis tick={{ fontSize: 11, fill: 'var(--t4)' }} tickLine={false} axisLine={false} allowDecimals={false} />
-              <Tooltip contentStyle={{ background: 'var(--sur)', border: '1px solid var(--bd)', borderRadius: 8, fontSize: 12 }} />
-              <Area type="monotone" dataKey="posts" stroke="#2563EB" strokeWidth={2} fill="url(#postsGrad)" />
-            </AreaChart>
-          </ResponsiveContainer>
-        ) : (
-          <p style={{ textAlign: 'center', color: 'var(--t4)', fontSize: '.875rem', padding: '40px 0' }}>No post data yet.</p>
-        )}
+        <ResponsiveContainer width="100%" height={220}>
+          <AreaChart data={postsChart}>
+            <defs>
+              <linearGradient id="postsGrad" x1="0" y1="0" x2="0" y2="1">
+                <stop offset="5%" stopColor="#2563EB" stopOpacity={0.15} />
+                <stop offset="95%" stopColor="#2563EB" stopOpacity={0} />
+              </linearGradient>
+            </defs>
+            <CartesianGrid strokeDasharray="3 3" stroke="var(--bd)" />
+            <XAxis dataKey="date" tick={{ fontSize: 11, fill: 'var(--t4)' }} tickLine={false} axisLine={false} interval="preserveStartEnd" />
+            <YAxis tick={{ fontSize: 11, fill: 'var(--t4)' }} tickLine={false} axisLine={false} allowDecimals={false} />
+            <Tooltip contentStyle={{ background: 'var(--sur)', border: '1px solid var(--bd)', borderRadius: 8, fontSize: 12 }} />
+            <Area type="monotone" dataKey="posts" stroke="#2563EB" strokeWidth={2} fill="url(#postsGrad)" />
+          </AreaChart>
+        </ResponsiveContainer>
       </div>
 
       <div style={{ background: 'var(--sur)', border: '1px solid var(--bd)', borderRadius: 'var(--rm)', padding: '20px', marginBottom: 16 }}>
         <h2 style={{ fontSize: '.9rem', fontWeight: 700, color: 'var(--t1)', marginBottom: 18 }}>New users per day (last 30 days)</h2>
-        {usersChart.length > 0 ? (
-          <ResponsiveContainer width="100%" height={200}>
-            <BarChart data={usersChart}>
-              <CartesianGrid strokeDasharray="3 3" stroke="var(--bd)" />
-              <XAxis dataKey="date" tick={{ fontSize: 11, fill: 'var(--t4)' }} tickLine={false} axisLine={false} interval="preserveStartEnd" />
-              <YAxis tick={{ fontSize: 11, fill: 'var(--t4)' }} tickLine={false} axisLine={false} allowDecimals={false} />
-              <Tooltip contentStyle={{ background: 'var(--sur)', border: '1px solid var(--bd)', borderRadius: 8, fontSize: 12 }} />
-              <Bar dataKey="users" fill="#16A34A" radius={[4, 4, 0, 0]} />
-            </BarChart>
-          </ResponsiveContainer>
-        ) : (
-          <p style={{ textAlign: 'center', color: 'var(--t4)', fontSize: '.875rem', padding: '40px 0' }}>No user data yet.</p>
-        )}
+        <ResponsiveContainer width="100%" height={220}>
+          <BarChart data={usersChart}>
+            <CartesianGrid strokeDasharray="3 3" stroke="var(--bd)" />
+            <XAxis dataKey="date" tick={{ fontSize: 11, fill: 'var(--t4)' }} tickLine={false} axisLine={false} interval="preserveStartEnd" />
+            <YAxis tick={{ fontSize: 11, fill: 'var(--t4)' }} tickLine={false} axisLine={false} allowDecimals={false} />
+            <Tooltip contentStyle={{ background: 'var(--sur)', border: '1px solid var(--bd)', borderRadius: 8, fontSize: 12 }} />
+            <Bar dataKey="users" fill="#16A34A" radius={[4, 4, 0, 0]} />
+          </BarChart>
+        </ResponsiveContainer>
       </div>
 
       <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 16, marginBottom: 16 }}>
         <div style={{ background: 'var(--sur)', border: '1px solid var(--bd)', borderRadius: 'var(--rm)', padding: '20px' }}>
           <h2 style={{ fontSize: '.9rem', fontWeight: 700, color: 'var(--t1)', marginBottom: 18 }}>Posts by category</h2>
-          {catData.length > 0 ? (
-            <ResponsiveContainer width="100%" height={220}>
-              <PieChart>
-                <Pie data={catData} cx="50%" cy="50%" innerRadius={50} outerRadius={80} dataKey="value" paddingAngle={3}>
-                  {catData.map((_, index) => (
-                    <Cell key={index} fill={PIE_COLORS[index % PIE_COLORS.length]} />
-                  ))}
-                </Pie>
-                <Tooltip contentStyle={{ background: 'var(--sur)', border: '1px solid var(--bd)', borderRadius: 8, fontSize: 12 }} />
-                <Legend iconSize={10} iconType="circle" wrapperStyle={{ fontSize: 12 }} />
-              </PieChart>
-            </ResponsiveContainer>
-          ) : (
-            <p style={{ textAlign: 'center', color: 'var(--t4)', fontSize: '.875rem', padding: '40px 0' }}>No data yet.</p>
-          )}
+          <ResponsiveContainer width="100%" height={220}>
+            <PieChart>
+              <Pie data={catData} cx="50%" cy="50%" innerRadius={50} outerRadius={80} dataKey="value" paddingAngle={3}>
+                {catData.map((_, index) => (
+                  <Cell key={index} fill={PIE_COLORS[index % PIE_COLORS.length]} />
+                ))}
+              </Pie>
+              <Tooltip contentStyle={{ background: 'var(--sur)', border: '1px solid var(--bd)', borderRadius: 8, fontSize: 12 }} />
+              <Legend iconSize={10} iconType="circle" wrapperStyle={{ fontSize: 12 }} />
+            </PieChart>
+          </ResponsiveContainer>
         </div>
 
         <div style={{ background: 'var(--sur)', border: '1px solid var(--bd)', borderRadius: 'var(--rm)', padding: '20px' }}>

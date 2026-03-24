@@ -80,7 +80,7 @@ export default function Admin2FA() {
   if (!status) return <div style={{ color: 'var(--t4)', fontSize: '.875rem' }}>Loading…</div>
 
   return (
-    <div style={{ maxWidth: 480 }}>
+    <div style={{ width: '100%' }}>
       <h2 style={{ fontSize: '1rem', fontWeight: 700, color: 'var(--t1)', marginBottom: 4 }}>Two-Factor Authentication</h2>
       <p style={{ fontSize: '.8rem', color: 'var(--t3)', marginBottom: 20 }}>Protect your admin account with an authenticator app (Google Authenticator, Authy, etc.)</p>
 
