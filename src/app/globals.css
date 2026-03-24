@@ -99,7 +99,7 @@ input, textarea, select { font-family: inherit; }
 
   /* Bottom nav visible on mobile */
   .bottom-nav {
-    display: block !important;
+    display: block;
   }
 
   /* Extra bottom padding so content clears bottom nav */
@@ -132,6 +132,9 @@ input, textarea, select { font-family: inherit; }
     padding: 12px 14px !important;
   }
 }
+
+/* Bottom nav hidden on desktop, shown on mobile */
+.bottom-nav { display: none; }
 
 /* Sticky nav — Safari requires -webkit-sticky */
 .main-nav {

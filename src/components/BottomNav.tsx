@@ -27,7 +27,6 @@ export default function BottomNav() {
 
   return (
     <nav className="bottom-nav" style={{
-      display: 'none', // shown via CSS on mobile
       position: 'fixed', bottom: 0, left: 0, right: 0, zIndex: 100,
       background: 'var(--sur)', borderTop: '1px solid var(--bd)',
       paddingBottom: 'env(safe-area-inset-bottom)',
