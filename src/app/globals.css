@@ -195,15 +195,18 @@ input, textarea, select { font-family: inherit; }
   box-shadow: 0 4px 12px rgba(0,0,0,.4) !important;
 }
 
-/* Category accent bar — fades in on hover */
-.post-card-accent {
+/* Category accent bar via ::before pseudo-element */
+.post-card::before {
+  content: '';
   position: absolute;
   left: 0; top: 0; bottom: 0; width: 3px;
+  background: var(--card-accent, var(--blue));
   opacity: 0;
-  transition: opacity .18s ease;
+  transition: opacity .2s ease;
   border-radius: 12px 0 0 12px;
+  z-index: 1;
 }
 
-.post-card:hover .post-card-accent {
+.post-card:hover::before {
   opacity: 1;
 }

@@ -69,11 +69,9 @@ export default function Compose({ categories }: { categories: Category[] }) {
       className="compose-box"
       style={{
         background: 'var(--sur)',
-        border: `1.5px solid ${open ? '#2563EB' : 'var(--bd)'}`,
-        boxShadow: open
-          ? '0 0 0 3px rgba(37,99,235,0.12), 0 0 20px rgba(124,58,237,0.08)'
-          : 'none',
-        transition: 'border-color .2s, box-shadow .25s',
+        border: `2px solid ${open ? '#2563EB' : 'var(--bd)'}`,
+        boxShadow: open ? '0 0 0 4px rgba(37,99,235,0.15)' : 'none',
+        transition: 'border-color .2s, box-shadow .2s',
         borderRadius: 'var(--rm)', padding: '16px 18px', marginBottom: 16,
       }}
     >

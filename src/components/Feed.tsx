@@ -45,13 +45,12 @@ function PostCard({ post, onOpen }: { post: any, onOpen: () => void }) {
     <div className="post-card" style={{
       background: 'var(--sur)', border: '1px solid var(--bd)',
       borderRadius: 'var(--rm)', padding: '16px 18px', marginBottom: 10,
-      cursor: 'pointer', transition: 'box-shadow .18s, border-color .18s',
+      cursor: 'pointer', transition: 'box-shadow .18s',
       position: 'relative', overflow: 'hidden',
+      ['--card-accent' as any]: accent,
     }}
       onClick={() => post.content_warning && !revealed ? undefined : onOpen()}
     >
-      {/* Left accent bar — shown via CSS on .post-card:hover */}
-      <div className="post-card-accent" style={{ background: accent }} />
 
       {/* Content warning overlay */}
       {post.content_warning && !revealed && (
