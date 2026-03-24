@@ -31,15 +31,23 @@ export default function CategoryFilter({ categories, onSelect }: { categories: C
     onSelect(id)
   }
 
-  const chipStyle = (isActive: boolean) => ({
-    fontSize: '.8rem', fontWeight: isActive ? 700 : 500, padding: '4px 10px',
+  const chipStyle = (isActive: boolean): React.CSSProperties => ({
+    fontSize: '.8rem',
+    fontWeight: isActive ? 700 : 500,
+    padding: '4px 10px',
     borderRadius: 'var(--rs)',
     border: isActive ? '1px solid var(--blue)' : '1px solid var(--bd)',
-    background: isActive ? 'var(--blue)' : 'var(--bg)',
+    background: isActive ? 'var(--blue)' : 'transparent',
     color: isActive ? '#fff' : 'var(--t3)',
-    cursor: 'pointer', transition: 'background .2s, color .2s, border-color .2s',
-    display: 'flex', alignItems: 'center', gap: 5,
-    flexShrink: 0, whiteSpace: 'nowrap' as const,
+    cursor: 'pointer',
+    transition: 'background .2s, color .2s, border-color .2s',
+    display: 'flex',
+    alignItems: 'center',
+    gap: '5px',
+    flexShrink: 0,
+    whiteSpace: 'nowrap',
+    outline: 'none',
+    WebkitAppearance: 'none',
   })
 
   return (
@@ -58,25 +66,33 @@ export default function CategoryFilter({ categories, onSelect }: { categories: C
           line-height: 1;
         }
         .category-scroll::-webkit-scrollbar { display: none; }
+        .chip-btn { -webkit-tap-highlight-color: transparent; }
+        .chip-btn:focus { outline: none; }
       `}</style>
 
-      <div className="category-scroll" style={{ display: 'flex', gap: 6, marginBottom: 14, padding: '0', flexWrap: 'nowrap', overflowX: 'auto', WebkitOverflowScrolling: 'touch' as any, scrollbarWidth: 'none' } as React.CSSProperties}>
+      <div className="category-scroll" style={{
+        display: 'flex', gap: 6, marginBottom: 14,
+        flexWrap: 'nowrap', overflowX: 'auto',
+        WebkitOverflowScrolling: 'touch' as any,
+        scrollbarWidth: 'none',
+        msOverflowStyle: 'none',
+      } as React.CSSProperties}>
 
-        <button onClick={() => select('following')} style={chipStyle(selected === 'following')}>
+        <button className="chip-btn" onClick={() => select('following')} style={chipStyle(selected === 'following')}>
           <Users size={12} />Following
         </button>
 
-        <button onClick={() => select(null)} style={chipStyle(selected === null)}>
+        <button className="chip-btn" onClick={() => select(null)} style={chipStyle(selected === null)}>
           All
         </button>
 
-        <button onClick={() => select('trending')} style={chipStyle(selected === 'trending')}>
+        <button className="chip-btn" onClick={() => select('trending')} style={chipStyle(selected === 'trending')}>
           <span className="fire-icon" style={{ color: selected === 'trending' ? '#fff' : '#F97316' }}>🔥</span>
           Trending
         </button>
 
         {categories.map(cat => (
-          <button key={cat.id} onClick={() => select(cat.id)} style={chipStyle(selected === cat.id)}>
+          <button className="chip-btn" key={cat.id} onClick={() => select(cat.id)} style={chipStyle(selected === cat.id)}>
             <CategoryIcon slug={cat.icon} />{cat.name}
           </button>
         ))}
