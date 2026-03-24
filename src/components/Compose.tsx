@@ -71,19 +71,15 @@ export default function Compose({ categories }: { categories: Category[] }) {
       onFocus={() => setFocused(true)}
       onBlur={e => { if (!e.currentTarget.contains(e.relatedTarget)) setFocused(false) }}
       style={{
-        padding: focused ? 1.5 : 1,
-        borderRadius: 'var(--rm)',
-        background: focused
-          ? 'linear-gradient(135deg, #2563EB 0%, #7C3AED 50%, #EC4899 100%)'
-          : 'var(--bd)',
-        transition: 'background .3s',
-        marginBottom: 16,
+        background: 'var(--sur)',
+        border: `1.5px solid ${focused ? '#2563EB' : 'var(--bd)'}`,
+        boxShadow: focused
+          ? '0 0 0 3px rgba(37,99,235,0.12), 0 0 20px rgba(124,58,237,0.08)'
+          : 'none',
+        transition: 'border-color .2s, box-shadow .25s',
+        borderRadius: 'var(--rm)', padding: '16px 18px', marginBottom: 16,
       }}
     >
-    <div style={{
-      background: 'var(--sur)',
-      borderRadius: 'calc(var(--rm) - 1px)', padding: '16px 18px',
-    }}>
       {!open ? (
         <button onClick={() => setOpen(true)} style={{
           width: '100%', textAlign: 'left', fontSize: '.875rem',
@@ -157,7 +153,6 @@ export default function Compose({ categories }: { categories: Category[] }) {
           </div>
         </>
       )}
-    </div>
     </div>
   )
 }
