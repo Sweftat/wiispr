@@ -33,7 +33,7 @@ export default function CategoryFilter({ categories, onSelect }: { categories: C
   }
 
   const chipStyle = (isActive: boolean) => ({
-    fontSize: '.8rem', fontWeight: isActive ? 700 : 500, padding: '6px 12px',
+  fontSize: '.8rem', fontWeight: isActive ? 700 : 500, padding: '4px 10px',
     borderRadius: 'var(--rs)',
     border: isActive ? '1px solid var(--blue)' : '1px solid var(--bd)',
     background: 'none',

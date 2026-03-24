@@ -1,7 +1,7 @@
 'use client'
 import Link from 'next/link'
 import { useEffect, useState, useRef } from 'react'
-import { Search, Moon, Sun, Bell, LogOut, Flame } from 'lucide-react'
+import { Search, Moon, Sun, Bell, LogOut } from 'lucide-react'
 import { useRouter } from 'next/navigation'
 
 export default function Nav() {
@@ -95,6 +95,17 @@ export default function Nav() {
       display: 'flex', alignItems: 'center', padding: '0 20px', gap: 8,
       position: 'sticky', top: 0, zIndex: 100
     }}>
+      <style>{`
+        @keyframes fireFlicker {
+          0%, 100% { transform: scale(1) rotate(-3deg); }
+          25% { transform: scale(1.15) rotate(3deg); }
+          50% { transform: scale(0.95) rotate(-2deg); }
+          75% { transform: scale(1.1) rotate(2deg); }
+        }
+        .fire-nav { display: inline-block; animation: fireFlicker 1.2s ease-in-out infinite; }
+      `}</style>
+
+      {/* Logo */}
       <Link href="/" style={{
         fontFamily: 'Georgia, serif', fontStyle: 'italic', fontWeight: 700,
         fontSize: '1.25rem', display: 'flex', alignItems: 'center', gap: 7, color: 'var(--t1)',
@@ -107,25 +118,30 @@ export default function Nav() {
         wiispr
       </Link>
 
+      {/* Trending */}
       <Link href="/trending" style={{
         fontSize: '.8rem', fontWeight: 500, color: 'var(--t3)',
         display: 'flex', alignItems: 'center', gap: 5,
         padding: '5px 10px', borderRadius: 'var(--r)',
         textDecoration: 'none', flexShrink: 0,
       }}>
-        <Flame size={14} />
+        <span className="fire-nav" style={{ fontSize: 14, lineHeight: 1 }}>🔥</span>
         <span className="nav-label">Trending</span>
       </Link>
 
-      {/* Search icon + dropdown */}
+      {/* Search */}
       <div ref={dropdownRef} style={{ position: 'relative' }}>
         <button onClick={() => setSearchOpen(o => !o)} style={{
-          fontSize: '.8rem', fontWeight: 500, color: searchOpen ? 'var(--blue)' : 'var(--t3)',
+          fontSize: '.8rem', fontWeight: 500,
+          color: searchOpen ? 'var(--blue)' : 'var(--t2)',
           display: 'flex', alignItems: 'center', gap: 5,
           padding: '5px 10px', borderRadius: 'var(--r)',
-          background: 'none', border: 'none', cursor: 'pointer', fontFamily: 'inherit'
+          background: searchOpen ? 'var(--blue-d)' : 'var(--bg)',
+          border: '1px solid var(--bd)',
+          cursor: 'pointer', fontFamily: 'inherit',
+          transition: 'all .15s'
         }}>
-          <Search size={14} />
+          <Search size={14} strokeWidth={2.5} />
           <span className="nav-label">Search</span>
         </button>
 
