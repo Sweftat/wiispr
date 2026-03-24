@@ -47,7 +47,7 @@ export async function middleware(req: NextRequest) {
             apikey: process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
             Authorization: `Bearer ${process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!}`,
           },
-          next: { revalidate: 30 }, // cache for 30s to reduce DB load
+          cache: 'no-store',
         }
       )
       const data = await res.json()
