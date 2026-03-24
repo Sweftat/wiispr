@@ -1,6 +1,5 @@
 'use client'
 import { useState, useEffect } from 'react'
-import { motion } from 'framer-motion'
 import CategoryIcon from './CategoryIcon'
 import { Users, ShieldX } from 'lucide-react'
 
@@ -38,10 +37,9 @@ export default function CategoryFilter({ categories, onSelect }: { categories: C
     border: isActive ? '1px solid var(--blue)' : '1px solid var(--bd)',
     background: isActive ? 'var(--blue)' : 'var(--bg)',
     color: isActive ? '#fff' : 'var(--t3)',
-    cursor: 'pointer', transition: 'color .15s, border-color .15s',
+    cursor: 'pointer', transition: 'background .2s, color .2s, border-color .2s',
     display: 'flex', alignItems: 'center', gap: 5,
     flexShrink: 0, whiteSpace: 'nowrap' as const,
-    position: 'relative' as const, overflow: 'hidden',
   })
 
   return (
@@ -65,31 +63,21 @@ export default function CategoryFilter({ categories, onSelect }: { categories: C
       <div className="category-scroll" style={{ display: 'flex', gap: 6, marginBottom: 14, padding: '0', flexWrap: 'nowrap', overflowX: 'auto', WebkitOverflowScrolling: 'touch' as any, scrollbarWidth: 'none' } as React.CSSProperties}>
 
         <button onClick={() => select('following')} style={chipStyle(selected === 'following')}>
-          {selected === 'following' && <motion.span layoutId="pill-bg" style={{ position: 'absolute', inset: 0, background: 'var(--blue)', borderRadius: 'inherit', zIndex: 0 }} transition={{ type: 'spring', bounce: 0.2, duration: 0.35 }} />}
-          <span style={{ position: 'relative', zIndex: 1, display: 'flex', alignItems: 'center', gap: 5 }}>
-            <Users size={12} />Following
-          </span>
+          <Users size={12} />Following
         </button>
 
         <button onClick={() => select(null)} style={chipStyle(selected === null)}>
-          {selected === null && <motion.span layoutId="pill-bg" style={{ position: 'absolute', inset: 0, background: 'var(--blue)', borderRadius: 'inherit', zIndex: 0 }} transition={{ type: 'spring', bounce: 0.2, duration: 0.35 }} />}
-          <span style={{ position: 'relative', zIndex: 1 }}>All</span>
+          All
         </button>
 
         <button onClick={() => select('trending')} style={chipStyle(selected === 'trending')}>
-          {selected === 'trending' && <motion.span layoutId="pill-bg" style={{ position: 'absolute', inset: 0, background: 'var(--blue)', borderRadius: 'inherit', zIndex: 0 }} transition={{ type: 'spring', bounce: 0.2, duration: 0.35 }} />}
-          <span style={{ position: 'relative', zIndex: 1, display: 'flex', alignItems: 'center', gap: 5 }}>
-            <span className="fire-icon" style={{ color: selected === 'trending' ? '#fff' : '#F97316' }}>🔥</span>
-            Trending
-          </span>
+          <span className="fire-icon" style={{ color: selected === 'trending' ? '#fff' : '#F97316' }}>🔥</span>
+          Trending
         </button>
 
         {categories.map(cat => (
           <button key={cat.id} onClick={() => select(cat.id)} style={chipStyle(selected === cat.id)}>
-            {selected === cat.id && <motion.span layoutId="pill-bg" style={{ position: 'absolute', inset: 0, background: 'var(--blue)', borderRadius: 'inherit', zIndex: 0 }} transition={{ type: 'spring', bounce: 0.2, duration: 0.35 }} />}
-            <span style={{ position: 'relative', zIndex: 1, display: 'flex', alignItems: 'center', gap: 5 }}>
-              <CategoryIcon slug={cat.icon} />{cat.name}
-            </span>
+            <CategoryIcon slug={cat.icon} />{cat.name}
           </button>
         ))}
       </div>
