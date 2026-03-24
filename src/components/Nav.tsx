@@ -90,7 +90,7 @@ export default function Nav() {
   }
 
   return (
-    <nav style={{
+    <nav className="main-nav" style={{
       height: 52, background: 'var(--sur)', borderBottom: '1px solid var(--bd)',
       display: 'flex', alignItems: 'center', padding: '0 20px', gap: 8,
       position: 'sticky', top: 0, zIndex: 100
@@ -111,7 +111,7 @@ export default function Nav() {
         textDecoration: 'none', flexShrink: 0,
       }}>
         <Flame size={14} />
-        Trending
+        <span className="nav-label">Trending</span>
       </Link>
 
       {/* Search icon + dropdown */}
@@ -123,7 +123,7 @@ export default function Nav() {
           background: 'none', border: 'none', cursor: 'pointer', fontFamily: 'inherit'
         }}>
           <Search size={14} />
-          Search
+          <span className="nav-label">Search</span>
         </button>
 
         {searchOpen && (
@@ -203,7 +203,7 @@ export default function Nav() {
 
       {user ? (
         <>
-          <a href="/notifications" style={{
+          <a href="/notifications" className="nav-signin" style={{
             display: 'flex', alignItems: 'center', justifyContent: 'center',
             width: 32, height: 32, borderRadius: 'var(--r)',
             border: '1px solid var(--bd)', color: 'var(--t2)',
@@ -221,12 +221,12 @@ export default function Nav() {
               }}>{unread > 9 ? '9+' : unread}</span>
             )}
           </a>
-          <a href="/profile" style={{
+          <a href="/profile" className="nav-signin" style={{
             fontSize: '.8rem', color: 'var(--t2)', fontWeight: 600,
             padding: '5px 10px', borderRadius: 'var(--r)',
             border: '1px solid var(--bd)', textDecoration: 'none', flexShrink: 0
           }}>{user.nickname}</a>
-          <button onClick={signOut} style={{
+          <button onClick={signOut} className="nav-signin" style={{
             display: 'flex', alignItems: 'center',
             width: 32, height: 32, justifyContent: 'center',
             borderRadius: 'var(--r)', border: '1px solid var(--bd)',
@@ -237,12 +237,12 @@ export default function Nav() {
         </>
       ) : (
         <>
-          <Link href="/auth?signin=1" style={{
+          <Link href="/auth?signin=1" className="nav-signin" style={{
             fontSize: '.8rem', fontWeight: 600, padding: '6px 14px',
             borderRadius: 'var(--r)', border: '1px solid var(--bd)',
             color: 'var(--t2)', textDecoration: 'none'
           }}>Sign in</Link>
-          <Link href="/auth" style={{
+          <Link href="/auth" className="nav-join" style={{
             fontSize: '.8rem', fontWeight: 600, padding: '6px 14px',
             borderRadius: 'var(--r)', background: 'var(--blue)',
             color: '#fff', textDecoration: 'none'

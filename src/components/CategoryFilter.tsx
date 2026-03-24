@@ -38,12 +38,13 @@ export default function CategoryFilter({ categories, onSelect }: { categories: C
     background: isActive ? 'var(--blue)' : 'var(--sur)',
     color: isActive ? '#fff' : 'var(--t3)',
     cursor: 'pointer', transition: 'all .15s',
-    display: 'flex', alignItems: 'center', gap: 5
+    display: 'flex', alignItems: 'center', gap: 5,
+    flexShrink: 0, whiteSpace: 'nowrap'
   } as React.CSSProperties)
 
   return (
     <>
-      <div style={{ display: 'flex', gap: 6, marginBottom: 16, flexWrap: 'wrap' }}>
+      <div className="category-filter" style={{ display: 'flex', gap: 6, marginBottom: 16, flexWrap: 'nowrap', overflowX: 'auto', WebkitOverflowScrolling: 'touch' as any, scrollbarWidth: 'none', msOverflowStyle: 'none' } as React.CSSProperties}>
         <button onClick={() => select('following')} style={chipStyle(selected === 'following')}>
           <Users size={12} />
           Following

@@ -50,7 +50,7 @@ export default function Compose({ categories }: { categories: Category[] }) {
   } as React.CSSProperties)
 
   if (!user) return (
-    <div style={{
+    <div className="compose-box" style={{
       background: 'var(--sur)', border: '1px solid var(--bd)',
       borderRadius: 'var(--rm)', padding: '14px 18px', marginBottom: 16,
       display: 'flex', alignItems: 'center', justifyContent: 'space-between'
@@ -65,7 +65,7 @@ export default function Compose({ categories }: { categories: Category[] }) {
   )
 
   return (
-    <div style={{
+    <div className="compose-box" style={{
       background: 'var(--sur)', border: '1px solid var(--bd)',
       borderRadius: 'var(--rm)', padding: '16px 18px', marginBottom: 16
     }}>

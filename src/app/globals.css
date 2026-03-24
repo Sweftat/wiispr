@@ -96,7 +96,51 @@ input, textarea, select { font-family: inherit; }
   .feed-sidebar {
     display: none !important;
   }
+
+  /* Bottom nav visible on mobile */
+  .bottom-nav {
+    display: block !important;
+  }
+
+  /* Extra bottom padding so content clears bottom nav */
+  body {
+    padding-bottom: calc(56px + env(safe-area-inset-bottom));
+  }
+
+  /* Nav: hide text labels, keep icons */
+  .nav-label {
+    display: none !important;
+  }
+  /* Nav: hide Sign in link on mobile (keep Join free) */
+  .nav-signin {
+    display: none !important;
+  }
+  /* Nav: compact join button on mobile */
+  .nav-join {
+    padding: 5px 10px !important;
+  }
+
+  /* Post cards: tighter padding on mobile */
+  .post-card {
+    padding: 12px 14px !important;
+    border-radius: 8px !important;
+    margin-bottom: 8px !important;
+  }
+
+  /* Compose box full-width padding fix */
+  .compose-box {
+    padding: 12px 14px !important;
+  }
 }
+
+/* Sticky nav — Safari requires -webkit-sticky */
+.main-nav {
+  position: -webkit-sticky !important;
+  position: sticky !important;
+}
+
+/* Hide scrollbar on category pills */
+.category-filter::-webkit-scrollbar { display: none; }
 
 .auto-dir {
   unicode-bidi: plaintext;
