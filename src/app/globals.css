@@ -185,7 +185,6 @@ input, textarea, select { font-family: inherit; }
 
 .post-card:hover {
   box-shadow: 0 4px 14px rgba(0,0,0,.08) !important;
-  border-left-color: var(--card-accent, var(--blue)) !important;
 }
 
 [data-theme="dark"] .post-card {
@@ -194,5 +193,4 @@ input, textarea, select { font-family: inherit; }
 
 [data-theme="dark"] .post-card:hover {
   box-shadow: 0 4px 12px rgba(0,0,0,.4) !important;
-  border-left-color: var(--card-accent, var(--blue)) !important;
 }

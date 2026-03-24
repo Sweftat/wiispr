@@ -39,18 +39,22 @@ function categoryAccent(name: string) {
 
 function PostCard({ post, onOpen }: { post: any, onOpen: () => void }) {
   const [revealed, setRevealed] = useState(false)
+  const [hovered, setHovered] = useState(false)
   const accent = categoryAccent(post.categories?.name)
 
   return (
-    <div className="post-card" style={{
-      background: 'var(--sur)',
-      border: '1px solid var(--bd)',
-      borderLeft: '3px solid transparent',
-      borderRadius: 'var(--rm)', padding: '16px 16px 16px 15px', marginBottom: 10,
-      cursor: 'pointer', transition: 'box-shadow .18s, border-left-color .18s',
-      position: 'relative',
-      ['--card-accent' as any]: accent,
-    }}
+    <div
+      className="post-card"
+      onMouseEnter={() => setHovered(true)}
+      onMouseLeave={() => setHovered(false)}
+      style={{
+        background: 'var(--sur)',
+        border: '1px solid var(--bd)',
+        borderLeft: `3px solid ${hovered ? accent : 'transparent'}`,
+        borderRadius: 'var(--rm)', padding: '16px 16px 16px 15px', marginBottom: 10,
+        cursor: 'pointer', transition: 'box-shadow .18s, border-left-color .18s',
+        position: 'relative',
+      }}
       onClick={() => post.content_warning && !revealed ? undefined : onOpen()}
     >
 
