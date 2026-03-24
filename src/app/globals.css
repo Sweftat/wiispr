@@ -15,7 +15,10 @@
   --radius-lg: calc(var(--radius) + 4px);
 }
 
-* { box-sizing: border-box; margin: 0; padding: 0; }
+* { box-sizing: border-box; margin: 0; padding: 0; max-width: 100%; }
+
+/* Prevent horizontal scroll on all viewports */
+html, body { overflow-x: hidden; }
 
 :root {
   --background: #F4F4F5;
@@ -125,11 +128,24 @@ input, textarea, select { font-family: inherit; }
     padding: 12px 14px !important;
     border-radius: 8px !important;
     margin-bottom: 8px !important;
+    width: 100% !important;
+    box-sizing: border-box !important;
+    overflow: hidden !important;
   }
 
   /* Compose box full-width padding fix */
   .compose-box {
     padding: 12px 14px !important;
+    width: 100% !important;
+    box-sizing: border-box !important;
+  }
+
+  /* Feed container */
+  .feed-container {
+    width: 100% !important;
+    overflow-x: hidden !important;
+    padding: 12px !important;
+    box-sizing: border-box !important;
   }
 }
 
@@ -144,6 +160,17 @@ input, textarea, select { font-family: inherit; }
 
 /* Hide scrollbar on category pills */
 .category-filter::-webkit-scrollbar { display: none; }
+.category-scroll::-webkit-scrollbar { display: none; }
+
+/* Trending icon pulse */
+@keyframes trendingPulse {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.6; }
+}
+.trending-icon {
+  color: #F97316 !important;
+  animation: trendingPulse 2s ease-in-out infinite;
+}
 
 .auto-dir {
   unicode-bidi: plaintext;

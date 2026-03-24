@@ -127,7 +127,7 @@ export default function Feed({ initialPosts, initialPinnedPost, initialPostOfDay
   }
 
   return (
-    <div style={{ position: 'relative' }}>
+    <div style={{ position: 'relative', width: '100%', overflow: 'hidden' }}>
       <Compose categories={categories} />
       <CategoryFilter categories={categories} onSelect={filterByCategory} />
 

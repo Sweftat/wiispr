@@ -18,11 +18,11 @@ export default function BottomNav() {
   }, [])
 
   const items = [
-    { href: '/',              icon: Home,   label: 'Home' },
-    { href: '/search',        icon: Search, label: 'Search' },
-    { href: '/trending',      icon: Flame,  label: 'Trending' },
-    { href: loggedIn ? '/notifications' : '/auth', icon: Bell, label: 'Alerts', badge: unread },
-    { href: loggedIn ? '/profile' : '/auth', icon: User, label: 'Profile' },
+    { href: '/',              icon: Home,   label: 'Home',     trending: false },
+    { href: '/search',        icon: Search, label: 'Search',   trending: false },
+    { href: '/trending',      icon: Flame,  label: 'Trending', trending: true },
+    { href: loggedIn ? '/notifications' : '/auth', icon: Bell, label: 'Alerts', badge: unread, trending: false },
+    { href: loggedIn ? '/profile' : '/auth', icon: User, label: 'Profile', trending: false },
   ]
 
   return (
@@ -47,7 +47,7 @@ export default function BottomNav() {
                 fontSize: '.6rem', fontWeight: active ? 700 : 500,
               }}
             >
-              <Icon size={20} strokeWidth={active ? 2.5 : 1.75} />
+              <Icon size={20} strokeWidth={active ? 2.5 : 1.75} className={item.trending && !active ? 'trending-icon' : ''} />
               <span>{item.label}</span>
               {item.badge != null && item.badge > 0 && (
                 <span style={{

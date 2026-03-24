@@ -44,7 +44,7 @@ export default function CategoryFilter({ categories, onSelect }: { categories: C
 
   return (
     <>
-      <div className="category-filter" style={{ display: 'flex', gap: 6, marginBottom: 16, flexWrap: 'nowrap', overflowX: 'auto', WebkitOverflowScrolling: 'touch' as any, scrollbarWidth: 'none', msOverflowStyle: 'none' } as React.CSSProperties}>
+      <div className="category-filter category-scroll" style={{ display: 'flex', gap: 8, marginBottom: 16, padding: '0 0 8px', flexWrap: 'nowrap', overflowX: 'auto', WebkitOverflowScrolling: 'touch' as any, scrollbarWidth: 'none', msOverflowStyle: 'none' } as React.CSSProperties}>
         <button onClick={() => select('following')} style={chipStyle(selected === 'following')}>
           <Users size={12} />
           Following
@@ -53,7 +53,7 @@ export default function CategoryFilter({ categories, onSelect }: { categories: C
           All
         </button>
         <button onClick={() => select('trending')} style={chipStyle(selected === 'trending')}>
-          <TrendingUp size={12} />
+          <TrendingUp size={12} className={selected !== 'trending' ? 'trending-icon' : ''} />
           Trending
         </button>
         {categories.map(cat => (
