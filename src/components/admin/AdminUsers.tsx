@@ -1,6 +1,6 @@
 'use client'
 import { useState } from 'react'
-import { User, X, Monitor, Smartphone, Globe } from 'lucide-react'
+import { User, X, Monitor, Smartphone, Globe, Clock } from 'lucide-react'
 import { Switch } from '@/components/ui/switch'
 
 const trustColor: Record<string, string> = {
@@ -12,16 +12,20 @@ export default function AdminUsers({ initialUsers }: { initialUsers: any[] }) {
   const [selected, setSelected] = useState<any>(null)
   const [search, setSearch] = useState('')
   const [sessions, setSessions] = useState<any[]>([])
+  const [sessionsLoading, setSessionsLoading] = useState(false)
 
   async function loadSessions(userId: string) {
+    setSessionsLoading(true)
+    setSessions([])
     const res = await fetch('/api/admin/user-sessions?userId=' + userId)
     const data = await res.json()
     setSessions(data.sessions || [])
+    setSessionsLoading(false)
   }
 
   async function selectUser(user: any) {
     setSelected(user)
-    await loadSessions(user.id)
+    loadSessions(user.id)
   }
 
   async function suspend(userId: string) {
@@ -124,24 +128,50 @@ export default function AdminUsers({ initialUsers }: { initialUsers: any[] }) {
             ))}
 
             {/* Sessions */}
-            {sessions.length > 0 && (
-              <div style={{ marginTop: 14 }}>
-                <p style={{ fontSize: '.7rem', fontWeight: 600, color: 'var(--t4)', textTransform: 'uppercase', letterSpacing: '.05em', marginBottom: 8 }}>Recent Sessions</p>
-                {sessions.slice(0, 3).map((s, i) => (
-                  <div key={i} style={{ background: 'var(--bg)', borderRadius: 'var(--rs)', padding: '8px 10px', marginBottom: 6 }}>
-                    <div style={{ display: 'flex', alignItems: 'center', gap: 6, marginBottom: 3 }}>
-                      <Monitor size={11} style={{ color: 'var(--t4)' }} />
-                      <span style={{ fontSize: '.75rem', color: 'var(--t2)' }}>{s.device} · {s.browser}</span>
+            <div style={{ marginTop: 14 }}>
+              <p style={{ fontSize: '.7rem', fontWeight: 600, color: 'var(--t4)', textTransform: 'uppercase', letterSpacing: '.05em', marginBottom: 8 }}>Recent Sessions</p>
+              {sessionsLoading && (
+                <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
+                  {[1, 2].map(i => (
+                    <div key={i} style={{ background: 'var(--bg)', borderRadius: 'var(--rs)', padding: '8px 10px', opacity: 0.5 }}>
+                      <div style={{ width: '60%', height: 10, borderRadius: 3, background: 'var(--bd)', marginBottom: 6 }} />
+                      <div style={{ width: '40%', height: 10, borderRadius: 3, background: 'var(--bd)', marginBottom: 4 }} />
+                      <div style={{ width: '50%', height: 9, borderRadius: 3, background: 'var(--bd)' }} />
+                    </div>
+                  ))}
+                </div>
+              )}
+              {!sessionsLoading && sessions.length === 0 && (
+                <p style={{ fontSize: '.78rem', color: 'var(--t4)', fontStyle: 'italic' }}>No sessions recorded.</p>
+              )}
+              {!sessionsLoading && sessions.map((s, i) => {
+                const isMobile = /mobile|android|iphone|ipad/i.test(s.device || '')
+                const location = [s.city, s.country].filter(Boolean).join(', ') || 'Unknown location'
+                const deviceLabel = [s.device, s.browser].filter(Boolean).join(' · ') || 'Unknown device'
+                const loginTime = s.created_at
+                  ? new Date(s.created_at).toLocaleString('en-US', { month: 'short', day: 'numeric', year: 'numeric', hour: '2-digit', minute: '2-digit' })
+                  : '—'
+                return (
+                  <div key={i} style={{ background: 'var(--bg)', borderRadius: 'var(--rs)', padding: '9px 11px', marginBottom: 6, border: '1px solid var(--bd)' }}>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: 6, marginBottom: 4 }}>
+                      {isMobile
+                        ? <Smartphone size={11} style={{ color: 'var(--blue)', flexShrink: 0 }} />
+                        : <Monitor size={11} style={{ color: 'var(--t4)', flexShrink: 0 }} />
+                      }
+                      <span style={{ fontSize: '.75rem', color: 'var(--t1)', fontWeight: 500, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{deviceLabel}</span>
+                    </div>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: 6, marginBottom: 4 }}>
+                      <Globe size={11} style={{ color: 'var(--t4)', flexShrink: 0 }} />
+                      <span style={{ fontSize: '.75rem', color: 'var(--t2)' }}>{location}</span>
                     </div>
                     <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
-                      <Globe size={11} style={{ color: 'var(--t4)' }} />
-                      <span style={{ fontSize: '.75rem', color: 'var(--t2)' }}>{s.city}, {s.country}</span>
+                      <Clock size={11} style={{ color: 'var(--t4)', flexShrink: 0 }} />
+                      <span style={{ fontSize: '.7rem', color: 'var(--t4)', fontFamily: 'monospace' }}>{loginTime}</span>
                     </div>
-                    <p style={{ fontSize: '.7rem', color: 'var(--t4)', marginTop: 3, fontFamily: 'monospace' }}>{new Date(s.created_at).toLocaleDateString('en-US', { month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' })}</p>
                   </div>
-                ))}
-              </div>
-            )}
+                )
+              })}
+            </div>
 
             {/* Trust level override */}
             <div style={{ marginTop: 14 }}>
