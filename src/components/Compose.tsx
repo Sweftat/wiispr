@@ -15,7 +15,6 @@ export default function Compose({ categories }: { categories: Category[] }) {
   const [body, setBody] = useState('')
   const [categoryId, setCategoryId] = useState('')
   const [loading, setLoading] = useState(false)
-  const [focused, setFocused] = useState(false)
   const [user, setUser] = useState<{ id: string, nickname: string } | null>(null)
 
   useEffect(() => {
@@ -68,12 +67,10 @@ export default function Compose({ categories }: { categories: Category[] }) {
   return (
     <div
       className="compose-box"
-      onFocus={() => setFocused(true)}
-      onBlur={e => { if (!e.currentTarget.contains(e.relatedTarget)) setFocused(false) }}
       style={{
         background: 'var(--sur)',
-        border: `1.5px solid ${focused ? '#2563EB' : 'var(--bd)'}`,
-        boxShadow: focused
+        border: `1.5px solid ${open ? '#2563EB' : 'var(--bd)'}`,
+        boxShadow: open
           ? '0 0 0 3px rgba(37,99,235,0.12), 0 0 20px rgba(124,58,237,0.08)'
           : 'none',
         transition: 'border-color .2s, box-shadow .25s',
