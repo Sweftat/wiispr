@@ -85,50 +85,56 @@ export default function AdminAnalytics({ stats, postsPerDay, usersPerDay, catego
 
       <div style={{ background: 'var(--sur)', border: '1px solid var(--bd)', borderRadius: 'var(--rm)', padding: '20px', marginBottom: 16 }}>
         <h2 style={{ fontSize: '.9rem', fontWeight: 700, color: 'var(--t1)', marginBottom: 18 }}>Posts per day (last 30 days)</h2>
-        <ResponsiveContainer width="100%" height={220}>
-          <AreaChart data={postsChart}>
-            <defs>
-              <linearGradient id="postsGrad" x1="0" y1="0" x2="0" y2="1">
-                <stop offset="5%" stopColor="#2563EB" stopOpacity={0.15} />
-                <stop offset="95%" stopColor="#2563EB" stopOpacity={0} />
-              </linearGradient>
-            </defs>
-            <CartesianGrid strokeDasharray="3 3" stroke="var(--bd)" />
-            <XAxis dataKey="date" tick={{ fontSize: 11, fill: 'var(--t4)' }} tickLine={false} axisLine={false} interval="preserveStartEnd" />
-            <YAxis tick={{ fontSize: 11, fill: 'var(--t4)' }} tickLine={false} axisLine={false} allowDecimals={false} />
-            <Tooltip contentStyle={{ background: 'var(--sur)', border: '1px solid var(--bd)', borderRadius: 8, fontSize: 12 }} />
-            <Area type="monotone" dataKey="posts" stroke="#2563EB" strokeWidth={2} fill="url(#postsGrad)" />
-          </AreaChart>
-        </ResponsiveContainer>
+        <div style={{ width: '100%', height: 220 }}>
+          <ResponsiveContainer width="100%" height="100%">
+            <AreaChart data={postsChart}>
+              <defs>
+                <linearGradient id="postsGrad" x1="0" y1="0" x2="0" y2="1">
+                  <stop offset="5%" stopColor="#2563EB" stopOpacity={0.15} />
+                  <stop offset="95%" stopColor="#2563EB" stopOpacity={0} />
+                </linearGradient>
+              </defs>
+              <CartesianGrid strokeDasharray="3 3" stroke="var(--bd)" />
+              <XAxis dataKey="date" tick={{ fontSize: 11, fill: 'var(--t4)' }} tickLine={false} axisLine={false} interval="preserveStartEnd" />
+              <YAxis tick={{ fontSize: 11, fill: 'var(--t4)' }} tickLine={false} axisLine={false} allowDecimals={false} domain={[0, (max: number) => Math.max(max, 5)]} />
+              <Tooltip contentStyle={{ background: 'var(--sur)', border: '1px solid var(--bd)', borderRadius: 8, fontSize: 12 }} />
+              <Area type="monotone" dataKey="posts" stroke="#2563EB" strokeWidth={2} fill="url(#postsGrad)" />
+            </AreaChart>
+          </ResponsiveContainer>
+        </div>
       </div>
 
       <div style={{ background: 'var(--sur)', border: '1px solid var(--bd)', borderRadius: 'var(--rm)', padding: '20px', marginBottom: 16 }}>
         <h2 style={{ fontSize: '.9rem', fontWeight: 700, color: 'var(--t1)', marginBottom: 18 }}>New users per day (last 30 days)</h2>
-        <ResponsiveContainer width="100%" height={220}>
-          <BarChart data={usersChart}>
-            <CartesianGrid strokeDasharray="3 3" stroke="var(--bd)" />
-            <XAxis dataKey="date" tick={{ fontSize: 11, fill: 'var(--t4)' }} tickLine={false} axisLine={false} interval="preserveStartEnd" />
-            <YAxis tick={{ fontSize: 11, fill: 'var(--t4)' }} tickLine={false} axisLine={false} allowDecimals={false} />
-            <Tooltip contentStyle={{ background: 'var(--sur)', border: '1px solid var(--bd)', borderRadius: 8, fontSize: 12 }} />
-            <Bar dataKey="users" fill="#16A34A" radius={[4, 4, 0, 0]} />
-          </BarChart>
-        </ResponsiveContainer>
+        <div style={{ width: '100%', height: 220 }}>
+          <ResponsiveContainer width="100%" height="100%">
+            <BarChart data={usersChart}>
+              <CartesianGrid strokeDasharray="3 3" stroke="var(--bd)" />
+              <XAxis dataKey="date" tick={{ fontSize: 11, fill: 'var(--t4)' }} tickLine={false} axisLine={false} interval="preserveStartEnd" />
+              <YAxis tick={{ fontSize: 11, fill: 'var(--t4)' }} tickLine={false} axisLine={false} allowDecimals={false} domain={[0, (max: number) => Math.max(max, 5)]} />
+              <Tooltip contentStyle={{ background: 'var(--sur)', border: '1px solid var(--bd)', borderRadius: 8, fontSize: 12 }} />
+              <Bar dataKey="users" fill="#16A34A" radius={[4, 4, 0, 0]} />
+            </BarChart>
+          </ResponsiveContainer>
+        </div>
       </div>
 
       <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 16, marginBottom: 16 }}>
         <div style={{ background: 'var(--sur)', border: '1px solid var(--bd)', borderRadius: 'var(--rm)', padding: '20px' }}>
           <h2 style={{ fontSize: '.9rem', fontWeight: 700, color: 'var(--t1)', marginBottom: 18 }}>Posts by category</h2>
-          <ResponsiveContainer width="100%" height={220}>
-            <PieChart>
-              <Pie data={catData} cx="50%" cy="50%" innerRadius={50} outerRadius={80} dataKey="value" paddingAngle={3}>
-                {catData.map((_, index) => (
-                  <Cell key={index} fill={PIE_COLORS[index % PIE_COLORS.length]} />
-                ))}
-              </Pie>
-              <Tooltip contentStyle={{ background: 'var(--sur)', border: '1px solid var(--bd)', borderRadius: 8, fontSize: 12 }} />
-              <Legend iconSize={10} iconType="circle" wrapperStyle={{ fontSize: 12 }} />
-            </PieChart>
-          </ResponsiveContainer>
+          <div style={{ width: '100%', height: 220 }}>
+            <ResponsiveContainer width="100%" height="100%">
+              <PieChart>
+                <Pie data={catData} cx="50%" cy="50%" innerRadius={50} outerRadius={80} dataKey="value" paddingAngle={3}>
+                  {catData.map((_, index) => (
+                    <Cell key={index} fill={PIE_COLORS[index % PIE_COLORS.length]} />
+                  ))}
+                </Pie>
+                <Tooltip contentStyle={{ background: 'var(--sur)', border: '1px solid var(--bd)', borderRadius: 8, fontSize: 12 }} />
+                <Legend iconSize={10} iconType="circle" wrapperStyle={{ fontSize: 12 }} />
+              </PieChart>
+            </ResponsiveContainer>
+          </div>
         </div>
 
         <div style={{ background: 'var(--sur)', border: '1px solid var(--bd)', borderRadius: 'var(--rm)', padding: '20px' }}>
