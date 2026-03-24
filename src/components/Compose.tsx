@@ -11,6 +11,7 @@ interface Category {
 
 export default function Compose({ categories }: { categories: Category[] }) {
   const [open, setOpen] = useState(false)
+  const [hovered, setHovered] = useState(false)
   const [title, setTitle] = useState('')
   const [body, setBody] = useState('')
   const [categoryId, setCategoryId] = useState('')
@@ -67,10 +68,12 @@ export default function Compose({ categories }: { categories: Category[] }) {
   return (
     <div
       className="compose-box"
+      onMouseEnter={() => setHovered(true)}
+      onMouseLeave={() => setHovered(false)}
       style={{
         background: 'var(--sur)',
-        border: `2px solid ${open ? '#2563EB' : 'var(--bd)'}`,
-        boxShadow: open ? '0 0 0 4px rgba(37,99,235,0.15)' : 'none',
+        border: `2px solid ${hovered ? '#2563EB' : 'var(--bd)'}`,
+        boxShadow: hovered ? '0 0 0 4px rgba(37,99,235,0.15)' : 'none',
         transition: 'border-color .2s, box-shadow .2s',
         borderRadius: 'var(--rm)', padding: '16px 18px', marginBottom: 16,
       }}
