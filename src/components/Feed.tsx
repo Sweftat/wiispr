@@ -29,9 +29,14 @@ function Skeleton() {
 }
 
 const CATEGORY_COLORS: Record<string, string> = {
-  technology: '#2563EB', sports: '#16A34A', lifestyle: '#D97706',
-  business: '#7C3AED', gaming: '#E11D48', family: '#F97316',
-  "women's space": '#EC4899', open: '#0891B2',
+  technology: '#2563EB',     // blue
+  sports: '#16A34A',         // green
+  lifestyle: '#D97706',      // amber
+  business: '#7C3AED',       // purple
+  gaming: '#E11D48',         // red
+  family: '#0D9488',         // teal
+  "women's space": '#EC4899', // pink
+  open: '#F97316',           // orange
 }
 function categoryAccent(name: string) {
   return CATEGORY_COLORS[name?.toLowerCase()] || 'var(--blue)'
