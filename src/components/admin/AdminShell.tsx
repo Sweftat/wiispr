@@ -1,6 +1,6 @@
 'use client'
 import { useState } from 'react'
-import { LayoutDashboard, Flag, Users, Activity, Layers, BarChart2, Settings, LogOut, ChevronRight, Menu, Megaphone, FileText, SlidersHorizontal } from 'lucide-react'
+import { LayoutDashboard, Flag, Users, Activity, Layers, BarChart2, Settings, LogOut, ChevronRight, Menu, Megaphone, FileText, SlidersHorizontal, Bell, Share2, Download, Pin, Star, ShieldAlert } from 'lucide-react'
 import AdminOverview from './AdminOverview'
 import AdminFlagged from './AdminFlagged'
 import AdminUsers from './AdminUsers'
@@ -11,6 +11,12 @@ import AdminSettings from './AdminSettings'
 import AdminAnnouncements from './AdminAnnouncements'
 import AdminLegalEditor from './AdminLegalEditor'
 import AdminOnboarding from './AdminOnboarding'
+import AdminNotifyAll from './AdminNotifyAll'
+import AdminSocialLinks from './AdminSocialLinks'
+import AdminExport from './AdminExport'
+import AdminPinnedPost from './AdminPinnedPost'
+import AdminPostOfDay from './AdminPostOfDay'
+import AdminContentWarnings from './AdminContentWarnings'
 
 const navItems = [
   { id: 'overview', label: 'Overview', icon: LayoutDashboard },
@@ -18,10 +24,16 @@ const navItems = [
   { id: 'users', label: 'Users', icon: Users },
   { id: 'logs', label: 'Activity Logs', icon: Activity },
   { id: 'categories', label: 'Categories', icon: Layers },
+  { id: 'pinned', label: 'Pinned Post', icon: Pin },
+  { id: 'potd', label: 'Post of the Day', icon: Star },
+  { id: 'warnings', label: 'Content Warnings', icon: ShieldAlert },
+  { id: 'notify', label: 'Notify Users', icon: Bell },
   { id: 'announcements', label: 'Announcements', icon: Megaphone },
   { id: 'legal', label: 'Legal Pages', icon: FileText },
   { id: 'onboarding', label: 'Onboarding Slides', icon: SlidersHorizontal },
   { id: 'analytics', label: 'Analytics', icon: BarChart2 },
+  { id: 'export', label: 'Export Data', icon: Download },
+  { id: 'social', label: 'Social Links', icon: Share2 },
   { id: 'settings', label: 'Site Settings', icon: Settings },
 ]
 
@@ -150,10 +162,16 @@ export default function AdminShell({ admin, flaggedPosts, allUsers, activityLogs
           {active === 'users' && <AdminUsers initialUsers={allUsers} />}
           {active === 'logs' && <AdminLogs logs={activityLogs} />}
           {active === 'categories' && <AdminCategories initialCategories={categories} />}
+          {active === 'pinned' && <AdminPinnedPost />}
+          {active === 'potd' && <AdminPostOfDay />}
+          {active === 'warnings' && <AdminContentWarnings />}
+          {active === 'notify' && <AdminNotifyAll userCount={allUsers.length} />}
           {active === 'announcements' && <AdminAnnouncements />}
           {active === 'legal' && <AdminLegalEditor />}
           {active === 'onboarding' && <AdminOnboarding />}
           {active === 'analytics' && <AdminAnalytics stats={stats} postsPerDay={postsPerDay} usersPerDay={usersPerDay} categoryStats={categoryStats} />}
+          {active === 'export' && <AdminExport />}
+          {active === 'social' && <AdminSocialLinks />}
           {active === 'settings' && <AdminSettings />}
         </main>
       </div>

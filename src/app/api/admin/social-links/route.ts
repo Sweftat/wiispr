@@ -3,6 +3,21 @@ import { createClient } from '@supabase/supabase-js'
 
 export const dynamic = 'force-dynamic'
 
+export async function GET() {
+  const supabase = createClient(
+    process.env.NEXT_PUBLIC_SUPABASE_URL!,
+    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
+  )
+
+  const { data } = await supabase
+    .from('site_settings')
+    .select('value')
+    .eq('key', 'social_links')
+    .single()
+
+  return NextResponse.json({ links: data?.value || {} })
+}
+
 export async function POST(req: NextRequest) {
   const supabase = createClient(
     process.env.NEXT_PUBLIC_SUPABASE_URL!,
@@ -15,18 +30,13 @@ export async function POST(req: NextRequest) {
   const { data: user } = await supabase.from('users').select('is_admin').eq('id', userId).single()
   if (!user?.is_admin) return NextResponse.json({ error: 'Unauthorized' }, { status: 403 })
 
-  const { userId: targetId, action, trustLevel } = await req.json()
+  const links = await req.json()
 
-  if (action === 'suspend') {
-    await supabase.from('users').update({ is_suspended: true }).eq('id', targetId)
-  } else if (action === 'unsuspend') {
-    await supabase.from('users').update({ is_suspended: false }).eq('id', targetId)
-  } else if (action === 'set_trust') {
-    const valid = ['new', 'active', 'trusted', 'top']
-    if (valid.includes(trustLevel)) {
-      await supabase.from('users').update({ trust_level: trustLevel }).eq('id', targetId)
-    }
-  }
+  const { error } = await supabase
+    .from('site_settings')
+    .upsert({ key: 'social_links', value: links }, { onConflict: 'key' })
+
+  if (error) return NextResponse.json({ error: error.message }, { status: 500 })
 
   return NextResponse.json({ success: true })
 }

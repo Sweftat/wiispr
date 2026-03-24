@@ -36,6 +36,12 @@ export default function AdminUsers({ initialUsers }: { initialUsers: any[] }) {
     if (selected?.id === userId) setSelected((s: any) => ({ ...s, is_suspended: false }))
   }
 
+  async function setTrust(userId: string, trustLevel: string) {
+    await fetch('/api/admin/user-action', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ userId, action: 'set_trust', trustLevel }) })
+    setUsers(users.map(u => u.id === userId ? { ...u, trust_level: trustLevel } : u))
+    if (selected?.id === userId) setSelected((s: any) => ({ ...s, trust_level: trustLevel }))
+  }
+
   const filtered = users.filter(u => u.nickname?.toLowerCase().includes(search.toLowerCase()))
 
   return (
@@ -137,8 +143,29 @@ export default function AdminUsers({ initialUsers }: { initialUsers: any[] }) {
               </div>
             )}
 
+            {/* Trust level override */}
+            <div style={{ marginTop: 14 }}>
+              <p style={{ fontSize: '.7rem', fontWeight: 600, color: 'var(--t4)', textTransform: 'uppercase', letterSpacing: '.05em', marginBottom: 8 }}>Trust Level</p>
+              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 6 }}>
+                {(['new', 'active', 'trusted', 'top'] as const).map(level => {
+                  const isActive = (selected.trust_level || 'new') === level
+                  const color = level === 'top' ? '#D97706' : level === 'trusted' ? 'var(--grn)' : level === 'active' ? 'var(--blue)' : 'var(--t4)'
+                  return (
+                    <button
+                      key={level}
+                      onClick={() => setTrust(selected.id, level)}
+                      disabled={isActive || selected.is_admin}
+                      style={{ padding: '6px 8px', borderRadius: 'var(--r)', border: `1px solid ${isActive ? color : 'var(--bd)'}`, background: isActive ? (level === 'top' ? '#FFFBEB' : level === 'trusted' ? 'var(--grn-d)' : level === 'active' ? 'var(--blue-d)' : 'var(--bg)') : 'none', color: isActive ? color : 'var(--t3)', fontSize: '.75rem', fontWeight: isActive ? 700 : 500, cursor: isActive || selected.is_admin ? 'default' : 'pointer', fontFamily: 'inherit', textTransform: 'capitalize', transition: 'all .12s' }}
+                    >
+                      {level}
+                    </button>
+                  )
+                })}
+              </div>
+            </div>
+
             {!selected.is_admin && (
-              <button onClick={() => selected.is_suspended ? unsuspend(selected.id) : suspend(selected.id)} style={{ width: '100%', marginTop: 14, padding: '9px', borderRadius: 'var(--r)', border: 'none', background: selected.is_suspended ? 'var(--grn)' : 'var(--rose)', color: '#fff', fontSize: '.8rem', fontWeight: 600, cursor: 'pointer', fontFamily: 'inherit' }}>
+              <button onClick={() => selected.is_suspended ? unsuspend(selected.id) : suspend(selected.id)} style={{ width: '100%', marginTop: 10, padding: '9px', borderRadius: 'var(--r)', border: 'none', background: selected.is_suspended ? 'var(--grn)' : 'var(--rose)', color: '#fff', fontSize: '.8rem', fontWeight: 600, cursor: 'pointer', fontFamily: 'inherit' }}>
                 {selected.is_suspended ? 'Unsuspend user' : 'Suspend user'}
               </button>
             )}
