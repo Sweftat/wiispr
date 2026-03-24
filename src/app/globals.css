@@ -182,7 +182,6 @@ h1, h2, h3 {
 }
 
 .post-card:hover {
-  border-color: #2563EB !important;
   box-shadow: 0 4px 14px rgba(37,99,235,.1) !important;
 }
 
@@ -191,7 +190,6 @@ h1, h2, h3 {
 }
 
 [data-theme="dark"] .post-card:hover {
-  border-color: #3F3F46 !important;
   box-shadow: 0 4px 12px rgba(0,0,0,.4) !important;
 }
 

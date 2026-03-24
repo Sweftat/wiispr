@@ -33,10 +33,10 @@ export default function CategoryFilter({ categories, onSelect }: { categories: C
   }
 
   const chipStyle = (isActive: boolean) => ({
-  fontSize: '.8rem', fontWeight: isActive ? 700 : 500, padding: '4px 10px',
+    fontSize: '.8rem', fontWeight: isActive ? 700 : 500, padding: '4px 10px',
     borderRadius: 'var(--rs)',
     border: isActive ? '1px solid var(--blue)' : '1px solid var(--bd)',
-    background: 'none',
+    background: 'var(--bg)',
     color: isActive ? '#fff' : 'var(--t3)',
     cursor: 'pointer', transition: 'color .15s, border-color .15s',
     display: 'flex', alignItems: 'center', gap: 5,
@@ -62,7 +62,7 @@ export default function CategoryFilter({ categories, onSelect }: { categories: C
         .category-scroll::-webkit-scrollbar { display: none; }
       `}</style>
 
-      <div className="category-scroll" style={{ display: 'flex', gap: 8, marginBottom: 16, padding: '0 0 8px', flexWrap: 'nowrap', overflowX: 'auto', WebkitOverflowScrolling: 'touch' as any, scrollbarWidth: 'none' } as React.CSSProperties}>
+      <div className="category-scroll" style={{ display: 'flex', gap: 6, marginBottom: 14, padding: '0', flexWrap: 'nowrap', overflowX: 'auto', WebkitOverflowScrolling: 'touch' as any, scrollbarWidth: 'none' } as React.CSSProperties}>
 
         <button onClick={() => select('following')} style={chipStyle(selected === 'following')}>
           {selected === 'following' && <motion.span layoutId="pill-bg" style={{ position: 'absolute', inset: 0, background: 'var(--blue)', borderRadius: 'inherit', zIndex: 0 }} transition={{ type: 'spring', bounce: 0.2, duration: 0.35 }} />}
