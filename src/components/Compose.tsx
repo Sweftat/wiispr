@@ -15,6 +15,7 @@ export default function Compose({ categories }: { categories: Category[] }) {
   const [body, setBody] = useState('')
   const [categoryId, setCategoryId] = useState('')
   const [loading, setLoading] = useState(false)
+  const [focused, setFocused] = useState(false)
   const [user, setUser] = useState<{ id: string, nickname: string } | null>(null)
 
   useEffect(() => {
@@ -53,7 +54,7 @@ export default function Compose({ categories }: { categories: Category[] }) {
     <div className="compose-box" style={{
       background: 'var(--sur)', border: '1px solid var(--bd)',
       borderRadius: 'var(--rm)', padding: '14px 18px', marginBottom: 16,
-      display: 'flex', alignItems: 'center', justifyContent: 'space-between'
+      display: 'flex', alignItems: 'center', justifyContent: 'space-between',
     }}>
       <p style={{ fontSize: '.875rem', color: 'var(--t3)' }}>Sign in to whisper something</p>
       <a href="/auth" style={{
@@ -65,9 +66,23 @@ export default function Compose({ categories }: { categories: Category[] }) {
   )
 
   return (
-    <div className="compose-box" style={{
-      background: 'var(--sur)', border: '1px solid var(--bd)',
-      borderRadius: 'var(--rm)', padding: '16px 18px', marginBottom: 16
+    <div
+      className="compose-box"
+      onFocus={() => setFocused(true)}
+      onBlur={e => { if (!e.currentTarget.contains(e.relatedTarget)) setFocused(false) }}
+      style={{
+        padding: focused ? 1.5 : 1,
+        borderRadius: 'var(--rm)',
+        background: focused
+          ? 'linear-gradient(135deg, #2563EB 0%, #7C3AED 50%, #EC4899 100%)'
+          : 'var(--bd)',
+        transition: 'background .3s',
+        marginBottom: 16,
+      }}
+    >
+    <div style={{
+      background: 'var(--sur)',
+      borderRadius: 'calc(var(--rm) - 1px)', padding: '16px 18px',
     }}>
       {!open ? (
         <button onClick={() => setOpen(true)} style={{
@@ -142,6 +157,7 @@ export default function Compose({ categories }: { categories: Category[] }) {
           </div>
         </>
       )}
+    </div>
     </div>
   )
 }

@@ -28,15 +28,33 @@ function Skeleton() {
   )
 }
 
+const CATEGORY_COLORS: Record<string, string> = {
+  technology: '#2563EB', sports: '#16A34A', lifestyle: '#D97706',
+  business: '#7C3AED', gaming: '#E11D48', family: '#F97316',
+  "women's space": '#EC4899', open: '#0891B2',
+}
+function categoryAccent(name: string) {
+  return CATEGORY_COLORS[name?.toLowerCase()] || 'var(--blue)'
+}
+
 function PostCard({ post, onOpen }: { post: any, onOpen: () => void }) {
   const [revealed, setRevealed] = useState(false)
+  const [hovered, setHovered] = useState(false)
+  const accent = categoryAccent(post.categories?.name)
 
   return (
     <div className="post-card" style={{
       background: 'var(--sur)', border: '1px solid var(--bd)',
       borderRadius: 'var(--rm)', padding: '16px 18px', marginBottom: 10,
-      cursor: 'pointer', transition: 'all .15s', position: 'relative', overflow: 'hidden',
-    }} onClick={() => post.content_warning && !revealed ? undefined : onOpen()}>
+      cursor: 'pointer', transition: 'box-shadow .18s, border-color .18s',
+      position: 'relative', overflow: 'hidden',
+      boxShadow: hovered ? `inset 3px 0 0 ${accent}` : 'inset 3px 0 0 transparent',
+      borderColor: hovered ? accent + '55' : 'var(--bd)',
+    }}
+      onClick={() => post.content_warning && !revealed ? undefined : onOpen()}
+      onMouseEnter={() => setHovered(true)}
+      onMouseLeave={() => setHovered(false)}
+    >
 
       {/* Content warning overlay */}
       {post.content_warning && !revealed && (

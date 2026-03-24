@@ -97,10 +97,13 @@ export default function Nav() {
     }}>
       <Link href="/" style={{
         fontFamily: 'Georgia, serif', fontStyle: 'italic', fontWeight: 700,
-        fontSize: '1.0625rem', display: 'flex', alignItems: 'center', gap: 6, color: 'var(--t1)',
+        fontSize: '1.25rem', display: 'flex', alignItems: 'center', gap: 7, color: 'var(--t1)',
         textDecoration: 'none', marginRight: 4, flexShrink: 0
       }}>
-        <span style={{ width: 6, height: 6, background: 'var(--blue)', borderRadius: '50%', display: 'inline-block' }}></span>
+        <span style={{
+          width: 7, height: 7, background: 'var(--blue)', borderRadius: '50%', display: 'inline-block',
+          boxShadow: '0 0 0 2px rgba(37,99,235,0.2), 0 0 8px 2px rgba(37,99,235,0.35)',
+        }}></span>
         wiispr
       </Link>
 
