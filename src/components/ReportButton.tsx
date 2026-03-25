@@ -1,6 +1,7 @@
 'use client'
 import { useState, useEffect } from 'react'
 import { Flag } from 'lucide-react'
+import { toast } from 'sonner'
 
 export default function ReportButton({ postId }: { postId: string }) {
   const [reported, setReported] = useState(false)
@@ -15,7 +16,10 @@ export default function ReportButton({ postId }: { postId: string }) {
 
   async function report() {
     if (reported) return
-    if (!loggedIn) { window.location.href = '/auth?signin=1'; return }
+    if (!loggedIn) {
+      toast.error('Sign in to report', { description: 'Join free to report inappropriate content' })
+      return
+    }
     setLoading(true)
     const res = await fetch('/api/posts/report', {
       method: 'POST',
@@ -24,7 +28,10 @@ export default function ReportButton({ postId }: { postId: string }) {
     })
     const data = await res.json()
     setLoading(false)
-    if (data.success) setReported(true)
+    if (data.success) {
+      setReported(true)
+      toast.success('Post reported', { description: 'Our team will review it shortly' })
+    }
   }
 
   return (

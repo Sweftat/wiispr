@@ -2,6 +2,7 @@
 import { useState, useEffect } from 'react'
 import { UserPlus, UserCheck } from 'lucide-react'
 import { motion, AnimatePresence } from 'framer-motion'
+import { toast } from 'sonner'
 
 export default function FollowButton({ ghostId }: { ghostId: string }) {
   const [following, setFollowing] = useState(false)
@@ -22,7 +23,10 @@ export default function FollowButton({ ghostId }: { ghostId: string }) {
   }, [ghostId])
 
   async function toggle() {
-    if (!loggedIn) { window.location.href = '/auth?signin=1'; return }
+    if (!loggedIn) {
+      toast.error('Sign in to follow', { description: 'Join free to follow Ghost IDs' })
+      return
+    }
     setLoading(true)
     const wasFollowing = following
     await fetch('/api/follows', {
@@ -35,6 +39,9 @@ export default function FollowButton({ ghostId }: { ghostId: string }) {
     if (!wasFollowing) {
       setJustFollowed(true)
       setTimeout(() => setJustFollowed(false), 1200)
+      toast.success('Following ' + ghostId, { duration: 2000 })
+    } else {
+      toast('Unfollowed ' + ghostId, { duration: 1500 })
     }
   }
 

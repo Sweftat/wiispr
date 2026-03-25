@@ -2,6 +2,7 @@
 import { useState, useEffect } from 'react'
 import { ArrowUp } from 'lucide-react'
 import { motion, AnimatePresence } from 'framer-motion'
+import { toast } from 'sonner'
 
 export default function UpvoteButton({ postId, upvotes }: { postId: string, upvotes: number }) {
   const [count, setCount] = useState(upvotes)
@@ -17,11 +18,15 @@ export default function UpvoteButton({ postId, upvotes }: { postId: string, upvo
 
   async function upvote() {
     if (voted) return
-    if (!loggedIn) { window.location.href = '/auth?signin=1'; return }
+    if (!loggedIn) {
+      toast.error('Sign in to upvote', { description: 'Join free to support posts you like' })
+      return
+    }
     setVoted(true)
     setCount(c => c + 1)
     setParticles(true)
     setTimeout(() => setParticles(false), 600)
+    toast.success('Upvoted!', { duration: 1500 })
     await fetch('/api/posts/upvote', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
@@ -47,7 +52,6 @@ export default function UpvoteButton({ postId, upvotes }: { postId: string, upvo
         position: 'relative', overflow: 'visible'
       }}
     >
-      {/* Ripple effect */}
       {particles && (
         <motion.span
           initial={{ scale: 0.5, opacity: 0.6 }}
