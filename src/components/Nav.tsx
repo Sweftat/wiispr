@@ -147,10 +147,14 @@ export default function Nav() {
 
         {searchOpen && (
           <div style={{
-            position: 'absolute', top: 40, left: 0,
-            width: 340, background: 'var(--sur)',
+            position: 'fixed',
+            top: 52,
+            left: '50%',
+            transform: 'translateX(-50%)',
+            width: 'min(400px, calc(100vw - 32px))',
+            background: 'var(--sur)',
             border: '1px solid var(--bd)', borderRadius: 'var(--rm)',
-            boxShadow: '0 8px 24px rgba(0,0,0,.1)', zIndex: 200, overflow: 'hidden'
+            boxShadow: '0 8px 24px rgba(0,0,0,.12)', zIndex: 200, overflow: 'hidden'
           }}>
             <div style={{ padding: '10px 12px', borderBottom: '1px solid var(--bd)' }}>
               <div style={{ position: 'relative' }}>
