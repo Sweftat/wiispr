@@ -149,9 +149,9 @@ export default function Nav() {
           <div style={{
             position: 'fixed',
             top: 52,
-            left: '50%',
-            transform: 'translateX(-50%)',
-            width: 'min(400px, calc(100vw - 32px))',
+            left: 16,
+            right: 16,
+            width: 'auto', maxWidth: 400,
             background: 'var(--sur)',
             border: '1px solid var(--bd)', borderRadius: 'var(--rm)',
             boxShadow: '0 8px 24px rgba(0,0,0,.12)', zIndex: 200, overflow: 'hidden'

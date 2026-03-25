@@ -196,4 +196,4 @@ h1, h2, h3 {
 .post-title {
   font-weight: 900;
   letter-spacing: -.02em;
-}
+}@supports (-webkit-touch-callout: none) { body { height: -webkit-fill-available; } }
