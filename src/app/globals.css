@@ -137,6 +137,15 @@ h1, h2, h3 {
     padding: 12px !important;
     box-sizing: border-box !important;
   }
+  .action-label {
+    display: none !important;
+  }
+}
+
+@media (max-width: 768px) {
+  .action-label {
+    display: none !important;
+  }
 }
 
 .bottom-nav { display: none; }

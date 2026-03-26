@@ -262,15 +262,15 @@ export default function Feed({ initialPosts, initialPinnedPost, initialPostOfDay
   const [newPostCount, setNewPostCount] = useState(0)
   const [hasMore, setHasMore] = useState(initialPosts.length >= 20)
   const [loadingMore, setLoadingMore] = useState(false)
-  const [isMobile, setIsMobile] = useState(false)
   const savedScrollY = useRef(0)
   const activeCategoryRef = useRef<number | string | null>(null)
   const latestPostTime = useRef<string>(initialPosts[0]?.created_at || new Date().toISOString())
+  const isMobileRef = useRef(false)
 
   const { ref: sentinelRef, inView } = useInView({ threshold: 0 })
 
   useEffect(() => {
-    const check = () => setIsMobile(window.innerWidth < 768)
+    const check = () => { isMobileRef.current = window.innerWidth < 768 }
     check()
     window.addEventListener('resize', check)
     return () => window.removeEventListener('resize', check)
@@ -345,7 +345,7 @@ export default function Feed({ initialPosts, initialPinnedPost, initialPostOfDay
   }, [])
 
   function openPost(post: any) {
-    if (isMobile) {
+    if (isMobileRef.current) {
       window.location.href = '/post/' + post.id
       return
     }

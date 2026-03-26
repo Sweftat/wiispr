@@ -2,12 +2,9 @@
 import { useState, useEffect } from 'react'
 import { timeAgo } from '@/lib/time'
 import UpvoteButton from './UpvoteButton'
-import ReportButton from './ReportButton'
-import ShareButton from './ShareButton'
 import FollowButton from './FollowButton'
-import BlockButton from './BlockButton'
 import { motion, AnimatePresence } from 'framer-motion'
-import { X, MessageCircle, Ghost, ArrowUp, Eye, Bookmark, Link2 } from 'lucide-react'
+import { X, MessageCircle, Ghost, ArrowUp, Eye, Bookmark, Link2, Flag, ShieldOff } from 'lucide-react'
 import { toast } from 'sonner'
 
 const REACTIONS = [
@@ -18,7 +15,7 @@ const REACTIONS = [
   { key: 'funny', emoji: '😂', label: 'Funny', color: '#EAB308' },
 ]
 
-function FullReactionBar({ postId }: { postId: string }) {
+function CompactReactionBar({ postId }: { postId: string }) {
   const [counts, setCounts] = useState<Record<string, number>>({})
   const [userReaction, setUserReaction] = useState<string | null>(null)
 
@@ -32,7 +29,6 @@ function FullReactionBar({ postId }: { postId: string }) {
   async function react(key: string) {
     const wasSelected = userReaction === key
     const oldReaction = userReaction
-
     if (wasSelected) {
       setUserReaction(null)
       setCounts(prev => ({ ...prev, [key]: Math.max(0, (prev[key] || 0) - 1) }))
@@ -44,38 +40,35 @@ function FullReactionBar({ postId }: { postId: string }) {
         return next
       })
     }
-
     await fetch('/api/posts/reactions', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
+      method: 'POST', headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ postId, reaction: key })
     })
   }
 
   return (
-    <div style={{ display: 'flex', gap: 6, paddingTop: 10, flexWrap: 'wrap' }}>
+    <div style={{ display: 'flex', gap: 4 }}>
       {REACTIONS.map(r => {
         const selected = userReaction === r.key
+        const count = counts[r.key] || 0
         return (
           <motion.button
             key={r.key}
-            whileTap={{ scale: 0.88 }}
+            whileTap={{ scale: 0.85 }}
+            title={r.label}
             onClick={() => react(r.key)}
             style={{
-              display: 'flex', alignItems: 'center', gap: 5,
-              padding: '6px 12px', borderRadius: 'var(--rs)',
+              display: 'flex', alignItems: 'center', gap: 3,
+              padding: '4px 10px', borderRadius: 'var(--rs)',
               border: `1px solid ${selected ? r.color : 'var(--bd)'}`,
               background: selected ? r.color + '15' : 'none',
-              cursor: 'pointer', fontSize: '.78rem', fontFamily: 'inherit',
+              cursor: 'pointer', fontSize: '.75rem', fontFamily: 'inherit',
               color: selected ? r.color : 'var(--t3)', fontWeight: 600,
               transition: 'all .15s',
             }}
           >
-            <span>{r.emoji}</span>
-            <span>{r.label}</span>
-            {(counts[r.key] || 0) > 0 && (
-              <span style={{ fontSize: '.68rem', opacity: 0.7, marginLeft: 2 }}>{counts[r.key]}</span>
-            )}
+            <span style={{ fontSize: '14px', lineHeight: 1 }}>{r.emoji}</span>
+            {count > 0 && <span>{count}</span>}
           </motion.button>
         )
       })}
@@ -117,6 +110,16 @@ function RelatedPosts({ postId, categoryId, onOpen }: { postId: string, category
   )
 }
 
+const actionBtnStyle = (active?: boolean): React.CSSProperties => ({
+  fontSize: '.75rem', fontWeight: 600, padding: '5px 10px',
+  borderRadius: 'var(--rs)',
+  border: `1px solid ${active ? 'var(--blue)' : 'var(--bd)'}`,
+  background: active ? 'var(--blue-d)' : 'none',
+  color: active ? 'var(--blue)' : 'var(--t3)',
+  cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 4,
+  fontFamily: 'inherit', transition: 'all .15s',
+})
+
 export default function PostPanel({ post: initialPost, onClose }: { post: any, onClose: () => void }) {
   const [post, setPost] = useState(initialPost)
   const [replies, setReplies] = useState<any[]>([])
@@ -126,6 +129,8 @@ export default function PostPanel({ post: initialPost, onClose }: { post: any, o
   const [replyUpvotes, setReplyUpvotes] = useState<Record<string, number>>({})
   const [viewCount, setViewCount] = useState(post.view_count || 0)
   const [bookmarked, setBookmarked] = useState(false)
+  const [reported, setReported] = useState(false)
+  const [blocked, setBlocked] = useState(false)
 
   useEffect(() => {
     fetch('/api/auth/session').then(r => r.json()).then(d => { if (d.user) setUser(d.user) })
@@ -157,6 +162,26 @@ export default function PostPanel({ post: initialPost, onClose }: { post: any, o
     toast('Link copied!')
   }
 
+  async function report() {
+    if (reported) return
+    const res = await fetch('/api/posts/report', {
+      method: 'POST', headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ postId: post.id, reason: 'inappropriate' })
+    })
+    const data = await res.json()
+    if (data.success) { setReported(true); toast.success('Post reported') }
+  }
+
+  async function block() {
+    if (blocked) return
+    const res = await fetch('/api/blocks', {
+      method: 'POST', headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ ghostId: post.ghost_id, action: 'block' })
+    })
+    const data = await res.json()
+    if (data.success) { setBlocked(true); toast.success('Ghost ID blocked') }
+  }
+
   async function upvoteReply(replyId: string) {
     setReplyUpvotes(u => ({ ...u, [replyId]: (u[replyId] || 0) + 1 }))
     await fetch('/api/posts/upvote', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ replyId }) })
@@ -177,26 +202,9 @@ export default function PostPanel({ post: initialPost, onClose }: { post: any, o
   }
 
   function openRelated(p: any) {
-    setPost(p); setReplies([]); setReplyUpvotes({}); setBody(''); setViewCount(0); setBookmarked(false)
+    setPost(p); setReplies([]); setReplyUpvotes({}); setBody(''); setViewCount(0); setBookmarked(false); setReported(false); setBlocked(false)
     window.history.pushState({}, '', '/post/' + p.id)
   }
-
-  const actionBtn = (icon: React.ReactNode, label: string, onClick: () => void, active?: boolean) => (
-    <motion.button
-      whileTap={{ scale: 0.95 }}
-      onClick={onClick}
-      style={{
-        fontSize: '.72rem', fontWeight: 600, padding: '6px 10px',
-        borderRadius: 'var(--rs)', border: `1px solid ${active ? 'var(--blue)' : 'var(--bd)'}`,
-        background: active ? 'var(--blue-d)' : 'none',
-        color: active ? 'var(--blue)' : 'var(--t3)',
-        cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 5,
-        fontFamily: 'inherit', transition: 'all .15s',
-      }}
-    >
-      {icon}{label}
-    </motion.button>
-  )
 
   return (
     <AnimatePresence>
@@ -211,6 +219,7 @@ export default function PostPanel({ post: initialPost, onClose }: { post: any, o
           background: 'var(--bg)', borderLeft: '1px solid var(--bd)', zIndex: 201, overflowY: 'auto'
         }}
       >
+        {/* Header */}
         <div style={{
           display: 'flex', alignItems: 'center', justifyContent: 'space-between',
           padding: '14px 20px', borderBottom: '1px solid var(--bd)',
@@ -236,7 +245,9 @@ export default function PostPanel({ post: initialPost, onClose }: { post: any, o
         </div>
 
         <div style={{ padding: '16px 20px' }}>
+          {/* Post content card */}
           <div style={{ background: 'var(--sur)', border: '1px solid var(--bd)', borderRadius: 'var(--rm)', padding: '18px', marginBottom: 12 }}>
+            {/* Post meta */}
             <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 12, flexWrap: 'wrap' }}>
               <span style={{ fontSize: '.6rem', fontWeight: 700, letterSpacing: '.06em', textTransform: 'uppercase', color: 'var(--blue)', background: 'var(--blue-d)', padding: '2px 7px', borderRadius: 3 }}>{post.categories?.name}</span>
               <span style={{
@@ -249,24 +260,45 @@ export default function PostPanel({ post: initialPost, onClose }: { post: any, o
               </span>
               <span style={{ fontFamily: 'monospace', fontSize: '.65rem', color: 'var(--t4)', marginLeft: 'auto' }}>{timeAgo(post.created_at)}</span>
             </div>
+
+            {/* Post body */}
             <h1 className="auto-dir post-title" style={{ fontSize: '1.125rem', fontWeight: 900, color: 'var(--t1)', marginBottom: 10, lineHeight: 1.35, letterSpacing: '-.02em' }}>{post.title}</h1>
-            {post.body && <p className="auto-dir" style={{ fontSize: '.9rem', color: 'var(--t2)', lineHeight: 1.8, marginBottom: 14 }}>{post.body}</p>}
+            {post.body && <p className="auto-dir" style={{ fontSize: '.9rem', color: 'var(--t2)', lineHeight: 1.8, marginBottom: 0 }}>{post.body}</p>}
 
-            <FullReactionBar postId={post.id} />
+            {/* Row 1: Compact reactions */}
+            <div style={{ paddingTop: 14, marginTop: 14, borderTop: '1px solid var(--bd)' }}>
+              <CompactReactionBar postId={post.id} />
+            </div>
 
-            <div style={{ display: 'flex', gap: 6, paddingTop: 12, borderTop: '1px solid var(--bd)', marginTop: 10, alignItems: 'center', flexWrap: 'wrap' }}>
+            {/* Row 2: Action bar */}
+            <div style={{ display: 'flex', gap: 5, paddingTop: 10, marginTop: 10, borderTop: '1px solid var(--bd)', alignItems: 'center', flexWrap: 'wrap' }}>
               <UpvoteButton postId={post.id} upvotes={post.upvotes} />
-              <div style={{ display: 'flex', gap: 5, flexWrap: 'wrap', marginLeft: 'auto' }}>
-                {actionBtn(<Bookmark size={11} fill={bookmarked ? 'currentColor' : 'none'} />, bookmarked ? 'Saved' : 'Save', toggleBookmark, bookmarked)}
-                {actionBtn(<Ghost size={11} />, 'Follow', () => {})}
-                <span onClick={e => e.stopPropagation()}><FollowButton ghostId={post.ghost_id} /></span>
-                {actionBtn(<Link2 size={11} />, 'Copy link', copyLink)}
-                <ReportButton postId={post.id} />
-                <BlockButton ghostId={post.ghost_id} />
-              </div>
+
+              <motion.button whileTap={{ scale: 0.95 }} onClick={toggleBookmark} style={actionBtnStyle(bookmarked)}>
+                <Bookmark size={12} fill={bookmarked ? 'currentColor' : 'none'} />
+                <span className="action-label">{bookmarked ? 'Saved' : 'Save'}</span>
+              </motion.button>
+
+              <motion.button whileTap={{ scale: 0.95 }} onClick={copyLink} style={actionBtnStyle()}>
+                <Link2 size={12} />
+                <span className="action-label">Copy link</span>
+              </motion.button>
+
+              <FollowButton ghostId={post.ghost_id} />
+
+              <motion.button whileTap={{ scale: 0.95 }} onClick={report} disabled={reported} style={actionBtnStyle()}>
+                <Flag size={12} fill={reported ? 'currentColor' : 'none'} style={reported ? { color: 'var(--rose)' } : undefined} />
+                <span className="action-label">{reported ? 'Reported' : 'Report'}</span>
+              </motion.button>
+
+              <motion.button whileTap={{ scale: 0.95 }} onClick={block} disabled={blocked} style={actionBtnStyle()}>
+                <ShieldOff size={12} />
+                <span className="action-label">{blocked ? 'Blocked' : 'Block'}</span>
+              </motion.button>
             </div>
           </div>
 
+          {/* Reply composer */}
           {user ? (
             <div style={{ background: 'var(--sur)', border: '1px solid var(--bd)', borderRadius: 'var(--rm)', padding: '14px', marginBottom: 12 }}>
               <textarea placeholder="Write a reply…" value={body} onChange={e => setBody(e.target.value)} rows={3} className="auto-dir"
@@ -286,6 +318,7 @@ export default function PostPanel({ post: initialPost, onClose }: { post: any, o
             </div>
           )}
 
+          {/* Replies */}
           <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
             {replies.length > 0 ? replies.map((reply: any, i: number) => (
               <motion.div key={reply.id} initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: i * 0.04, duration: 0.25 }}
