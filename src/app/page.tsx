@@ -6,6 +6,8 @@ import AnnouncementBanner from '@/components/AnnouncementBanner'
 import TrendingWidget from '@/components/TrendingWidget'
 import TrendingTopicsWidget from '@/components/TrendingTopicsWidget'
 import LeaderboardWidget from '@/components/LeaderboardWidget'
+import StatsWidget from '@/components/StatsWidget'
+import ActiveGhostsWidget from '@/components/ActiveGhostsWidget'
 import { createClient } from '@supabase/supabase-js'
 
 export const dynamic = 'force-dynamic'
@@ -25,20 +27,22 @@ export default async function Home() {
   const { data: posts } = await postsQuery
 
   return (
-    <main style={{ minHeight: '100vh', background: 'var(--bg)', display: 'flex', flexDirection: 'column', overflowX: 'hidden' }}>
+    <main style={{ minHeight: '100vh', background: 'var(--bg)', display: 'flex', flexDirection: 'column', overflowX: 'hidden', position: 'relative' }}>
       <Nav />
       <AnnouncementBanner />
-      <div className="feed-container" style={{ flex: 1, maxWidth: 960, margin: '0 auto', padding: '20px', width: '100%', boxSizing: 'border-box', overflowX: 'hidden' }}>
-        <div className="feed-grid" style={{ display: 'grid', gridTemplateColumns: '1fr 280px', gap: 20 }}>
+      <div className="feed-container" style={{ flex: 1, maxWidth: 1100, margin: '0 auto', padding: '20px', width: '100%', boxSizing: 'border-box', overflowX: 'hidden' }}>
+        <div className="feed-grid" style={{ display: 'grid', gridTemplateColumns: '1fr 280px', gap: 24 }}>
           <div style={{ minWidth: 0, width: '100%', overflow: 'hidden' }}>
             <Feed initialPosts={posts || []} initialPinnedPost={pinnedPost || null} initialPostOfDay={postOfDay || null} categories={categories || []} />
           </div>
           <div className="feed-sidebar">
+            <StatsWidget />
             <p style={{ fontSize: '.625rem', fontWeight: 700, letterSpacing: '.08em', textTransform: 'uppercase', color: 'var(--t4)', marginBottom: 10 }}>Categories</p>
             <SidebarCategories categories={categories || []} />
             <TrendingWidget />
             <TrendingTopicsWidget />
             <LeaderboardWidget />
+            <ActiveGhostsWidget />
           </div>
         </div>
       </div>

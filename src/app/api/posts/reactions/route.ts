@@ -11,7 +11,7 @@ export async function GET(req: NextRequest) {
 
   const { searchParams } = new URL(req.url)
   const postId = searchParams.get('postId')
-  if (!postId) return NextResponse.json({ counts: {}, userReactions: {} })
+  if (!postId) return NextResponse.json({ counts: {}, userReaction: null })
 
   const userId = req.cookies.get('wiispr_user_id')?.value
 
@@ -21,13 +21,13 @@ export async function GET(req: NextRequest) {
     .eq('post_id', postId)
 
   const counts: Record<string, number> = {}
-  const userReactions: Record<string, boolean> = {}
+  let userReaction: string | null = null
   for (const r of allReactions || []) {
     counts[r.reaction] = (counts[r.reaction] || 0) + 1
-    if (userId && r.user_id === userId) userReactions[r.reaction] = true
+    if (userId && r.user_id === userId) userReaction = r.reaction
   }
 
-  return NextResponse.json({ counts, userReactions })
+  return NextResponse.json({ counts, userReaction })
 }
 
 export async function POST(req: NextRequest) {
@@ -39,16 +39,28 @@ export async function POST(req: NextRequest) {
   const userId = req.cookies.get('wiispr_user_id')?.value
   if (!userId) return NextResponse.json({ error: 'Not logged in' }, { status: 401 })
 
-  const { postId, reaction, action } = await req.json()
+  const { postId, reaction } = await req.json()
   if (!postId || !reaction) return NextResponse.json({ error: 'Missing fields' }, { status: 400 })
 
-  if (action === 'remove') {
-    await supabase.from('post_reactions').delete()
-      .eq('post_id', postId).eq('user_id', userId).eq('reaction', reaction)
+  // Check existing reaction
+  const { data: existing } = await supabase
+    .from('post_reactions')
+    .select('id, reaction')
+    .eq('post_id', postId)
+    .eq('user_id', userId)
+    .maybeSingle()
+
+  if (existing) {
+    if (existing.reaction === reaction) {
+      // Same reaction — remove it (toggle off)
+      await supabase.from('post_reactions').delete().eq('id', existing.id)
+    } else {
+      // Different reaction — switch
+      await supabase.from('post_reactions').update({ reaction }).eq('id', existing.id)
+    }
   } else {
-    await supabase.from('post_reactions').upsert({
-      post_id: postId, user_id: userId, reaction
-    })
+    // No existing — create new
+    await supabase.from('post_reactions').insert({ post_id: postId, user_id: userId, reaction })
   }
 
   return NextResponse.json({ success: true })

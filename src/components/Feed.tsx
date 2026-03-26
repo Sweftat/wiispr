@@ -1,5 +1,5 @@
 'use client'
-import { useState, useEffect, useRef, useCallback } from 'react'
+import { useState, useEffect, useRef } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
 import { timeAgo } from '@/lib/time'
 import FollowButton from './FollowButton'
@@ -7,7 +7,7 @@ import PostPanel from './PostPanel'
 import CategoryFilter from './CategoryFilter'
 import Compose from './Compose'
 import ShareButton from './ShareButton'
-import { ArrowUp, MessageCircle, Ghost, Pin, Star, ShieldAlert, Bookmark, RefreshCw } from 'lucide-react'
+import { ArrowUp, MessageCircle, Ghost, Pin, Star, ShieldAlert, Bookmark, RefreshCw, Flame } from 'lucide-react'
 import { useInView } from 'react-intersection-observer'
 import { toast } from 'sonner'
 
@@ -32,16 +32,87 @@ function Skeleton() {
 
 const CATEGORY_COLORS: Record<string, string> = {
   technology: '#2563EB',
-  sports: '#16A34A',
-  lifestyle: '#D97706',
+  sports: '#F97316',
+  lifestyle: '#16A34A',
   business: '#7C3AED',
   gaming: '#E11D48',
-  family: '#0D9488',
+  family: '#EAB308',
   "women's space": '#EC4899',
-  open: '#F97316',
+  open: '#6B7280',
 }
 function categoryAccent(name: string) {
   return CATEGORY_COLORS[name?.toLowerCase()] || 'var(--blue)'
+}
+
+const REACTIONS = [
+  { key: 'agree', emoji: '👍', label: 'Agree' },
+  { key: 'fire', emoji: '🔥', label: 'Fire' },
+  { key: 'interesting', emoji: '👀', label: 'Interesting' },
+  { key: 'facts', emoji: '💯', label: 'Facts' },
+  { key: 'funny', emoji: '😂', label: 'Funny' },
+]
+
+function CompactReactions({ postId }: { postId: string }) {
+  const [counts, setCounts] = useState<Record<string, number>>({})
+  const [userReaction, setUserReaction] = useState<string | null>(null)
+
+  useEffect(() => {
+    fetch('/api/posts/reactions?postId=' + postId).then(r => r.json()).then(d => {
+      setCounts(d.counts || {})
+      setUserReaction(d.userReaction || null)
+    }).catch(() => {})
+  }, [postId])
+
+  async function react(e: React.MouseEvent, key: string) {
+    e.stopPropagation()
+    const wasSelected = userReaction === key
+    const oldReaction = userReaction
+
+    // Optimistic update
+    if (wasSelected) {
+      setUserReaction(null)
+      setCounts(prev => ({ ...prev, [key]: Math.max(0, (prev[key] || 0) - 1) }))
+    } else {
+      setUserReaction(key)
+      setCounts(prev => {
+        const next = { ...prev, [key]: (prev[key] || 0) + 1 }
+        if (oldReaction) next[oldReaction] = Math.max(0, (next[oldReaction] || 0) - 1)
+        return next
+      })
+    }
+
+    await fetch('/api/posts/reactions', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ postId, reaction: key })
+    })
+  }
+
+  const totalReactions = Object.values(counts).reduce((a, b) => a + b, 0)
+  if (totalReactions === 0 && !userReaction) return null
+
+  return (
+    <div style={{ display: 'flex', gap: 4, flexWrap: 'wrap' }} onClick={e => e.stopPropagation()}>
+      {REACTIONS.filter(r => (counts[r.key] || 0) > 0 || userReaction === r.key).map(r => (
+        <motion.button
+          key={r.key}
+          whileTap={{ scale: 0.9 }}
+          onClick={(e) => react(e, r.key)}
+          style={{
+            display: 'flex', alignItems: 'center', gap: 3,
+            padding: '3px 7px', borderRadius: 'var(--rs)',
+            border: `1px solid ${userReaction === r.key ? 'var(--blue)' : 'var(--bd)'}`,
+            background: userReaction === r.key ? 'var(--blue-d)' : 'none',
+            cursor: 'pointer', fontSize: '.7rem', fontFamily: 'inherit',
+            color: 'var(--t3)', fontWeight: 600, transition: 'all .15s',
+          }}
+        >
+          <span style={{ fontSize: '.75rem' }}>{r.emoji}</span>
+          <span>{counts[r.key] || 0}</span>
+        </motion.button>
+      ))}
+    </div>
+  )
 }
 
 function BookmarkButton({ postId }: { postId: string }) {
@@ -95,13 +166,19 @@ function PostCard({ post, onOpen }: { post: any, onOpen: () => void }) {
       style={{
         background: 'var(--sur)',
         border: '1px solid var(--bd)',
-        borderLeft: `3px solid ${hovered ? accent : 'transparent'}`,
+        borderLeft: `3px solid ${hovered ? accent : accent + '40'}`,
         borderRadius: 'var(--rm)', padding: '16px 16px 16px 15px', marginBottom: 10,
         cursor: 'pointer', transition: 'box-shadow .18s, border-left-color .18s',
-        position: 'relative',
+        position: 'relative', overflow: 'hidden',
       }}
       onClick={() => post.content_warning && !revealed ? undefined : onOpen()}
     >
+      {/* Subtle category gradient at top */}
+      <div style={{
+        position: 'absolute', top: 0, left: 0, right: 0, height: 60,
+        background: `linear-gradient(180deg, ${accent}08 0%, transparent 100%)`,
+        pointerEvents: 'none',
+      }} />
 
       {/* Content warning overlay */}
       {post.content_warning && !revealed && (
@@ -120,25 +197,40 @@ function PostCard({ post, onOpen }: { post: any, onOpen: () => void }) {
         </div>
       )}
 
-      <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 10 }}>
-        <span style={{ fontSize: '.6rem', fontWeight: 700, letterSpacing: '.06em', textTransform: 'uppercase', color: 'var(--blue)', background: 'var(--blue-d)', padding: '2px 7px', borderRadius: 3 }}>{post.categories?.name}</span>
-        <span style={{ fontFamily: 'monospace', fontSize: '.7rem', color: 'var(--t4)' }}>{post.ghost_id}</span>
+      <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 10, position: 'relative' }}>
+        <span style={{ fontSize: '.6rem', fontWeight: 700, letterSpacing: '.06em', textTransform: 'uppercase', color: accent, background: accent + '15', padding: '2px 7px', borderRadius: 3 }}>{post.categories?.name}</span>
+        <span style={{
+          fontFamily: 'monospace', fontSize: '.68rem', color: 'var(--t3)',
+          background: 'var(--bg)', padding: '2px 8px', borderRadius: 4,
+          border: '1px solid var(--bd)', fontWeight: 600,
+        }}>
+          <Ghost size={10} style={{ display: 'inline', verticalAlign: 'middle', marginRight: 3 }} />
+          {post.ghost_id}
+        </span>
         {post.users?.trust_level && post.users.trust_level !== 'new' && (
           <span style={{
-            fontSize: '.575rem', fontWeight: 700, letterSpacing: '.04em',
+            fontSize: '.55rem', fontWeight: 700, letterSpacing: '.04em',
             textTransform: 'uppercase', padding: '2px 6px', borderRadius: 3,
             color: post.users.trust_level === 'top' ? '#D97706' : post.users.trust_level === 'trusted' ? 'var(--grn)' : 'var(--blue)',
             background: post.users.trust_level === 'top' ? '#FFFBEB' : post.users.trust_level === 'trusted' ? 'var(--grn-d)' : 'var(--blue-d)',
           }}>{post.users.trust_level}</span>
+        )}
+        {(post.upvotes || 0) >= 10 && (
+          <span style={{ display: 'flex', alignItems: 'center', gap: 2, fontSize: '.6rem', fontWeight: 700, color: '#F97316', background: '#FFF7ED', padding: '2px 6px', borderRadius: 3 }}>
+            <Flame size={10} /> Hot
+          </span>
         )}
         <span onClick={e => e.stopPropagation()}>
           <FollowButton ghostId={post.ghost_id} />
         </span>
         <span style={{ fontFamily: 'monospace', fontSize: '.65rem', color: 'var(--t4)', marginLeft: 'auto' }}>{timeAgo(post.created_at)}</span>
       </div>
-      <h2 className="auto-dir" style={{ fontSize: '1rem', fontWeight: 700, color: 'var(--t1)', marginBottom: 6 }}>{post.title}</h2>
-      {post.body && <p className="auto-dir" style={{ fontSize: '.875rem', color: 'var(--t2)', lineHeight: 1.7, marginBottom: 12 }}>{post.body}</p>}
-      <div style={{ display: 'flex', gap: 6, paddingTop: 10, borderTop: '1px solid var(--bd)', alignItems: 'center' }}>
+      <h2 className="auto-dir" style={{ fontSize: '1rem', fontWeight: 700, color: 'var(--t1)', marginBottom: 6, position: 'relative' }}>{post.title}</h2>
+      {post.body && <p className="auto-dir" style={{ fontSize: '.875rem', color: 'var(--t2)', lineHeight: 1.7, marginBottom: 12, position: 'relative' }}>{post.body}</p>}
+
+      <CompactReactions postId={post.id} />
+
+      <div style={{ display: 'flex', gap: 6, paddingTop: 10, borderTop: '1px solid var(--bd)', alignItems: 'center', marginTop: 8, position: 'relative' }}>
         <button style={{ fontSize: '.75rem', fontWeight: 600, padding: '5px 10px', borderRadius: 'var(--rs)', border: '1px solid var(--bd)', background: 'none', color: 'var(--t3)', display: 'flex', alignItems: 'center', gap: 4 }}>
           <ArrowUp size={12} />{post.upvotes}
         </button>
@@ -154,6 +246,13 @@ function PostCard({ post, onOpen }: { post: any, onOpen: () => void }) {
   )
 }
 
+function getGreeting() {
+  const h = new Date().getHours()
+  if (h < 12) return 'Good morning'
+  if (h < 17) return 'Good afternoon'
+  return 'Good evening'
+}
+
 export default function Feed({ initialPosts, initialPinnedPost, initialPostOfDay, categories }: { initialPosts: any[], initialPinnedPost: any, initialPostOfDay: any, categories: any[] }) {
   const [posts, setPosts] = useState<any[]>(initialPosts)
   const [pinnedPost, setPinnedPost] = useState<any>(initialPinnedPost)
@@ -163,17 +262,23 @@ export default function Feed({ initialPosts, initialPinnedPost, initialPostOfDay
   const [newPostCount, setNewPostCount] = useState(0)
   const [hasMore, setHasMore] = useState(initialPosts.length >= 20)
   const [loadingMore, setLoadingMore] = useState(false)
+  const [isMobile, setIsMobile] = useState(false)
   const savedScrollY = useRef(0)
   const activeCategoryRef = useRef<number | string | null>(null)
   const latestPostTime = useRef<string>(initialPosts[0]?.created_at || new Date().toISOString())
 
-  // Infinite scroll sentinel
   const { ref: sentinelRef, inView } = useInView({ threshold: 0 })
 
-  // Poll for new posts every 30 seconds
+  useEffect(() => {
+    const check = () => setIsMobile(window.innerWidth < 768)
+    check()
+    window.addEventListener('resize', check)
+    return () => window.removeEventListener('resize', check)
+  }, [])
+
   useEffect(() => {
     const interval = setInterval(async () => {
-      if (activeCategoryRef.current) return // Only poll on main feed
+      if (activeCategoryRef.current) return
       try {
         const res = await fetch('/api/posts/feed?since=' + encodeURIComponent(latestPostTime.current))
         const data = await res.json()
@@ -183,7 +288,6 @@ export default function Feed({ initialPosts, initialPinnedPost, initialPostOfDay
     return () => clearInterval(interval)
   }, [])
 
-  // Load more posts on infinite scroll
   useEffect(() => {
     if (!inView || !hasMore || loadingMore || loading) return
     loadMore()
@@ -235,14 +339,16 @@ export default function Feed({ initialPosts, initialPinnedPost, initialPostOfDay
   }
 
   useEffect(() => {
-    function handleSidebarSelect(e: CustomEvent) {
-      filterByCategory(e.detail)
-    }
+    function handleSidebarSelect(e: CustomEvent) { filterByCategory(e.detail) }
     window.addEventListener('sidebarCategorySelect', handleSidebarSelect as EventListener)
     return () => window.removeEventListener('sidebarCategorySelect', handleSidebarSelect as EventListener)
   }, [])
 
   function openPost(post: any) {
+    if (isMobile) {
+      window.location.href = '/post/' + post.id
+      return
+    }
     savedScrollY.current = window.scrollY
     setActivePost(post)
     window.history.pushState({}, '', '/post/' + post.id)
@@ -251,17 +357,22 @@ export default function Feed({ initialPosts, initialPinnedPost, initialPostOfDay
   function closePost() {
     setActivePost(null)
     window.history.pushState({}, '', '/')
-    requestAnimationFrame(() => {
-      window.scrollTo(0, savedScrollY.current)
-    })
+    requestAnimationFrame(() => { window.scrollTo(0, savedScrollY.current) })
   }
 
   return (
     <div style={{ position: 'relative', width: '100%', overflow: 'hidden' }}>
+      {/* Greeting header */}
+      <div style={{ marginBottom: 16 }}>
+        <h1 style={{ fontSize: '1.125rem', fontWeight: 800, color: 'var(--t1)', marginBottom: 2 }}>
+          {getGreeting()} 👋
+        </h1>
+        <p style={{ fontSize: '.8rem', color: 'var(--t4)' }}>What&apos;s happening on wiispr</p>
+      </div>
+
       <Compose categories={categories} />
       <CategoryFilter categories={categories} onSelect={filterByCategory} />
 
-      {/* New posts banner */}
       <AnimatePresence>
         {newPostCount > 0 && (
           <motion.button
@@ -274,8 +385,7 @@ export default function Feed({ initialPosts, initialPinnedPost, initialPostOfDay
               background: 'var(--blue-d)', border: '1px solid var(--blue)',
               borderRadius: 'var(--r)', cursor: 'pointer',
               display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8,
-              fontSize: '.8rem', fontWeight: 600, color: 'var(--blue)',
-              fontFamily: 'inherit',
+              fontSize: '.8rem', fontWeight: 600, color: 'var(--blue)', fontFamily: 'inherit',
             }}
           >
             <RefreshCw size={13} />
@@ -284,89 +394,65 @@ export default function Feed({ initialPosts, initialPinnedPost, initialPostOfDay
         )}
       </AnimatePresence>
 
-      {/* Post of the Day */}
       {postOfDay && !loading && (
         <motion.div initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.25, ease: 'easeOut' }}>
-        <div className="post-card" style={{
-          background: 'linear-gradient(135deg, #FFFBEB 0%, var(--sur) 100%)',
-          border: '1px solid #D97706',
-          borderRadius: 'var(--rm)', padding: '16px 18px', marginBottom: 10,
-          cursor: 'pointer', transition: 'all .15s',
-        }} onClick={() => openPost(postOfDay)}>
-          <div style={{ display: 'flex', alignItems: 'center', gap: 6, marginBottom: 8 }}>
-            <Star size={11} style={{ color: '#D97706' }} fill="#D97706" />
-            <span style={{ fontSize: '.65rem', fontWeight: 700, color: '#D97706', textTransform: 'uppercase', letterSpacing: '.05em' }}>Post of the Day</span>
+          <div className="post-card" style={{
+            background: 'linear-gradient(135deg, #FFFBEB 0%, var(--sur) 100%)',
+            border: '1px solid #D97706', borderRadius: 'var(--rm)', padding: '16px 18px', marginBottom: 10,
+            cursor: 'pointer',
+          }} onClick={() => openPost(postOfDay)}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: 6, marginBottom: 8 }}>
+              <Star size={11} style={{ color: '#D97706' }} fill="#D97706" />
+              <span style={{ fontSize: '.65rem', fontWeight: 700, color: '#D97706', textTransform: 'uppercase', letterSpacing: '.05em' }}>Post of the Day</span>
+            </div>
+            <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 10 }}>
+              <span style={{ fontSize: '.6rem', fontWeight: 700, letterSpacing: '.06em', textTransform: 'uppercase', color: '#D97706', background: '#FFFBEB', padding: '2px 7px', borderRadius: 3, border: '1px solid #FDE68A' }}>{postOfDay.categories?.name}</span>
+              <span style={{ fontFamily: 'monospace', fontSize: '.7rem', color: 'var(--t4)' }}>{postOfDay.ghost_id}</span>
+              <span style={{ fontFamily: 'monospace', fontSize: '.65rem', color: 'var(--t4)', marginLeft: 'auto' }}>{timeAgo(postOfDay.created_at)}</span>
+            </div>
+            <h2 className="auto-dir" style={{ fontSize: '1rem', fontWeight: 700, color: 'var(--t1)', marginBottom: 6 }}>{postOfDay.title}</h2>
+            {postOfDay.body && <p className="auto-dir" style={{ fontSize: '.875rem', color: 'var(--t2)', lineHeight: 1.7, marginBottom: 12 }}>{postOfDay.body}</p>}
+            <div style={{ display: 'flex', gap: 6, paddingTop: 10, borderTop: '1px solid #FDE68A', alignItems: 'center' }}>
+              <span style={{ fontSize: '.75rem', fontWeight: 600, color: 'var(--t3)', display: 'flex', alignItems: 'center', gap: 4 }}><ArrowUp size={12} />{postOfDay.upvotes}</span>
+              <span style={{ fontSize: '.75rem', fontWeight: 600, color: 'var(--t3)', display: 'flex', alignItems: 'center', gap: 4 }}><MessageCircle size={12} />{postOfDay.reply_count}</span>
+            </div>
           </div>
-          <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 10 }}>
-            <span style={{ fontSize: '.6rem', fontWeight: 700, letterSpacing: '.06em', textTransform: 'uppercase', color: '#D97706', background: '#FFFBEB', padding: '2px 7px', borderRadius: 3, border: '1px solid #FDE68A' }}>{postOfDay.categories?.name}</span>
-            <span style={{ fontFamily: 'monospace', fontSize: '.7rem', color: 'var(--t4)' }}>{postOfDay.ghost_id}</span>
-            <span style={{ fontFamily: 'monospace', fontSize: '.65rem', color: 'var(--t4)', marginLeft: 'auto' }}>{timeAgo(postOfDay.created_at)}</span>
-          </div>
-          <h2 className="auto-dir" style={{ fontSize: '1rem', fontWeight: 700, color: 'var(--t1)', marginBottom: 6 }}>{postOfDay.title}</h2>
-          {postOfDay.body && <p className="auto-dir" style={{ fontSize: '.875rem', color: 'var(--t2)', lineHeight: 1.7, marginBottom: 12 }}>{postOfDay.body}</p>}
-          <div style={{ display: 'flex', gap: 6, paddingTop: 10, borderTop: '1px solid #FDE68A', alignItems: 'center' }}>
-            <button style={{ fontSize: '.75rem', fontWeight: 600, padding: '5px 10px', borderRadius: 'var(--rs)', border: '1px solid #FDE68A', background: 'none', color: 'var(--t3)', display: 'flex', alignItems: 'center', gap: 4 }}>
-              <ArrowUp size={12} />{postOfDay.upvotes}
-            </button>
-            <button style={{ fontSize: '.75rem', fontWeight: 600, padding: '5px 10px', borderRadius: 'var(--rs)', border: '1px solid #FDE68A', background: 'none', color: 'var(--t3)', display: 'flex', alignItems: 'center', gap: 4 }}>
-              <MessageCircle size={12} />{postOfDay.reply_count}
-            </button>
-          </div>
-        </div>
         </motion.div>
       )}
 
-      {/* Pinned post */}
       {pinnedPost && !loading && (
         <motion.div initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.25, delay: 0.05, ease: 'easeOut' }}>
-        <div className="post-card" style={{
-          background: 'var(--sur)', border: '1px solid var(--blue)',
-          borderRadius: 'var(--rm)', padding: '16px 18px', marginBottom: 10,
-          cursor: 'pointer', transition: 'all .15s',
-        }} onClick={() => openPost(pinnedPost)}>
-          <div style={{ display: 'flex', alignItems: 'center', gap: 6, marginBottom: 8 }}>
-            <Pin size={11} style={{ color: 'var(--blue)' }} />
-            <span style={{ fontSize: '.65rem', fontWeight: 700, color: 'var(--blue)', textTransform: 'uppercase', letterSpacing: '.05em' }}>Pinned</span>
+          <div className="post-card" style={{
+            background: 'var(--sur)', border: '1px solid var(--blue)',
+            borderRadius: 'var(--rm)', padding: '16px 18px', marginBottom: 10, cursor: 'pointer',
+          }} onClick={() => openPost(pinnedPost)}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: 6, marginBottom: 8 }}>
+              <Pin size={11} style={{ color: 'var(--blue)' }} />
+              <span style={{ fontSize: '.65rem', fontWeight: 700, color: 'var(--blue)', textTransform: 'uppercase', letterSpacing: '.05em' }}>Pinned</span>
+            </div>
+            <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 10 }}>
+              <span style={{ fontSize: '.6rem', fontWeight: 700, letterSpacing: '.06em', textTransform: 'uppercase', color: 'var(--blue)', background: 'var(--blue-d)', padding: '2px 7px', borderRadius: 3 }}>{pinnedPost.categories?.name}</span>
+              <span style={{ fontFamily: 'monospace', fontSize: '.7rem', color: 'var(--t4)' }}>{pinnedPost.ghost_id}</span>
+              <span style={{ fontFamily: 'monospace', fontSize: '.65rem', color: 'var(--t4)', marginLeft: 'auto' }}>{timeAgo(pinnedPost.created_at)}</span>
+            </div>
+            <h2 className="auto-dir" style={{ fontSize: '1rem', fontWeight: 700, color: 'var(--t1)', marginBottom: 6 }}>{pinnedPost.title}</h2>
+            {pinnedPost.body && <p className="auto-dir" style={{ fontSize: '.875rem', color: 'var(--t2)', lineHeight: 1.7, marginBottom: 12 }}>{pinnedPost.body}</p>}
+            <div style={{ display: 'flex', gap: 6, paddingTop: 10, borderTop: '1px solid var(--bd)', alignItems: 'center' }}>
+              <span style={{ fontSize: '.75rem', fontWeight: 600, color: 'var(--t3)', display: 'flex', alignItems: 'center', gap: 4 }}><ArrowUp size={12} />{pinnedPost.upvotes}</span>
+              <span style={{ fontSize: '.75rem', fontWeight: 600, color: 'var(--t3)', display: 'flex', alignItems: 'center', gap: 4 }}><MessageCircle size={12} />{pinnedPost.reply_count}</span>
+            </div>
           </div>
-          <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 10 }}>
-            <span style={{ fontSize: '.6rem', fontWeight: 700, letterSpacing: '.06em', textTransform: 'uppercase', color: 'var(--blue)', background: 'var(--blue-d)', padding: '2px 7px', borderRadius: 3 }}>{pinnedPost.categories?.name}</span>
-            <span style={{ fontFamily: 'monospace', fontSize: '.7rem', color: 'var(--t4)' }}>{pinnedPost.ghost_id}</span>
-            <span style={{ fontFamily: 'monospace', fontSize: '.65rem', color: 'var(--t4)', marginLeft: 'auto' }}>{timeAgo(pinnedPost.created_at)}</span>
-          </div>
-          <h2 className="auto-dir" style={{ fontSize: '1rem', fontWeight: 700, color: 'var(--t1)', marginBottom: 6 }}>{pinnedPost.title}</h2>
-          {pinnedPost.body && <p className="auto-dir" style={{ fontSize: '.875rem', color: 'var(--t2)', lineHeight: 1.7, marginBottom: 12 }}>{pinnedPost.body}</p>}
-          <div style={{ display: 'flex', gap: 6, paddingTop: 10, borderTop: '1px solid var(--bd)', alignItems: 'center' }}>
-            <button style={{ fontSize: '.75rem', fontWeight: 600, padding: '5px 10px', borderRadius: 'var(--rs)', border: '1px solid var(--bd)', background: 'none', color: 'var(--t3)', display: 'flex', alignItems: 'center', gap: 4 }}>
-              <ArrowUp size={12} />{pinnedPost.upvotes}
-            </button>
-            <button style={{ fontSize: '.75rem', fontWeight: 600, padding: '5px 10px', borderRadius: 'var(--rs)', border: '1px solid var(--bd)', background: 'none', color: 'var(--t3)', display: 'flex', alignItems: 'center', gap: 4 }}>
-              <MessageCircle size={12} />{pinnedPost.reply_count}
-            </button>
-          </div>
-        </div>
         </motion.div>
       )}
 
-      {loading && (
-        <>
-          <Skeleton />
-          <Skeleton />
-          <Skeleton />
-        </>
-      )}
+      {loading && <><Skeleton /><Skeleton /><Skeleton /></>}
 
       {!loading && posts.map((post: any, i: number) => (
-        <motion.div
-          key={post.id}
-          initial={{ opacity: 0, y: 12 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.25, delay: Math.min(i, 10) * 0.05, ease: 'easeOut' }}
-        >
+        <motion.div key={post.id} initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.25, delay: Math.min(i, 10) * 0.05, ease: 'easeOut' }}>
           <PostCard post={post} onOpen={() => openPost(post)} />
         </motion.div>
       ))}
 
-      {/* Infinite scroll sentinel */}
       {!loading && hasMore && (
         <div ref={sentinelRef} style={{ padding: '20px 0', textAlign: 'center' }}>
           {loadingMore && <Skeleton />}
