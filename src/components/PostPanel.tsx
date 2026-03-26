@@ -128,6 +128,7 @@ export default function PostPanel({ post: initialPost, onClose }: { post: any, o
   const [loading, setLoading] = useState(false)
   const [user, setUser] = useState<any>(null)
   const [replyUpvotes, setReplyUpvotes] = useState<Record<string, number>>({})
+  const [votedReplies, setVotedReplies] = useState<Set<string>>(new Set())
   const [viewCount, setViewCount] = useState(post.view_count || 0)
   const [bookmarked, setBookmarked] = useState(false)
   const [reported, setReported] = useState(false)
@@ -141,6 +142,13 @@ export default function PostPanel({ post: initialPost, onClose }: { post: any, o
       const init: Record<string, number> = {}
       reps.forEach((r: any) => { init[r.id] = r.upvotes || 0 })
       setReplyUpvotes(init)
+      // Check which replies user already voted on
+      const replyIds = reps.map((r: any) => r.id).join(',')
+      if (replyIds) {
+        fetch('/api/posts/upvote?replyIds=' + replyIds).then(r => r.json()).then(v => {
+          if (v.voted) setVotedReplies(new Set(v.voted))
+        }).catch(() => {})
+      }
     })
     fetch('/api/posts/view', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ postId: post.id }) })
       .then(r => r.json()).then(d => { if (d.viewCount) setViewCount(d.viewCount) })
@@ -184,8 +192,13 @@ export default function PostPanel({ post: initialPost, onClose }: { post: any, o
   }
 
   async function upvoteReply(replyId: string) {
+    if (votedReplies.has(replyId)) return
+    setVotedReplies(prev => new Set(prev).add(replyId))
     setReplyUpvotes(u => ({ ...u, [replyId]: (u[replyId] || 0) + 1 }))
-    await fetch('/api/posts/upvote', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ replyId }) })
+    const res = await fetch('/api/posts/upvote', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ replyId }) })
+    if (res.status === 409) {
+      setReplyUpvotes(u => ({ ...u, [replyId]: (u[replyId] || 0) - 1 }))
+    }
   }
 
   async function submitReply() {
@@ -330,7 +343,16 @@ export default function PostPanel({ post: initialPost, onClose }: { post: any, o
                   <span style={{ fontFamily: 'monospace', fontSize: '.65rem', color: 'var(--t4)', marginLeft: 'auto' }}>{timeAgo(reply.created_at)}</span>
                 </div>
                 <p className="auto-dir" style={{ fontSize: '.875rem', color: 'var(--t2)', lineHeight: 1.7, marginBottom: 10 }}>{reply.body}</p>
-                <button onClick={() => upvoteReply(reply.id)} style={{ display: 'flex', alignItems: 'center', gap: 4, padding: '4px 9px', borderRadius: 'var(--rs)', border: '1px solid var(--bd)', background: 'none', color: 'var(--t4)', fontSize: '.75rem', fontWeight: 600, cursor: 'pointer', fontFamily: 'inherit' }}>
+                <button onClick={() => upvoteReply(reply.id)} style={{
+                  display: 'flex', alignItems: 'center', gap: 4, padding: '4px 9px',
+                  borderRadius: 'var(--rs)',
+                  border: `1px solid ${votedReplies.has(reply.id) ? 'var(--blue)' : 'var(--bd)'}`,
+                  background: votedReplies.has(reply.id) ? 'var(--blue)' : 'none',
+                  color: votedReplies.has(reply.id) ? '#fff' : 'var(--t4)',
+                  fontSize: '.75rem', fontWeight: 600,
+                  cursor: votedReplies.has(reply.id) ? 'default' : 'pointer',
+                  fontFamily: 'inherit'
+                }}>
                   <ArrowUp size={11} />{replyUpvotes[reply.id] ?? reply.upvotes ?? 0}
                 </button>
               </motion.div>

@@ -35,6 +35,7 @@ export default function PostPage() {
   const [reactionCounts, setReactionCounts] = useState<Record<string, number>>({})
   const [userReaction, setUserReaction] = useState<string | null>(null)
   const [replyUpvotes, setReplyUpvotes] = useState<Record<string, number>>({})
+  const [votedReplies, setVotedReplies] = useState<Set<string>>(new Set())
   const [related, setRelated] = useState<any[]>([])
 
   useEffect(() => {
@@ -52,6 +53,12 @@ export default function PostPage() {
       const init: Record<string, number> = {}
       ;(repliesData.replies || []).forEach((r: any) => { init[r.id] = r.upvotes || 0 })
       setReplyUpvotes(init)
+      const rIds = (repliesData.replies || []).map((r: any) => r.id).join(',')
+      if (rIds && session.user) {
+        fetch('/api/posts/upvote?replyIds=' + rIds).then(r => r.json()).then(v => {
+          if (v.voted) setVotedReplies(new Set(v.voted))
+        }).catch(() => {})
+      }
       setViewCount(viewData.viewCount || 0)
       if (bookmarkData.bookmarked) setBookmarked(true)
       setReactionCounts(reactionData.counts || {})
@@ -124,8 +131,13 @@ export default function PostPage() {
   }
 
   async function upvoteReply(replyId: string) {
+    if (votedReplies.has(replyId)) return
+    setVotedReplies(prev => new Set(prev).add(replyId))
     setReplyUpvotes(u => ({ ...u, [replyId]: (u[replyId] || 0) + 1 }))
-    await fetch('/api/posts/upvote', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ replyId }) })
+    const res = await fetch('/api/posts/upvote', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ replyId }) })
+    if (res.status === 409) {
+      setReplyUpvotes(u => ({ ...u, [replyId]: (u[replyId] || 0) - 1 }))
+    }
   }
 
   async function submitReply() {
@@ -276,8 +288,12 @@ export default function PostPage() {
               <p className="auto-dir" style={{ fontSize: '.875rem', color: 'var(--t2)', lineHeight: 1.7, marginBottom: 10 }}>{reply.body}</p>
               <button onClick={() => upvoteReply(reply.id)} style={{
                 display: 'flex', alignItems: 'center', gap: 4, padding: '4px 9px', borderRadius: 'var(--rs)',
-                border: '1px solid var(--bd)', background: 'none', color: 'var(--t4)',
-                fontSize: '.75rem', fontWeight: 600, cursor: 'pointer', fontFamily: 'inherit'
+                border: `1px solid ${votedReplies.has(reply.id) ? 'var(--blue)' : 'var(--bd)'}`,
+                background: votedReplies.has(reply.id) ? 'var(--blue)' : 'none',
+                color: votedReplies.has(reply.id) ? '#fff' : 'var(--t4)',
+                fontSize: '.75rem', fontWeight: 600,
+                cursor: votedReplies.has(reply.id) ? 'default' : 'pointer',
+                fontFamily: 'inherit'
               }}>
                 <ArrowUp size={11} />{replyUpvotes[reply.id] ?? reply.upvotes ?? 0}
               </button>

@@ -12,9 +12,15 @@ export default function UpvoteButton({ postId, upvotes }: { postId: string, upvo
 
   useEffect(() => {
     fetch('/api/auth/session').then(r => r.json()).then(d => {
-      if (d.user) setLoggedIn(true)
+      if (d.user) {
+        setLoggedIn(true)
+        // Check if already voted
+        fetch('/api/posts/upvote?postId=' + postId).then(r => r.json()).then(v => {
+          if (v.voted?.includes(postId)) setVoted(true)
+        }).catch(() => {})
+      }
     })
-  }, [])
+  }, [postId])
 
   async function upvote() {
     if (voted) return
@@ -27,11 +33,15 @@ export default function UpvoteButton({ postId, upvotes }: { postId: string, upvo
     setParticles(true)
     setTimeout(() => setParticles(false), 600)
     toast.success('Upvoted!', { duration: 1500 })
-    await fetch('/api/posts/upvote', {
+    const res = await fetch('/api/posts/upvote', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ postId })
     })
+    if (res.status === 409) {
+      // Already voted — revert optimistic update
+      setCount(c => c - 1)
+    }
   }
 
   return (
