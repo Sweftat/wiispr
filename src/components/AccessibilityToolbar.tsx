@@ -62,19 +62,21 @@ export default function AccessibilityToolbar() {
   }
 
   const btnStyle: React.CSSProperties = {
-    width: 44, height: 44,
-    borderRadius: 'var(--r)',
+    width: 32, height: 32,
+    borderRadius: 'var(--rs)',
     border: '1px solid var(--bd)',
     background: 'var(--sur)',
     display: 'flex', alignItems: 'center', justifyContent: 'center',
-    cursor: 'pointer', color: 'var(--t2)',
+    cursor: 'pointer', color: 'var(--t3)',
     transition: 'all .15s',
-    position: 'relative',
+    position: 'relative' as const,
+    padding: 0,
+    fontFamily: 'inherit',
   }
 
   return (
     <>
-      {/* SVG filters */}
+      {/* SVG filters — hidden, global */}
       <svg style={{ position: 'absolute', width: 0, height: 0 }} aria-hidden="true">
         <defs>
           <filter id="protanopia">
@@ -89,11 +91,8 @@ export default function AccessibilityToolbar() {
         </defs>
       </svg>
 
-      {/* Fixed bar at bottom-right — 3 separate buttons in a row */}
-      <div style={{
-        position: 'fixed', bottom: 20, right: 16,
-        display: 'flex', gap: 6, zIndex: 150,
-      }} className="a11y-bar">
+      {/* Inline footer widget — eye + zoom buttons */}
+      <div style={{ display: 'flex', alignItems: 'center', gap: 4 }}>
         {/* Color blindness button */}
         <div style={{ position: 'relative' }}>
           <button
@@ -101,12 +100,11 @@ export default function AccessibilityToolbar() {
             aria-label="Color vision settings"
             style={{
               ...btnStyle,
-              boxShadow: '0 2px 8px rgba(0,0,0,.1)',
               border: colorMode !== 'none' ? '1px solid var(--blue)' : '1px solid var(--bd)',
-              color: colorMode !== 'none' ? 'var(--blue)' : 'var(--t2)',
+              color: colorMode !== 'none' ? 'var(--blue)' : 'var(--t3)',
             }}
           >
-            <Eye size={18} />
+            <Eye size={14} />
           </button>
 
           <AnimatePresence>
@@ -117,11 +115,11 @@ export default function AccessibilityToolbar() {
                 exit={{ opacity: 0, y: 6, scale: 0.95 }}
                 transition={{ duration: 0.12 }}
                 style={{
-                  position: 'absolute', bottom: 52, right: 0,
-                  width: 170, background: 'var(--sur)',
+                  position: 'absolute', bottom: 40, right: 0,
+                  width: 160, background: 'var(--sur)',
                   border: '1px solid var(--bd)', borderRadius: 'var(--r)',
                   boxShadow: '0 8px 24px rgba(0,0,0,.15)',
-                  padding: 6, zIndex: 160,
+                  padding: 4, zIndex: 160,
                 }}
               >
                 {COLOR_MODES.map(mode => (
@@ -129,11 +127,11 @@ export default function AccessibilityToolbar() {
                     key={mode.key}
                     onClick={() => { setColorMode(mode.key); setShowColorMenu(false) }}
                     style={{
-                      width: '100%', padding: '7px 10px', borderRadius: 'var(--rs)',
+                      width: '100%', padding: '6px 10px', borderRadius: 'var(--rs)',
                       border: 'none',
                       background: colorMode === mode.key ? 'var(--blue-d)' : 'transparent',
                       color: colorMode === mode.key ? 'var(--blue)' : 'var(--t2)',
-                      fontSize: '.75rem', fontWeight: 600, cursor: 'pointer',
+                      fontSize: '.72rem', fontWeight: 600, cursor: 'pointer',
                       textAlign: 'left', fontFamily: 'inherit',
                       display: 'block',
                     }}
@@ -146,35 +144,42 @@ export default function AccessibilityToolbar() {
           </AnimatePresence>
         </div>
 
-        {/* Zoom in button */}
+        {/* Zoom in */}
         <button
           onClick={zoomIn}
           disabled={zoom >= 150}
           aria-label="Zoom in"
           style={{
             ...btnStyle,
-            boxShadow: '0 2px 8px rgba(0,0,0,.1)',
             opacity: zoom >= 150 ? 0.4 : 1,
             cursor: zoom >= 150 ? 'not-allowed' : 'pointer',
           }}
         >
-          <Plus size={18} />
+          <Plus size={14} />
         </button>
 
-        {/* Zoom out button */}
+        {/* Zoom out */}
         <button
           onClick={zoomOut}
           disabled={zoom <= 85}
           aria-label="Zoom out"
           style={{
             ...btnStyle,
-            boxShadow: '0 2px 8px rgba(0,0,0,.1)',
             opacity: zoom <= 85 ? 0.4 : 1,
             cursor: zoom <= 85 ? 'not-allowed' : 'pointer',
           }}
         >
-          <Minus size={18} />
+          <Minus size={14} />
         </button>
+
+        {/* Active mode indicator */}
+        {(colorMode !== 'none' || zoom !== 100) && (
+          <span style={{ fontSize: '.65rem', color: 'var(--t4)', marginLeft: 2, whiteSpace: 'nowrap' }}>
+            {colorMode !== 'none' && COLOR_MODES.find(m => m.key === colorMode)?.label}
+            {colorMode !== 'none' && zoom !== 100 && ' · '}
+            {zoom !== 100 && `${zoom}%`}
+          </span>
+        )}
       </div>
     </>
   )

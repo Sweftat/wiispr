@@ -1,5 +1,6 @@
 'use client'
 import { useEffect, useState } from 'react'
+import AccessibilityToolbar from './AccessibilityToolbar'
 
 const platformLabels: Record<string, string> = {
   twitter: 'X',
@@ -58,6 +59,8 @@ export default function Footer() {
               {platformLabels[key] || key}
             </a>
           ))}
+          <span style={{ width: 1, height: 14, background: 'var(--bd)', display: 'inline-block' }} />
+          <AccessibilityToolbar />
         </div>
       </div>
     </footer>

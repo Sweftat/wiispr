@@ -2,7 +2,6 @@ import type { Metadata } from "next";
 import localFont from 'next/font/local'
 import "./globals.css";
 import BottomNav from "@/components/BottomNav";
-import AccessibilityToolbar from "@/components/AccessibilityToolbar";
 import { Toaster } from "sonner";
 
 const satoshi = localFont({
@@ -51,7 +50,6 @@ export default function RootLayout({
       <body className={satoshi.variable}>
         {children}
         <BottomNav />
-        <AccessibilityToolbar />
         <Toaster position="bottom-center" richColors />
       </body>
     </html>
