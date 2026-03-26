@@ -1,22 +1,30 @@
 'use client'
 import { useState, useEffect } from 'react'
-import { Eye, ZoomIn, ZoomOut, Accessibility } from 'lucide-react'
-import { motion, AnimatePresence } from 'framer-motion'
+import { Eye, Plus, Minus } from 'lucide-react'
+import { AnimatePresence, motion } from 'framer-motion'
 
 const COLOR_MODES = [
-  { key: 'none', label: 'Default', filter: 'none' },
-  { key: 'protanopia', label: 'Protanopia', filter: 'url(#protanopia)' },
-  { key: 'deuteranopia', label: 'Deuteranopia', filter: 'url(#deuteranopia)' },
-  { key: 'tritanopia', label: 'Tritanopia', filter: 'url(#tritanopia)' },
-  { key: 'grayscale', label: 'Grayscale', filter: 'grayscale(100%)' },
+  { key: 'none', label: 'Default' },
+  { key: 'protanopia', label: 'Protanopia' },
+  { key: 'deuteranopia', label: 'Deuteranopia' },
+  { key: 'tritanopia', label: 'Tritanopia' },
+  { key: 'grayscale', label: 'Grayscale' },
 ]
 
-const ZOOM_LEVELS = [90, 100, 110, 125, 150]
+const FILTERS: Record<string, string> = {
+  none: 'none',
+  protanopia: 'url(#protanopia)',
+  deuteranopia: 'url(#deuteranopia)',
+  tritanopia: 'url(#tritanopia)',
+  grayscale: 'grayscale(100%)',
+}
+
+const ZOOM_STEPS = [85, 90, 95, 100, 105, 110, 120, 130, 150]
 
 export default function AccessibilityToolbar() {
-  const [open, setOpen] = useState(false)
   const [zoom, setZoom] = useState(100)
   const [colorMode, setColorMode] = useState('none')
+  const [showColorMenu, setShowColorMenu] = useState(false)
 
   useEffect(() => {
     const savedZoom = localStorage.getItem('a11y_zoom')
@@ -31,160 +39,143 @@ export default function AccessibilityToolbar() {
   }, [zoom])
 
   useEffect(() => {
-    const mode = COLOR_MODES.find(m => m.key === colorMode)
-    if (mode) {
-      document.documentElement.style.filter = mode.filter
-    }
+    document.documentElement.style.filter = FILTERS[colorMode] || 'none'
     localStorage.setItem('a11y_color', colorMode)
   }, [colorMode])
 
   function zoomIn() {
-    const idx = ZOOM_LEVELS.indexOf(zoom)
-    if (idx < ZOOM_LEVELS.length - 1) setZoom(ZOOM_LEVELS[idx + 1])
+    const idx = ZOOM_STEPS.indexOf(zoom)
+    if (idx < ZOOM_STEPS.length - 1) setZoom(ZOOM_STEPS[idx + 1])
+    else if (idx === -1) {
+      const next = ZOOM_STEPS.find(z => z > zoom)
+      if (next) setZoom(next)
+    }
   }
 
   function zoomOut() {
-    const idx = ZOOM_LEVELS.indexOf(zoom)
-    if (idx > 0) setZoom(ZOOM_LEVELS[idx - 1])
+    const idx = ZOOM_STEPS.indexOf(zoom)
+    if (idx > 0) setZoom(ZOOM_STEPS[idx - 1])
+    else if (idx === -1) {
+      const prev = [...ZOOM_STEPS].reverse().find(z => z < zoom)
+      if (prev) setZoom(prev)
+    }
   }
 
-  function resetAll() {
-    setZoom(100)
-    setColorMode('none')
+  const btnStyle: React.CSSProperties = {
+    width: 44, height: 44,
+    borderRadius: 'var(--r)',
+    border: '1px solid var(--bd)',
+    background: 'var(--sur)',
+    display: 'flex', alignItems: 'center', justifyContent: 'center',
+    cursor: 'pointer', color: 'var(--t2)',
+    transition: 'all .15s',
+    position: 'relative',
   }
 
   return (
     <>
-      {/* SVG filters for color blindness simulation */}
-      <svg style={{ position: 'absolute', width: 0, height: 0 }}>
+      {/* SVG filters */}
+      <svg style={{ position: 'absolute', width: 0, height: 0 }} aria-hidden="true">
         <defs>
           <filter id="protanopia">
-            <feColorMatrix type="matrix" values="
-              0.567, 0.433, 0,     0, 0
-              0.558, 0.442, 0,     0, 0
-              0,     0.242, 0.758, 0, 0
-              0,     0,     0,     1, 0" />
+            <feColorMatrix type="matrix" values="0.567 0.433 0 0 0 0.558 0.442 0 0 0 0 0.242 0.758 0 0 0 0 0 1 0" />
           </filter>
           <filter id="deuteranopia">
-            <feColorMatrix type="matrix" values="
-              0.625, 0.375, 0,   0, 0
-              0.7,   0.3,   0,   0, 0
-              0,     0.3,   0.7, 0, 0
-              0,     0,     0,   1, 0" />
+            <feColorMatrix type="matrix" values="0.625 0.375 0 0 0 0.7 0.3 0 0 0 0 0.3 0.7 0 0 0 0 0 1 0" />
           </filter>
           <filter id="tritanopia">
-            <feColorMatrix type="matrix" values="
-              0.95, 0.05,  0,     0, 0
-              0,    0.433, 0.567, 0, 0
-              0,    0.475, 0.525, 0, 0
-              0,    0,     0,     1, 0" />
+            <feColorMatrix type="matrix" values="0.95 0.05 0 0 0 0 0.433 0.567 0 0 0 0.475 0.525 0 0 0 0 0 1 0" />
           </filter>
         </defs>
       </svg>
 
-      {/* Toggle button */}
-      <button
-        onClick={() => setOpen(o => !o)}
-        aria-label="Accessibility settings"
-        style={{
-          position: 'fixed', bottom: 80, right: 16,
-          width: 40, height: 40, borderRadius: '50%',
-          background: 'var(--sur)', border: '1px solid var(--bd)',
-          boxShadow: '0 2px 8px rgba(0,0,0,.12)',
-          display: 'flex', alignItems: 'center', justifyContent: 'center',
-          cursor: 'pointer', zIndex: 150, color: 'var(--t2)',
-          transition: 'all .15s',
-        }}
-      >
-        <Accessibility size={18} />
-      </button>
-
-      {/* Panel */}
-      <AnimatePresence>
-        {open && (
-          <motion.div
-            initial={{ opacity: 0, y: 10, scale: 0.95 }}
-            animate={{ opacity: 1, y: 0, scale: 1 }}
-            exit={{ opacity: 0, y: 10, scale: 0.95 }}
-            transition={{ duration: 0.15 }}
+      {/* Fixed bar at bottom-right — 3 separate buttons in a row */}
+      <div style={{
+        position: 'fixed', bottom: 20, right: 16,
+        display: 'flex', gap: 6, zIndex: 150,
+      }} className="a11y-bar">
+        {/* Color blindness button */}
+        <div style={{ position: 'relative' }}>
+          <button
+            onClick={() => setShowColorMenu(o => !o)}
+            aria-label="Color vision settings"
             style={{
-              position: 'fixed', bottom: 128, right: 16,
-              width: 240, background: 'var(--sur)',
-              border: '1px solid var(--bd)', borderRadius: 'var(--rm)',
-              boxShadow: '0 8px 24px rgba(0,0,0,.15)',
-              zIndex: 150, padding: '14px', overflow: 'hidden',
+              ...btnStyle,
+              boxShadow: '0 2px 8px rgba(0,0,0,.1)',
+              border: colorMode !== 'none' ? '1px solid var(--blue)' : '1px solid var(--bd)',
+              color: colorMode !== 'none' ? 'var(--blue)' : 'var(--t2)',
             }}
           >
-            <p style={{ fontSize: '.7rem', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '.06em', color: 'var(--t4)', marginBottom: 10 }}>Accessibility</p>
+            <Eye size={18} />
+          </button>
 
-            {/* Zoom controls */}
-            <div style={{ marginBottom: 12 }}>
-              <p style={{ fontSize: '.75rem', fontWeight: 600, color: 'var(--t2)', marginBottom: 6 }}>Text Size</p>
-              <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
-                <button onClick={zoomOut} disabled={zoom <= 90} style={{
-                  width: 32, height: 32, borderRadius: 'var(--rs)',
-                  border: '1px solid var(--bd)', background: 'var(--bg)',
-                  display: 'flex', alignItems: 'center', justifyContent: 'center',
-                  cursor: zoom <= 90 ? 'not-allowed' : 'pointer',
-                  color: zoom <= 90 ? 'var(--t4)' : 'var(--t2)', opacity: zoom <= 90 ? 0.5 : 1,
-                }}>
-                  <ZoomOut size={14} />
-                </button>
-                <span style={{
-                  flex: 1, textAlign: 'center', fontSize: '.78rem',
-                  fontWeight: 700, color: 'var(--t1)', fontFamily: 'monospace',
-                }}>{zoom}%</span>
-                <button onClick={zoomIn} disabled={zoom >= 150} style={{
-                  width: 32, height: 32, borderRadius: 'var(--rs)',
-                  border: '1px solid var(--bd)', background: 'var(--bg)',
-                  display: 'flex', alignItems: 'center', justifyContent: 'center',
-                  cursor: zoom >= 150 ? 'not-allowed' : 'pointer',
-                  color: zoom >= 150 ? 'var(--t4)' : 'var(--t2)', opacity: zoom >= 150 ? 0.5 : 1,
-                }}>
-                  <ZoomIn size={14} />
-                </button>
-              </div>
-            </div>
-
-            {/* Color vision */}
-            <div style={{ marginBottom: 12 }}>
-              <p style={{ fontSize: '.75rem', fontWeight: 600, color: 'var(--t2)', marginBottom: 6, display: 'flex', alignItems: 'center', gap: 4 }}>
-                <Eye size={12} /> Color Vision
-              </p>
-              <div style={{ display: 'flex', flexDirection: 'column', gap: 3 }}>
+          <AnimatePresence>
+            {showColorMenu && (
+              <motion.div
+                initial={{ opacity: 0, y: 6, scale: 0.95 }}
+                animate={{ opacity: 1, y: 0, scale: 1 }}
+                exit={{ opacity: 0, y: 6, scale: 0.95 }}
+                transition={{ duration: 0.12 }}
+                style={{
+                  position: 'absolute', bottom: 52, right: 0,
+                  width: 170, background: 'var(--sur)',
+                  border: '1px solid var(--bd)', borderRadius: 'var(--r)',
+                  boxShadow: '0 8px 24px rgba(0,0,0,.15)',
+                  padding: 6, zIndex: 160,
+                }}
+              >
                 {COLOR_MODES.map(mode => (
                   <button
                     key={mode.key}
-                    onClick={() => setColorMode(mode.key)}
+                    onClick={() => { setColorMode(mode.key); setShowColorMenu(false) }}
                     style={{
-                      padding: '5px 10px', borderRadius: 'var(--rs)',
-                      border: `1px solid ${colorMode === mode.key ? 'var(--blue)' : 'var(--bd)'}`,
-                      background: colorMode === mode.key ? 'var(--blue-d)' : 'var(--bg)',
-                      color: colorMode === mode.key ? 'var(--blue)' : 'var(--t3)',
-                      fontSize: '.72rem', fontWeight: 600, cursor: 'pointer',
-                      textAlign: 'left', fontFamily: 'inherit', transition: 'all .12s',
+                      width: '100%', padding: '7px 10px', borderRadius: 'var(--rs)',
+                      border: 'none',
+                      background: colorMode === mode.key ? 'var(--blue-d)' : 'transparent',
+                      color: colorMode === mode.key ? 'var(--blue)' : 'var(--t2)',
+                      fontSize: '.75rem', fontWeight: 600, cursor: 'pointer',
+                      textAlign: 'left', fontFamily: 'inherit',
+                      display: 'block',
                     }}
                   >
                     {mode.label}
                   </button>
                 ))}
-              </div>
-            </div>
-
-            {/* Reset */}
-            {(zoom !== 100 || colorMode !== 'none') && (
-              <button onClick={resetAll} style={{
-                width: '100%', padding: '6px 10px', borderRadius: 'var(--rs)',
-                border: '1px solid var(--bd)', background: 'none',
-                color: 'var(--t3)', fontSize: '.72rem', fontWeight: 600,
-                cursor: 'pointer', fontFamily: 'inherit',
-              }}>
-                Reset to defaults
-              </button>
+              </motion.div>
             )}
-          </motion.div>
-        )}
-      </AnimatePresence>
+          </AnimatePresence>
+        </div>
+
+        {/* Zoom in button */}
+        <button
+          onClick={zoomIn}
+          disabled={zoom >= 150}
+          aria-label="Zoom in"
+          style={{
+            ...btnStyle,
+            boxShadow: '0 2px 8px rgba(0,0,0,.1)',
+            opacity: zoom >= 150 ? 0.4 : 1,
+            cursor: zoom >= 150 ? 'not-allowed' : 'pointer',
+          }}
+        >
+          <Plus size={18} />
+        </button>
+
+        {/* Zoom out button */}
+        <button
+          onClick={zoomOut}
+          disabled={zoom <= 85}
+          aria-label="Zoom out"
+          style={{
+            ...btnStyle,
+            boxShadow: '0 2px 8px rgba(0,0,0,.1)',
+            opacity: zoom <= 85 ? 0.4 : 1,
+            cursor: zoom <= 85 ? 'not-allowed' : 'pointer',
+          }}
+        >
+          <Minus size={18} />
+        </button>
+      </div>
     </>
   )
 }

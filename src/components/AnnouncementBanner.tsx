@@ -44,7 +44,7 @@ export default function AnnouncementBanner() {
       gap: 10,
       position: 'sticky',
       top: 52,
-      zIndex: 90
+      zIndex: 95
     }}>
       <Icon size={15} style={{ color: config.color, flexShrink: 0 }} />
       <div style={{ flex: 1 }}>

@@ -379,7 +379,16 @@ export default function Feed({ initialPosts, initialPinnedPost, initialPostOfDay
       </div>
 
       <Compose categories={categories} />
-      <CategoryFilter categories={categories} onSelect={filterByCategory} />
+      <div style={{
+        position: 'sticky', top: 52, zIndex: 90,
+        background: 'var(--bg)',
+        paddingTop: 10, paddingBottom: 6,
+        marginLeft: -20, marginRight: -20,
+        paddingLeft: 20, paddingRight: 20,
+        borderBottom: '1px solid var(--bd)',
+      }}>
+        <CategoryFilter categories={categories} onSelect={filterByCategory} />
+      </div>
 
       <AnimatePresence>
         {newPostCount > 0 && (
