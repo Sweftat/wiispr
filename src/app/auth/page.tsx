@@ -1,8 +1,84 @@
 'use client'
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useRef } from 'react'
 import Nav from '@/components/Nav'
 import { useRouter } from 'next/navigation'
 import { Input } from '@/components/ui/input'
+
+function OTPInput({ length = 6, onComplete }: { length?: number, onComplete: (code: string) => void }) {
+  const [digits, setDigits] = useState<string[]>(Array(length).fill(''))
+  const refs = useRef<(HTMLInputElement | null)[]>([])
+
+  function handleChange(index: number, value: string) {
+    const digit = value.replace(/[^0-9]/g, '').slice(-1)
+    const next = [...digits]
+    next[index] = digit
+    setDigits(next)
+
+    if (digit && index < length - 1) {
+      refs.current[index + 1]?.focus()
+    }
+
+    const code = next.join('')
+    if (code.length === length && next.every(d => d !== '')) {
+      onComplete(code)
+    }
+  }
+
+  function handleKeyDown(index: number, e: React.KeyboardEvent) {
+    if (e.key === 'Backspace' && !digits[index] && index > 0) {
+      refs.current[index - 1]?.focus()
+      const next = [...digits]
+      next[index - 1] = ''
+      setDigits(next)
+    }
+  }
+
+  function handlePaste(e: React.ClipboardEvent) {
+    e.preventDefault()
+    const pasted = e.clipboardData.getData('text').replace(/[^0-9]/g, '').slice(0, length)
+    if (pasted.length === 0) return
+    const next = [...digits]
+    for (let i = 0; i < pasted.length; i++) {
+      next[i] = pasted[i]
+    }
+    setDigits(next)
+    const focusIdx = Math.min(pasted.length, length - 1)
+    refs.current[focusIdx]?.focus()
+    if (pasted.length === length) {
+      onComplete(pasted)
+    }
+  }
+
+  useEffect(() => {
+    refs.current[0]?.focus()
+  }, [])
+
+  return (
+    <div style={{ display: 'flex', gap: 8, justifyContent: 'center' }} onPaste={handlePaste}>
+      {digits.map((d, i) => (
+        <input
+          key={i}
+          ref={el => { refs.current[i] = el }}
+          type="text"
+          inputMode="numeric"
+          maxLength={1}
+          value={d}
+          onChange={e => handleChange(i, e.target.value)}
+          onKeyDown={e => handleKeyDown(i, e)}
+          style={{
+            width: 44, height: 52, textAlign: 'center',
+            fontSize: '1.25rem', fontWeight: 700, fontFamily: 'monospace',
+            borderRadius: 'var(--r)', border: '1px solid var(--bd)',
+            background: 'var(--bg)', color: 'var(--t1)', outline: 'none',
+            transition: 'border-color .15s',
+          }}
+          onFocus={e => { e.target.style.borderColor = 'var(--blue)' }}
+          onBlur={e => { e.target.style.borderColor = 'var(--bd)' }}
+        />
+      ))}
+    </div>
+  )
+}
 
 export default function AuthPage() {
   const router = useRouter()
@@ -11,7 +87,6 @@ export default function AuthPage() {
   const [email, setEmail] = useState('')
   const [ageRange, setAgeRange] = useState('')
   const [agreed, setAgreed] = useState(false)
-  const [code, setCode] = useState('')
   const [nickname, setNickname] = useState('')
   const [gender, setGender] = useState('')
   const [loading, setLoading] = useState(false)
@@ -35,7 +110,7 @@ export default function AuthPage() {
     else setError(data.error || 'Something went wrong')
   }
 
-  async function verifyOTP() {
+  async function verifyOTP(code: string) {
     setLoading(true)
     setError('')
     const res = await fetch('/api/auth/verify-otp', {
@@ -44,7 +119,6 @@ export default function AuthPage() {
       body: JSON.stringify({ email, code })
     })
     const data = await res.json()
-    setLoading(false)
     if (data.success) {
       const signInRes = await fetch('/api/auth/create-account', {
         method: 'POST',
@@ -53,8 +127,8 @@ export default function AuthPage() {
       })
       const signInData = await signInRes.json()
       if (signInData.success) { router.push('/'); router.refresh() }
-      else setStep(3)
-    } else setError(data.error || 'Invalid code')
+      else { setLoading(false); setStep(3) }
+    } else { setLoading(false); setError(data.error || 'Invalid code') }
   }
 
   async function createAccount() {
@@ -184,15 +258,8 @@ export default function AuthPage() {
                   <h1 style={{ fontSize: '1.125rem', fontWeight: 700, color: 'var(--t1)', marginBottom: 4 }}>Check your email</h1>
                   <p style={{ fontSize: '.8125rem', color: 'var(--t3)' }}>We sent a 6-digit code to <strong>{email}</strong></p>
                 </div>
-                <Input
-                  type="text"
-                  placeholder="000000"
-                  maxLength={6}
-                  value={code}
-                  onChange={e => setCode(e.target.value.replace(/[^0-9]/g, ''))}
-                  style={{ textAlign: 'center', fontSize: '1.5rem', letterSpacing: '.3em', fontFamily: 'monospace', paddingLeft: 14 }}
-                />
-                {primaryBtn(code.length === 6, verifyOTP, 'Verify code', 'Verifying...')}
+                <OTPInput onComplete={verifyOTP} />
+                {loading && <p style={{ textAlign: 'center', fontSize: '.8rem', color: 'var(--t4)' }}>Verifying...</p>}
                 <button onClick={() => setStep(1)} style={{ fontSize: '.8rem', color: 'var(--t4)', background: 'none', border: 'none', cursor: 'pointer' }}>Back</button>
               </div>
             )}

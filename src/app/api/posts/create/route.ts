@@ -20,6 +20,17 @@ export async function POST(req: NextRequest) {
   const { data: poster } = await supabase.from('users').select('is_suspended').eq('id', userId).single()
   if (poster?.is_suspended) return NextResponse.json({ error: 'Your account is suspended.' }, { status: 403 })
 
+  // Rate limiting: max 10 posts per hour
+  const oneHourAgo = new Date(Date.now() - 60 * 60 * 1000).toISOString()
+  const { count: recentPosts } = await supabase
+    .from('posts')
+    .select('id', { count: 'exact', head: true })
+    .eq('user_id', userId)
+    .gte('created_at', oneHourAgo)
+  if ((recentPosts || 0) >= 10) {
+    return NextResponse.json({ error: 'Too many posts. Please wait before posting again.' }, { status: 429 })
+  }
+
   const { title, body, categoryId } = await req.json()
   if (!title || !categoryId) return NextResponse.json({ error: 'Missing fields' }, { status: 400 })
 
@@ -46,7 +57,7 @@ export async function POST(req: NextRequest) {
       target_type: 'post',
       meta: { title, category_id: parseInt(categoryId), ghost_id: ghostId }
     }),
-    addRep(supabase, userId, 2),
+    addRep(supabase, userId, 5),
   ])
 
   return NextResponse.json({ success: true })

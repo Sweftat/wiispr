@@ -1,13 +1,15 @@
 'use client'
-import { useState, useEffect } from 'react'
-import { motion } from 'framer-motion'
+import { useState, useEffect, useRef, useCallback } from 'react'
+import { motion, AnimatePresence } from 'framer-motion'
 import { timeAgo } from '@/lib/time'
 import FollowButton from './FollowButton'
 import PostPanel from './PostPanel'
 import CategoryFilter from './CategoryFilter'
 import Compose from './Compose'
 import ShareButton from './ShareButton'
-import { ArrowUp, MessageCircle, Ghost, Pin, Star, ShieldAlert } from 'lucide-react'
+import { ArrowUp, MessageCircle, Ghost, Pin, Star, ShieldAlert, Bookmark, RefreshCw } from 'lucide-react'
+import { useInView } from 'react-intersection-observer'
+import { toast } from 'sonner'
 
 function Skeleton() {
   return (
@@ -29,17 +31,55 @@ function Skeleton() {
 }
 
 const CATEGORY_COLORS: Record<string, string> = {
-  technology: '#2563EB',     // blue
-  sports: '#16A34A',         // green
-  lifestyle: '#D97706',      // amber
-  business: '#7C3AED',       // purple
-  gaming: '#E11D48',         // red
-  family: '#0D9488',         // teal
-  "women's space": '#EC4899', // pink
-  open: '#F97316',           // orange
+  technology: '#2563EB',
+  sports: '#16A34A',
+  lifestyle: '#D97706',
+  business: '#7C3AED',
+  gaming: '#E11D48',
+  family: '#0D9488',
+  "women's space": '#EC4899',
+  open: '#F97316',
 }
 function categoryAccent(name: string) {
   return CATEGORY_COLORS[name?.toLowerCase()] || 'var(--blue)'
+}
+
+function BookmarkButton({ postId }: { postId: string }) {
+  const [saved, setSaved] = useState(false)
+  const [loading, setLoading] = useState(false)
+
+  useEffect(() => {
+    fetch('/api/bookmarks?postId=' + postId).then(r => r.json()).then(d => {
+      if (d.bookmarked) setSaved(true)
+    }).catch(() => {})
+  }, [postId])
+
+  async function toggle(e: React.MouseEvent) {
+    e.stopPropagation()
+    if (loading) return
+    setLoading(true)
+    const res = await fetch('/api/bookmarks', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ postId, action: saved ? 'remove' : 'add' })
+    })
+    const data = await res.json()
+    if (data.success) {
+      setSaved(!saved)
+      toast(saved ? 'Removed from saved' : 'Post saved')
+    }
+    setLoading(false)
+  }
+
+  return (
+    <button onClick={toggle} style={{
+      background: 'none', border: '1px solid var(--bd)', borderRadius: 'var(--rs)',
+      padding: '5px 8px', cursor: 'pointer', display: 'flex', alignItems: 'center',
+      color: saved ? 'var(--blue)' : 'var(--t4)', transition: 'color .15s',
+    }}>
+      <Bookmark size={12} fill={saved ? 'var(--blue)' : 'none'} />
+    </button>
+  )
 }
 
 function PostCard({ post, onOpen }: { post: any, onOpen: () => void }) {
@@ -105,7 +145,8 @@ function PostCard({ post, onOpen }: { post: any, onOpen: () => void }) {
         <button style={{ fontSize: '.75rem', fontWeight: 600, padding: '5px 10px', borderRadius: 'var(--rs)', border: '1px solid var(--bd)', background: 'none', color: 'var(--t3)', display: 'flex', alignItems: 'center', gap: 4 }}>
           <MessageCircle size={12} />{post.reply_count}
         </button>
-        <span style={{ marginLeft: 'auto' }} onClick={e => e.stopPropagation()}>
+        <span style={{ marginLeft: 'auto', display: 'flex', gap: 6 }} onClick={e => e.stopPropagation()}>
+          <BookmarkButton postId={post.id} />
           <ShareButton postId={post.id} />
         </span>
       </div>
@@ -119,9 +160,67 @@ export default function Feed({ initialPosts, initialPinnedPost, initialPostOfDay
   const [postOfDay, setPostOfDay] = useState<any>(initialPostOfDay)
   const [loading, setLoading] = useState(false)
   const [activePost, setActivePost] = useState<any>(null)
+  const [newPostCount, setNewPostCount] = useState(0)
+  const [hasMore, setHasMore] = useState(initialPosts.length >= 20)
+  const [loadingMore, setLoadingMore] = useState(false)
+  const savedScrollY = useRef(0)
+  const activeCategoryRef = useRef<number | string | null>(null)
+  const latestPostTime = useRef<string>(initialPosts[0]?.created_at || new Date().toISOString())
+
+  // Infinite scroll sentinel
+  const { ref: sentinelRef, inView } = useInView({ threshold: 0 })
+
+  // Poll for new posts every 30 seconds
+  useEffect(() => {
+    const interval = setInterval(async () => {
+      if (activeCategoryRef.current) return // Only poll on main feed
+      try {
+        const res = await fetch('/api/posts/feed?since=' + encodeURIComponent(latestPostTime.current))
+        const data = await res.json()
+        if (data.newCount > 0) setNewPostCount(data.newCount)
+      } catch {}
+    }, 30000)
+    return () => clearInterval(interval)
+  }, [])
+
+  // Load more posts on infinite scroll
+  useEffect(() => {
+    if (!inView || !hasMore || loadingMore || loading) return
+    loadMore()
+  }, [inView, hasMore, loadingMore, loading])
+
+  async function loadMore() {
+    setLoadingMore(true)
+    const cat = activeCategoryRef.current
+    let url = `/api/posts/feed?offset=${posts.length}&limit=20`
+    if (cat && cat !== 'following' && cat !== 'trending') url += `&category=${cat}`
+    try {
+      const res = await fetch(url)
+      const data = await res.json()
+      const newPosts = data.posts || []
+      setPosts(prev => [...prev, ...newPosts])
+      if (newPosts.length < 20) setHasMore(false)
+    } catch {}
+    setLoadingMore(false)
+  }
+
+  async function refreshFeed() {
+    setLoading(true)
+    setNewPostCount(0)
+    const res = await fetch('/api/posts/feed')
+    const data = await res.json()
+    setPosts(data.posts || [])
+    setPinnedPost(data.pinnedPost || null)
+    setPostOfDay(data.postOfDay || null)
+    if (data.posts?.length > 0) latestPostTime.current = data.posts[0].created_at
+    setHasMore((data.posts || []).length >= 20)
+    setLoading(false)
+  }
 
   async function filterByCategory(categoryId: number | null | string) {
     setLoading(true)
+    activeCategoryRef.current = categoryId
+    setNewPostCount(0)
     let url = '/api/posts/feed'
     if (categoryId === 'following') url = '/api/posts/following'
     else if (categoryId === 'trending') url = '/api/posts/trending'
@@ -131,6 +230,7 @@ export default function Feed({ initialPosts, initialPinnedPost, initialPostOfDay
     setPosts(data.posts || [])
     setPinnedPost(data.pinnedPost || null)
     setPostOfDay(data.postOfDay || null)
+    setHasMore((data.posts || []).length >= 20)
     setLoading(false)
   }
 
@@ -143,6 +243,7 @@ export default function Feed({ initialPosts, initialPinnedPost, initialPostOfDay
   }, [])
 
   function openPost(post: any) {
+    savedScrollY.current = window.scrollY
     setActivePost(post)
     window.history.pushState({}, '', '/post/' + post.id)
   }
@@ -150,12 +251,38 @@ export default function Feed({ initialPosts, initialPinnedPost, initialPostOfDay
   function closePost() {
     setActivePost(null)
     window.history.pushState({}, '', '/')
+    requestAnimationFrame(() => {
+      window.scrollTo(0, savedScrollY.current)
+    })
   }
 
   return (
     <div style={{ position: 'relative', width: '100%', overflow: 'hidden' }}>
       <Compose categories={categories} />
       <CategoryFilter categories={categories} onSelect={filterByCategory} />
+
+      {/* New posts banner */}
+      <AnimatePresence>
+        {newPostCount > 0 && (
+          <motion.button
+            initial={{ opacity: 0, y: -20, height: 0 }}
+            animate={{ opacity: 1, y: 0, height: 'auto' }}
+            exit={{ opacity: 0, y: -20, height: 0 }}
+            onClick={refreshFeed}
+            style={{
+              width: '100%', padding: '10px 16px', marginBottom: 10,
+              background: 'var(--blue-d)', border: '1px solid var(--blue)',
+              borderRadius: 'var(--r)', cursor: 'pointer',
+              display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8,
+              fontSize: '.8rem', fontWeight: 600, color: 'var(--blue)',
+              fontFamily: 'inherit',
+            }}
+          >
+            <RefreshCw size={13} />
+            {newPostCount} new {newPostCount === 1 ? 'post' : 'posts'} — tap to refresh
+          </motion.button>
+        )}
+      </AnimatePresence>
 
       {/* Post of the Day */}
       {postOfDay && !loading && (
@@ -233,11 +360,22 @@ export default function Feed({ initialPosts, initialPinnedPost, initialPostOfDay
           key={post.id}
           initial={{ opacity: 0, y: 12 }}
           animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.25, delay: i * 0.05, ease: 'easeOut' }}
+          transition={{ duration: 0.25, delay: Math.min(i, 10) * 0.05, ease: 'easeOut' }}
         >
           <PostCard post={post} onOpen={() => openPost(post)} />
         </motion.div>
       ))}
+
+      {/* Infinite scroll sentinel */}
+      {!loading && hasMore && (
+        <div ref={sentinelRef} style={{ padding: '20px 0', textAlign: 'center' }}>
+          {loadingMore && <Skeleton />}
+        </div>
+      )}
+
+      {!loading && !hasMore && posts.length > 0 && (
+        <p style={{ textAlign: 'center', color: 'var(--t4)', fontSize: '.8rem', padding: '16px 0' }}>You&apos;ve reached the end</p>
+      )}
 
       {!loading && posts.length === 0 && (
         <div style={{ background: 'var(--sur)', border: '1px solid var(--bd)', borderRadius: 'var(--rm)', padding: '56px 24px', textAlign: 'center' }}>

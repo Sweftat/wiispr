@@ -4,6 +4,8 @@ import SidebarCategories from '@/components/SidebarCategories'
 import Footer from '@/components/Footer'
 import AnnouncementBanner from '@/components/AnnouncementBanner'
 import TrendingWidget from '@/components/TrendingWidget'
+import TrendingTopicsWidget from '@/components/TrendingTopicsWidget'
+import LeaderboardWidget from '@/components/LeaderboardWidget'
 import { createClient } from '@supabase/supabase-js'
 
 export const dynamic = 'force-dynamic'
@@ -35,6 +37,8 @@ export default async function Home() {
             <p style={{ fontSize: '.625rem', fontWeight: 700, letterSpacing: '.08em', textTransform: 'uppercase', color: 'var(--t4)', marginBottom: 10 }}>Categories</p>
             <SidebarCategories categories={categories || []} />
             <TrendingWidget />
+            <TrendingTopicsWidget />
+            <LeaderboardWidget />
           </div>
         </div>
       </div>

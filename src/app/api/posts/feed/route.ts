@@ -25,13 +25,39 @@ export async function GET(req: NextRequest) {
 
   const excludeIds = [pinnedPost?.id, postOfDay?.id].filter(Boolean)
 
+  const offset = parseInt(searchParams.get('offset') || '0')
+  const limit = parseInt(searchParams.get('limit') || '20')
+  const since = searchParams.get('since')
+
+  // If 'since' param, just return count of new posts
+  if (since) {
+    const { count } = await supabase
+      .from('posts')
+      .select('id', { count: 'exact', head: true })
+      .eq('is_deleted', false)
+      .eq('is_blurred', false)
+      .gt('created_at', since)
+    return NextResponse.json({ newCount: count || 0 })
+  }
+
+  // Get blocked ghost IDs for current user
+  const userId = req.cookies.get('wiispr_user_id')?.value
+  let blockedGhostIds: string[] = []
+  if (userId) {
+    const { data: blocks } = await supabase
+      .from('blocks')
+      .select('blocked_ghost_id')
+      .eq('blocker_id', userId)
+    blockedGhostIds = (blocks || []).map(b => b.blocked_ghost_id)
+  }
+
   let query = supabase
     .from('posts')
-    .select('*, categories(name, slug)')
+    .select('*, categories(name, slug), users(trust_level)')
     .eq('is_deleted', false)
     .eq('is_blurred', false)
     .order('created_at', { ascending: false })
-    .limit(20)
+    .range(offset, offset + limit - 1)
 
   if (categoryId) {
     query = query.eq('category_id', parseInt(categoryId))
@@ -41,5 +67,10 @@ export async function GET(req: NextRequest) {
   }
 
   const { data: posts } = await query
-  return NextResponse.json({ posts: posts || [], pinnedPost, postOfDay })
+  // Filter out blocked ghost IDs client-side (supabase doesn't support NOT IN easily)
+  const filteredPosts = blockedGhostIds.length > 0
+    ? (posts || []).filter((p: any) => !blockedGhostIds.includes(p.ghost_id))
+    : (posts || [])
+
+  return NextResponse.json({ posts: filteredPosts, pinnedPost, postOfDay })
 }

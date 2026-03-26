@@ -14,5 +14,7 @@ export async function POST(req: NextRequest) {
 
   await supabase.rpc('increment_view_count', { post_id: postId })
 
-  return NextResponse.json({ success: true })
+  const { data } = await supabase.from('posts').select('view_count').eq('id', postId).single()
+
+  return NextResponse.json({ success: true, viewCount: data?.view_count || 0 })
 }

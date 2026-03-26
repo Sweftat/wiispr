@@ -21,6 +21,14 @@ export async function addRep(supabase: SupabaseClient, userId: string, delta: nu
   const threshold = TRUST_THRESHOLDS[user.trust_level || 'new']
   if (threshold && newRep >= threshold.min) {
     updates.trust_level = threshold.next
+
+    // Notify user of trust level upgrade
+    await supabase.from('notifications').insert({
+      user_id: userId,
+      type: 'milestone',
+      message: `You've been promoted to ${threshold.next} member! 🎉`,
+      is_read: false,
+    })
   }
 
   await supabase.from('users').update(updates).eq('id', userId)

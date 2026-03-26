@@ -38,7 +38,7 @@ export async function POST(req: NextRequest) {
 
   await Promise.all([
     supabase.rpc('increment_reply_count', { post_id: postId }),
-    addRep(supabase, userId, 1),
+    addRep(supabase, userId, 2),
   ])
 
   return NextResponse.json({ success: true })
