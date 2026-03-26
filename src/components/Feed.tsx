@@ -11,6 +11,42 @@ import { ArrowUp, MessageCircle, Ghost, Pin, Star, ShieldAlert, Bookmark, Refres
 import { useInView } from 'react-intersection-observer'
 import { toast } from 'sonner'
 
+function StickyCategories({ categories, onSelect }: { categories: any[], onSelect: (id: any) => void }) {
+  const placeholderRef = useRef<HTMLDivElement>(null)
+  const [isStuck, setIsStuck] = useState(false)
+
+  useEffect(() => {
+    function handleScroll() {
+      if (!placeholderRef.current) return
+      const rect = placeholderRef.current.getBoundingClientRect()
+      setIsStuck(rect.top <= 52)
+    }
+    window.addEventListener('scroll', handleScroll, { passive: true })
+    return () => window.removeEventListener('scroll', handleScroll)
+  }, [])
+
+  return (
+    <>
+      <div ref={placeholderRef}>
+        {!isStuck && <CategoryFilter categories={categories} onSelect={onSelect} />}
+        {isStuck && <div style={{ height: 46 }} />}
+      </div>
+      {isStuck && (
+        <div style={{
+          position: 'fixed', top: 52, left: 0, right: 0, zIndex: 90,
+          background: 'var(--bg)',
+          borderBottom: '1px solid var(--bd)',
+          padding: '8px 20px',
+        }}>
+          <div style={{ maxWidth: 1100, margin: '0 auto' }}>
+            <CategoryFilter categories={categories} onSelect={onSelect} />
+          </div>
+        </div>
+      )}
+    </>
+  )
+}
+
 function Skeleton() {
   return (
     <div style={{ background: 'var(--sur)', border: '1px solid var(--bd)', borderRadius: 'var(--rm)', padding: '16px 18px', marginBottom: 10 }}>
@@ -369,7 +405,7 @@ export default function Feed({ initialPosts, initialPinnedPost, initialPostOfDay
   }
 
   return (
-    <div style={{ position: 'relative', width: '100%', overflow: 'hidden' }}>
+    <div style={{ position: 'relative', width: '100%' }}>
       {/* Greeting header */}
       <div style={{ marginBottom: 16 }}>
         <h1 style={{ fontSize: '1.125rem', fontWeight: 800, color: 'var(--t1)', marginBottom: 2 }}>
@@ -379,16 +415,7 @@ export default function Feed({ initialPosts, initialPinnedPost, initialPostOfDay
       </div>
 
       <Compose categories={categories} />
-      <div style={{
-        position: 'sticky', top: 52, zIndex: 90,
-        background: 'var(--bg)',
-        paddingTop: 10, paddingBottom: 6,
-        marginLeft: -20, marginRight: -20,
-        paddingLeft: 20, paddingRight: 20,
-        borderBottom: '1px solid var(--bd)',
-      }}>
-        <CategoryFilter categories={categories} onSelect={filterByCategory} />
-      </div>
+      <StickyCategories categories={categories} onSelect={filterByCategory} />
 
       <AnimatePresence>
         {newPostCount > 0 && (
