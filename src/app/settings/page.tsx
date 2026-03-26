@@ -59,7 +59,7 @@ export default function SettingsPage() {
   }
 
   if (!user) return (
-    <main style={{ minHeight: '100vh', background: 'var(--bg)', display: 'flex', flexDirection: 'column' }}>
+    <main style={{ minHeight: '100dvh', background: 'var(--bg)', display: 'flex', flexDirection: 'column' }}>
       <Nav />
       <div style={{ flex: 1, maxWidth: 480, margin: '0 auto', padding: '40px 20px', textAlign: 'center' }}>
         <p style={{ color: 'var(--t2)', fontSize: '.875rem' }}>Please <a href="/auth" style={{ color: 'var(--blue)' }}>sign in</a> to access settings.</p>
@@ -69,7 +69,7 @@ export default function SettingsPage() {
   )
 
   return (
-    <main style={{ minHeight: '100vh', background: 'var(--bg)', display: 'flex', flexDirection: 'column' }}>
+    <main style={{ minHeight: '100dvh', background: 'var(--bg)', display: 'flex', flexDirection: 'column' }}>
       <Nav />
       <div style={{ flex: 1, maxWidth: 480, margin: '0 auto', padding: '24px 20px', width: '100%' }}>
         <h1 style={{ fontSize: '1.125rem', fontWeight: 800, color: 'var(--t1)', marginBottom: 24 }}>Settings</h1>

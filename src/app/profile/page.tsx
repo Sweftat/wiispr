@@ -71,7 +71,7 @@ export default function ProfilePage() {
   }
 
   if (loading) return (
-    <main style={{ minHeight: '100vh', background: 'var(--bg)', display: 'flex', flexDirection: 'column' }}>
+    <main style={{ minHeight: '100dvh', background: 'var(--bg)', display: 'flex', flexDirection: 'column' }}>
       <Nav />
       <div style={{ flex: 1, maxWidth: 640, margin: '0 auto', padding: '40px 20px' }}>
         <p style={{ color: 'var(--t4)', fontSize: '.875rem' }}>Loading...</p>
@@ -81,7 +81,7 @@ export default function ProfilePage() {
   )
 
   if (!data?.user) return (
-    <main style={{ minHeight: '100vh', background: 'var(--bg)', display: 'flex', flexDirection: 'column' }}>
+    <main style={{ minHeight: '100dvh', background: 'var(--bg)', display: 'flex', flexDirection: 'column' }}>
       <Nav />
       <div style={{ flex: 1, maxWidth: 640, margin: '0 auto', padding: '40px 20px', textAlign: 'center' }}>
         <p style={{ color: 'var(--t2)', fontSize: '.875rem' }}>Please <a href="/auth" style={{ color: 'var(--blue)' }}>sign in</a> to view your profile.</p>
@@ -103,7 +103,7 @@ export default function ProfilePage() {
   ]
 
   return (
-    <main style={{ minHeight: '100vh', background: 'var(--bg)', display: 'flex', flexDirection: 'column' }}>
+    <main style={{ minHeight: '100dvh', background: 'var(--bg)', display: 'flex', flexDirection: 'column' }}>
       <Nav />
       <div style={{ flex: 1, maxWidth: 640, margin: '0 auto', padding: '24px 20px', width: '100%' }}>
 

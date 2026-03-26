@@ -36,9 +36,17 @@ const CATEGORY_COLORS: Record<string, string> = {
   lifestyle: '#16A34A',
   business: '#7C3AED',
   gaming: '#E11D48',
-  family: '#EAB308',
+  family: '#D97706',
   "women's space": '#EC4899',
-  open: '#6B7280',
+  open: '#64748B',
+  entertainment: '#0891B2',
+  health: '#EF4444',
+  food: '#EA580C',
+  religion: '#4F46E5',
+  relationships: '#BE185D',
+  career: '#0369A1',
+  travel: '#059669',
+  finance: '#CA8A04',
 }
 function categoryAccent(name: string) {
   return CATEGORY_COLORS[name?.toLowerCase()] || 'var(--blue)'
@@ -215,7 +223,7 @@ function PostCard({ post, onOpen }: { post: any, onOpen: () => void }) {
             background: post.users.trust_level === 'top' ? '#FFFBEB' : post.users.trust_level === 'trusted' ? 'var(--grn-d)' : 'var(--blue-d)',
           }}>{post.users.trust_level}</span>
         )}
-        {(post.upvotes || 0) >= 10 && (
+        {(post.upvotes || 0) >= 100 && (
           <span style={{ display: 'flex', alignItems: 'center', gap: 2, fontSize: '.6rem', fontWeight: 700, color: '#F97316', background: '#FFF7ED', padding: '2px 6px', borderRadius: 3 }}>
             <Flame size={10} /> Hot
           </span>

@@ -8,7 +8,7 @@ export default async function TermsPage() {
   const { data } = await supabase.from('legal_pages').select('content').eq('id', 'terms').single()
   const content = data?.content || ''
   return (
-    <main style={{ minHeight: '100vh', background: 'var(--bg)', display: 'flex', flexDirection: 'column' }}>
+    <main style={{ minHeight: '100dvh', background: 'var(--bg)', display: 'flex', flexDirection: 'column' }}>
       <Nav />
       <div style={{ flex: 1, maxWidth: 680, margin: '0 auto', padding: '40px 20px', width: '100%' }}>
         <h1 style={{ fontSize: '1.5rem', fontWeight: 800, color: 'var(--t1)', marginBottom: 8 }}>Terms of Service</h1>

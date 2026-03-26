@@ -143,7 +143,7 @@ export default function PostPage() {
   }
 
   if (loading) return (
-    <main style={{ minHeight: '100vh', background: 'var(--bg)' }}>
+    <main style={{ minHeight: '100dvh', background: 'var(--bg)' }}>
       <Nav />
       <div style={{ maxWidth: 680, margin: '0 auto', padding: '20px' }}>
         <p style={{ color: 'var(--t4)', fontSize: '.875rem', textAlign: 'center', padding: '40px 0' }}>Loading...</p>
@@ -152,7 +152,7 @@ export default function PostPage() {
   )
 
   if (!post) return (
-    <main style={{ minHeight: '100vh', background: 'var(--bg)' }}>
+    <main style={{ minHeight: '100dvh', background: 'var(--bg)' }}>
       <Nav />
       <div style={{ maxWidth: 680, margin: '0 auto', padding: '20px', textAlign: 'center' }}>
         <p style={{ color: 'var(--t2)', fontSize: '.875rem', padding: '40px 0' }}>Post not found. <a href="/" style={{ color: 'var(--blue)' }}>Go back</a></p>
@@ -161,7 +161,7 @@ export default function PostPage() {
   )
 
   return (
-    <main style={{ minHeight: '100vh', background: 'var(--bg)', display: 'flex', flexDirection: 'column' }}>
+    <main style={{ minHeight: '100dvh', background: 'var(--bg)', display: 'flex', flexDirection: 'column' }}>
       <Nav />
       <div style={{ flex: 1, maxWidth: 680, margin: '0 auto', padding: '20px', width: '100%' }}>
         <a href="/" style={{ fontSize: '.8rem', color: 'var(--blue)', display: 'inline-flex', alignItems: 'center', gap: 4, marginBottom: 16, textDecoration: 'none' }}>

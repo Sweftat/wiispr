@@ -1,6 +1,7 @@
 'use client'
 import { useState, useEffect } from 'react'
 import { Ghost } from 'lucide-react'
+import { toast } from 'sonner'
 
 interface Category {
   id: number
@@ -40,6 +41,12 @@ export default function Compose({ categories }: { categories: Category[] }) {
       setCategoryId('')
       setOpen(false)
       window.location.reload()
+    } else if (res.status === 403) {
+      toast.error('Your account is suspended')
+    } else if (res.status === 429) {
+      toast.error('Post limit reached — try again in an hour')
+    } else if (data.error) {
+      toast.error(data.error)
     }
   }
 

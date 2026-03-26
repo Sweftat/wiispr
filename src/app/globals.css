@@ -15,9 +15,12 @@
   --radius-lg: calc(var(--radius) + 4px);
 }
 
-* { box-sizing: border-box; margin: 0; padding: 0; max-width: 100%; }
+* { box-sizing: border-box; margin: 0; padding: 0; max-width: 100%; -webkit-tap-highlight-color: transparent; }
 
-html, body { overflow-x: hidden; }
+html { height: -webkit-fill-available; overflow-x: hidden; }
+body { overflow-x: hidden; min-height: 100dvh; }
+
+input, textarea, select, button { touch-action: manipulation; }
 
 :root {
   --background: #F4F4F5;
@@ -68,9 +71,9 @@ html, body { overflow-x: hidden; }
   --bd: #27272A;
   --bd2: #3F3F46;
   --t1: #FAFAFA;
-  --t2: #A1A1AA;
+  --t2: #E4E4E7;
   --t3: #A1A1AA;
-  --t4: #909090;
+  --t4: #71717A;
   --blue: #3B82F6;
   --blue-d: #1E3A5F;
   --grn: #22C55E;
@@ -80,7 +83,7 @@ html, body { overflow-x: hidden; }
 }
 
 body {
-  font-family: var(--font-geist-sans), system-ui, sans-serif;
+  font-family: var(--font-satoshi), system-ui, sans-serif;
   background: var(--bg);
   color: var(--t1);
   line-height: 1.6;
@@ -140,10 +143,16 @@ h1, h2, h3 {
   .action-label {
     display: none !important;
   }
+  .reaction-label {
+    display: none !important;
+  }
 }
 
 @media (max-width: 768px) {
   .action-label {
+    display: none !important;
+  }
+  .reaction-label {
     display: none !important;
   }
 }
@@ -205,4 +214,6 @@ h1, h2, h3 {
 .post-title {
   font-weight: 900;
   letter-spacing: -.02em;
-}@supports (-webkit-touch-callout: none) { body { height: -webkit-fill-available; } }
+}
+
+@supports (-webkit-touch-callout: none) { body { height: -webkit-fill-available; } }

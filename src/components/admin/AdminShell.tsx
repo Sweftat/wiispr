@@ -59,7 +59,7 @@ export default function AdminShell({ admin, flaggedPosts, allUsers, activityLogs
   const activeLabel = navItems.find(n => n.id === active)?.label || ''
 
   return (
-    <div style={{ display: 'flex', minHeight: '100vh', background: 'var(--bg)', fontFamily: 'var(--font-geist-sans), system-ui, sans-serif' }}>
+    <div style={{ display: 'flex', minHeight: '100dvh', background: 'var(--bg)', fontFamily: 'var(--font-geist-sans), system-ui, sans-serif' }}>
 
       <aside style={{
         width: collapsed ? 56 : 220,

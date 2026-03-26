@@ -34,7 +34,7 @@ export default function NotificationsPage() {
   }
 
   return (
-    <main style={{ minHeight: '100vh', background: 'var(--bg)', display: 'flex', flexDirection: 'column' }}>
+    <main style={{ minHeight: '100dvh', background: 'var(--bg)', display: 'flex', flexDirection: 'column' }}>
       <Nav />
       <div style={{ flex: 1, maxWidth: 640, margin: '0 auto', padding: '20px', width: '100%' }}>
         <h1 style={{ fontSize: '1.125rem', fontWeight: 700, color: 'var(--t1)', marginBottom: 16 }}>Notifications</h1>

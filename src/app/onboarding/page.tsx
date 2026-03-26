@@ -14,7 +14,7 @@ export default function OnboardingPage() {
   }, [])
 
   if (loading) return (
-    <main style={{ minHeight: '100vh', background: 'var(--bg)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+    <main style={{ minHeight: '100dvh', background: 'var(--bg)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
       <p style={{ color: 'var(--t4)', fontSize: '.875rem' }}>Loading...</p>
     </main>
   )
@@ -36,7 +36,7 @@ export default function OnboardingPage() {
   }
 
   return (
-    <main style={{ minHeight: '100vh', background: 'var(--bg)', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', padding: 24 }}>
+    <main style={{ minHeight: '100dvh', background: 'var(--bg)', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', padding: 24 }}>
       <div style={{ marginBottom: 40, textAlign: 'center' }}>
         <span style={{ fontFamily: 'Georgia, serif', fontStyle: 'italic', fontWeight: 700, fontSize: '1.25rem', display: 'inline-flex', alignItems: 'center', gap: '7px', color: 'var(--t1)' }}>
           <span style={{ width: 7, height: 7, background: 'var(--blue)', borderRadius: '50%', display: 'inline-block' }}></span>

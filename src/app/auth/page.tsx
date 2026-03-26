@@ -176,17 +176,17 @@ export default function AuthPage() {
   )
 
   return (
-    <main style={{ minHeight: '100vh', background: 'var(--bg)' }}>
+    <main style={{ minHeight: '100dvh', background: 'var(--bg)' }}>
       <Nav />
-      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', minHeight: 'calc(100vh - 52px)', padding: 20 }}>
+      <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'center', minHeight: 'calc(100dvh - 52px)', padding: '40px 20px 20px' }}>
         <div style={{ width: '100%', maxWidth: 400 }}>
 
-          <div style={{ textAlign: 'center', marginBottom: 32 }}>
-            <span style={{ fontFamily: 'Georgia, serif', fontStyle: 'italic', fontWeight: 700, fontSize: '1.5rem', display: 'inline-flex', alignItems: 'center', gap: 8, color: 'var(--t1)' }}>
-              <span style={{ width: 8, height: 8, background: 'var(--blue)', borderRadius: '50%', display: 'inline-block' }}></span>
+          <div style={{ textAlign: 'center', marginBottom: 20 }}>
+            <span style={{ fontFamily: 'Georgia, serif', fontStyle: 'italic', fontWeight: 700, fontSize: '1.25rem', display: 'inline-flex', alignItems: 'center', gap: 7, color: 'var(--t1)' }}>
+              <span style={{ width: 7, height: 7, background: 'var(--blue)', borderRadius: '50%', display: 'inline-block' }}></span>
               wiispr
             </span>
-            <p style={{ fontSize: '.875rem', color: 'var(--t3)', marginTop: 6 }}>
+            <p style={{ fontSize: '.8rem', color: 'var(--t3)', marginTop: 4 }}>
               {isSignIn ? 'Welcome back' : 'Anonymous. Honest. Built for Saudi Arabia.'}
             </p>
           </div>

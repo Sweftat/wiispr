@@ -59,7 +59,7 @@ function CompactReactionBar({ postId }: { postId: string }) {
             onClick={() => react(r.key)}
             style={{
               display: 'flex', alignItems: 'center', gap: 3,
-              padding: '4px 10px', borderRadius: 'var(--rs)',
+              padding: '3px 8px', borderRadius: 'var(--rs)',
               border: `1px solid ${selected ? r.color : 'var(--bd)'}`,
               background: selected ? r.color + '15' : 'none',
               cursor: 'pointer', fontSize: '.75rem', fontFamily: 'inherit',
@@ -68,6 +68,7 @@ function CompactReactionBar({ postId }: { postId: string }) {
             }}
           >
             <span style={{ fontSize: '14px', lineHeight: 1 }}>{r.emoji}</span>
+            <span className="reaction-label">{r.label}</span>
             {count > 0 && <span>{count}</span>}
           </motion.button>
         )
@@ -111,7 +112,7 @@ function RelatedPosts({ postId, categoryId, onOpen }: { postId: string, category
 }
 
 const actionBtnStyle = (active?: boolean): React.CSSProperties => ({
-  fontSize: '.75rem', fontWeight: 600, padding: '5px 10px',
+  fontSize: '.72rem', fontWeight: 600, padding: '4px 9px',
   borderRadius: 'var(--rs)',
   border: `1px solid ${active ? 'var(--blue)' : 'var(--bd)'}`,
   background: active ? 'var(--blue-d)' : 'none',
