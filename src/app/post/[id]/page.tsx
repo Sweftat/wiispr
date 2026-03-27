@@ -111,6 +111,7 @@ export default function PostPage() {
   }
 
   async function react(key: string) {
+    if (!user) { toast.error('Sign in to react'); return }
     const wasSelected = userReaction === key
     const oldReaction = userReaction
     if (wasSelected) {
@@ -131,6 +132,7 @@ export default function PostPage() {
   }
 
   async function upvoteReply(replyId: string) {
+    if (!user) { toast.error('Sign in to upvote'); return }
     if (votedReplies.has(replyId)) return
     setVotedReplies(prev => new Set(prev).add(replyId))
     setReplyUpvotes(u => ({ ...u, [replyId]: (u[replyId] || 0) + 1 }))

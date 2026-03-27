@@ -13,48 +13,37 @@ import { toast } from 'sonner'
 import LinkifiedText from './LinkifiedText'
 
 function StickyCategories({ categories, onSelect }: { categories: any[], onSelect: (id: any) => void }) {
-  const placeholderRef = useRef<HTMLDivElement>(null)
-  const [isStuck, setIsStuck] = useState(false)
   const [navH, setNavH] = useState(52)
 
   useEffect(() => {
     let lastY = 0
     function handleScroll() {
       const y = window.scrollY
-      // Track nav shrink state (matches Nav.tsx logic)
       if (y > 50 && y > lastY) setNavH(44)
       else if (y < lastY) setNavH(52)
       lastY = y
-
-      if (!placeholderRef.current) return
-      const rect = placeholderRef.current.getBoundingClientRect()
-      setIsStuck(rect.top <= (y > 50 ? 44 : 52))
     }
     window.addEventListener('scroll', handleScroll, { passive: true })
     return () => window.removeEventListener('scroll', handleScroll)
   }, [])
 
   return (
-    <>
-      <div ref={placeholderRef}>
-        {!isStuck && <CategoryFilter categories={categories} onSelect={onSelect} />}
-        {isStuck && <div style={{ height: 46 }} />}
-      </div>
-      {isStuck && (
-        <div style={{
-          position: 'fixed', top: navH, left: 0, right: 0, zIndex: 90,
-          background: 'var(--bg)',
-          borderBottom: '1px solid var(--bd)',
-          padding: '8px 20px',
-          transition: 'top 0.2s ease',
-          overflowX: 'clip',
-        }}>
-          <div style={{ maxWidth: 1100, margin: '0 auto' }}>
-            <CategoryFilter categories={categories} onSelect={onSelect} />
-          </div>
-        </div>
-      )}
-    </>
+    <div style={{
+      position: 'sticky',
+      top: navH,
+      zIndex: 90,
+      background: 'var(--bg)',
+      paddingTop: 8,
+      paddingBottom: 6,
+      marginLeft: -20,
+      marginRight: -20,
+      paddingLeft: 20,
+      paddingRight: 20,
+      borderBottom: '1px solid var(--bd)',
+      transition: 'top 0.2s ease',
+    }}>
+      <CategoryFilter categories={categories} onSelect={onSelect} />
+    </div>
   )
 }
 
@@ -110,16 +99,21 @@ const REACTIONS = [
 function CompactReactions({ postId }: { postId: string }) {
   const [counts, setCounts] = useState<Record<string, number>>({})
   const [userReaction, setUserReaction] = useState<string | null>(null)
+  const [loggedIn, setLoggedIn] = useState(false)
 
   useEffect(() => {
     fetch('/api/posts/reactions?postId=' + postId).then(r => r.json()).then(d => {
       setCounts(d.counts || {})
       setUserReaction(d.userReaction || null)
+      if (d.userReaction) setLoggedIn(true)
     }).catch(() => {})
+    // Check login via cookie
+    setLoggedIn(!!document.cookie.match(/wiispr_user_id=/))
   }, [postId])
 
   async function react(e: React.MouseEvent, key: string) {
     e.stopPropagation()
+    if (!loggedIn) { toast.error('Sign in to react'); return }
     const wasSelected = userReaction === key
     const oldReaction = userReaction
 
@@ -286,15 +280,15 @@ function PostCard({ post, onOpen, onTagClick }: { post: any, onOpen: () => void,
         <img src={post.gif_url} alt="" loading="lazy" style={{ maxHeight: 200, borderRadius: 'var(--rs)', objectFit: 'cover', marginBottom: 8, display: 'block' }} />
       )}
       {(() => {
-        const tags = post.body?.match(/#([a-zA-Z0-9_\u0600-\u06FF]+)/g)?.slice(0, 3)
-        if (!tags || tags.length === 0) return null
-        const allTags = post.body?.match(/#([a-zA-Z0-9_\u0600-\u06FF]+)/g) || []
+        const tags: string[] = (post.tags || []).slice(0, 3)
+        if (tags.length === 0) return null
+        const allTags: string[] = post.tags || []
         return (
           <div style={{ display: 'flex', gap: 4, flexWrap: 'wrap', marginBottom: 8 }}>
             {tags.map((t: string, i: number) => (
-              <span key={i} onClick={(e) => { e.stopPropagation(); onTagClick?.(t.slice(1)) }}
-                style={{ fontSize: '.68rem', color: 'var(--blue)', background: 'var(--blue-d)', padding: '1px 6px', borderRadius: 3, cursor: 'pointer', fontWeight: 600 }}>
-                {t}
+              <span key={i} onClick={(e) => { e.stopPropagation(); onTagClick?.(t) }}
+                style={{ fontSize: '.68rem', color: 'var(--t3)', background: 'var(--bd)', padding: '2px 8px', borderRadius: 99, cursor: 'pointer', fontWeight: 600 }}>
+                #{t}
               </span>
             ))}
             {allTags.length > 3 && <span style={{ fontSize: '.65rem', color: 'var(--t4)' }}>+{allTags.length - 3}</span>}

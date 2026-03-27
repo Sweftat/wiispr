@@ -94,5 +94,25 @@ export async function GET(req: NextRequest) {
     return true
   })
 
-  return NextResponse.json({ posts: filteredPosts, pinnedPost, postOfDay })
+  // Fetch tags for all returned posts
+  const postIds = filteredPosts.map((p: any) => p.id)
+  let tagsByPostId: Record<string, string[]> = {}
+  if (postIds.length > 0) {
+    const { data: allTags } = await supabase
+      .from('post_tags')
+      .select('post_id, tag')
+      .in('post_id', postIds)
+    if (allTags) {
+      for (const t of allTags) {
+        if (!tagsByPostId[t.post_id]) tagsByPostId[t.post_id] = []
+        tagsByPostId[t.post_id].push(t.tag)
+      }
+    }
+  }
+  const postsWithTags = filteredPosts.map((p: any) => ({
+    ...p,
+    tags: tagsByPostId[p.id] || [],
+  }))
+
+  return NextResponse.json({ posts: postsWithTags, pinnedPost, postOfDay })
 }

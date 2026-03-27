@@ -19,8 +19,10 @@ const REACTIONS = [
 function CompactReactionBar({ postId }: { postId: string }) {
   const [counts, setCounts] = useState<Record<string, number>>({})
   const [userReaction, setUserReaction] = useState<string | null>(null)
+  const [loggedIn, setLoggedIn] = useState(false)
 
   useEffect(() => {
+    setLoggedIn(!!document.cookie.match(/wiispr_user_id=/))
     fetch('/api/posts/reactions?postId=' + postId).then(r => r.json()).then(d => {
       setCounts(d.counts || {})
       setUserReaction(d.userReaction || null)
@@ -28,6 +30,7 @@ function CompactReactionBar({ postId }: { postId: string }) {
   }, [postId])
 
   async function react(key: string) {
+    if (!loggedIn) { toast.error('Sign in to react'); return }
     const wasSelected = userReaction === key
     const oldReaction = userReaction
     if (wasSelected) {

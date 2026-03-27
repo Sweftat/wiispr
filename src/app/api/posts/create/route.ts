@@ -31,7 +31,7 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ error: 'Too many posts. Please wait before posting again.' }, { status: 429 })
   }
 
-  const { title, body, categoryId, gifUrl } = await req.json()
+  const { title, body, categoryId, gifUrl, tags: explicitTags } = await req.json()
   if (!title || !categoryId) return NextResponse.json({ error: 'Missing fields' }, { status: 400 })
 
   const ghostId = generateGhostId()
@@ -51,10 +51,12 @@ export async function POST(req: NextRequest) {
 
   if (error) return NextResponse.json({ error: error.message }, { status: 500 })
 
-  // Extract and save hashtags from body
-  if (body) {
-    const tagMatches = body.match(/#([a-zA-Z0-9_\u0600-\u06FF]+)/g)
-    if (tagMatches && tagMatches.length > 0) {
+  // Extract and save tags (from explicit tags + body hashtags)
+  {
+    const bodyTags = body ? (body.match(/#([a-zA-Z0-9_\u0600-\u06FF]+)/g) || []).map((t: string) => t.slice(1).toLowerCase()) : []
+    const inputTags = Array.isArray(explicitTags) ? explicitTags.map((t: string) => t.toLowerCase().trim()).filter(Boolean) : []
+    const allTags = [...new Set([...inputTags, ...bodyTags])].slice(0, 5)
+    if (allTags.length > 0) {
       const { data: createdPost } = await supabase
         .from('posts')
         .select('id')
@@ -63,9 +65,8 @@ export async function POST(req: NextRequest) {
         .limit(1)
         .single()
       if (createdPost) {
-        const tags = [...new Set(tagMatches.map((t: string) => t.slice(1).toLowerCase()))].slice(0, 5)
         await supabase.from('post_tags').insert(
-          tags.map(tag => ({ post_id: createdPost.id, tag }))
+          allTags.map(tag => ({ post_id: createdPost.id, tag }))
         )
       }
     }

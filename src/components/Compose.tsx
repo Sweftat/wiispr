@@ -21,6 +21,8 @@ export default function Compose({ categories }: { categories: Category[] }) {
   const [user, setUser] = useState<{ id: string, nickname: string } | null>(null)
   const [gifUrl, setGifUrl] = useState('')
   const [gifPickerOpen, setGifPickerOpen] = useState(false)
+  const [tags, setTags] = useState<string[]>([])
+  const [tagInput, setTagInput] = useState('')
 
   useEffect(() => {
     fetch('/api/auth/session')
@@ -34,7 +36,7 @@ export default function Compose({ categories }: { categories: Category[] }) {
     const res = await fetch('/api/posts/create', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ title, body, categoryId, gifUrl: gifUrl || undefined })
+      body: JSON.stringify({ title, body, categoryId, gifUrl: gifUrl || undefined, tags: tags.length > 0 ? tags : undefined })
     })
     const data = await res.json()
     setLoading(false)
@@ -43,6 +45,8 @@ export default function Compose({ categories }: { categories: Category[] }) {
       setBody('')
       setCategoryId('')
       setGifUrl('')
+      setTags([])
+      setTagInput('')
       setOpen(false)
       window.location.reload()
     } else if (res.status === 403) {
@@ -144,6 +148,48 @@ export default function Compose({ categories }: { categories: Category[] }) {
               marginBottom: 8
             }}
           />
+
+          {/* Tags input */}
+          <div style={{ marginBottom: 8 }}>
+            <div style={{ display: 'flex', gap: 4, flexWrap: 'wrap', marginBottom: tags.length > 0 ? 6 : 0 }}>
+              {tags.map((tag, i) => (
+                <span key={i} style={{
+                  display: 'inline-flex', alignItems: 'center', gap: 3,
+                  fontSize: '.7rem', fontWeight: 600, color: 'var(--blue)',
+                  background: 'var(--blue-d)', padding: '2px 8px', borderRadius: 99,
+                }}>
+                  #{tag}
+                  <button onClick={() => setTags(tags.filter((_, j) => j !== i))} style={{
+                    background: 'none', border: 'none', cursor: 'pointer', padding: 0,
+                    color: 'var(--blue)', fontSize: '.7rem', lineHeight: 1, display: 'flex',
+                  }}>×</button>
+                </span>
+              ))}
+            </div>
+            {tags.length < 5 && (
+              <input
+                type="text"
+                placeholder="Add tags (e.g. advice, funny) — max 5"
+                value={tagInput}
+                onChange={e => setTagInput(e.target.value.replace(/[^a-zA-Z0-9_\u0600-\u06FF ]/g, ''))}
+                onKeyDown={e => {
+                  if ((e.key === 'Enter' || e.key === ',' || e.key === ' ') && tagInput.trim()) {
+                    e.preventDefault()
+                    const t = tagInput.trim().toLowerCase()
+                    if (t && !tags.includes(t) && tags.length < 5) {
+                      setTags([...tags, t])
+                      setTagInput('')
+                    }
+                  }
+                }}
+                style={{
+                  width: '100%', fontSize: '.78rem', color: 'var(--t2)',
+                  background: 'none', border: 'none', outline: 'none',
+                  padding: '2px 0', fontFamily: 'inherit',
+                }}
+              />
+            )}
+          </div>
 
           {/* GIF preview */}
           {gifUrl && (

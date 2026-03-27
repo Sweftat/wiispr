@@ -25,12 +25,12 @@ export default async function Home() {
   const { data: posts } = await postsQuery
 
   return (
-    <main style={{ minHeight: '100dvh', background: 'var(--bg)', display: 'flex', flexDirection: 'column', overflowX: 'hidden', position: 'relative' }}>
+    <main style={{ minHeight: '100dvh', background: 'var(--bg)', display: 'flex', flexDirection: 'column', position: 'relative' }}>
       <Nav />
       <AnnouncementBanner />
       <div className="feed-container" style={{ flex: 1, maxWidth: 1100, margin: '0 auto', padding: '20px', width: '100%', boxSizing: 'border-box' }}>
         <div className="feed-grid" style={{ display: 'grid', gridTemplateColumns: '1fr 280px', gap: 24 }}>
-          <div style={{ minWidth: 0, width: '100%', overflow: 'hidden' }}>
+          <div style={{ minWidth: 0, width: '100%' }}>
             <Feed initialPosts={posts || []} initialPinnedPost={pinnedPost || null} initialPostOfDay={postOfDay || null} categories={categories || []} />
           </div>
           <div className="feed-sidebar">
