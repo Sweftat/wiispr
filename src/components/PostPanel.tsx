@@ -6,6 +6,7 @@ import FollowButton from './FollowButton'
 import { motion, AnimatePresence } from 'framer-motion'
 import { X, MessageCircle, Ghost, ArrowUp, Eye, Bookmark, Link2, Flag, ShieldOff } from 'lucide-react'
 import { toast } from 'sonner'
+import LinkifiedText from './LinkifiedText'
 
 const REACTIONS = [
   { key: 'agree', emoji: '👍', label: 'Agree', color: '#2563EB' },
@@ -77,7 +78,7 @@ function CompactReactionBar({ postId }: { postId: string }) {
   )
 }
 
-function RelatedPosts({ postId, categoryId, onOpen }: { postId: string, categoryId: number, onOpen: (p: any) => void }) {
+function RelatedPosts({ postId, categoryId, categoryName, onOpen }: { postId: string, categoryId: number, categoryName?: string, onOpen: (p: any) => void }) {
   const [related, setRelated] = useState<any[]>([])
 
   useEffect(() => {
@@ -91,7 +92,7 @@ function RelatedPosts({ postId, categoryId, onOpen }: { postId: string, category
 
   return (
     <div style={{ marginTop: 16 }}>
-      <p style={{ fontSize: '.75rem', fontWeight: 700, color: 'var(--t4)', textTransform: 'uppercase', letterSpacing: '.06em', marginBottom: 8 }}>Related posts</p>
+      <p style={{ fontSize: '.75rem', fontWeight: 700, color: 'var(--t4)', textTransform: 'uppercase', letterSpacing: '.06em', marginBottom: 8 }}>More from {categoryName || 'this category'}</p>
       <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
         {related.map(p => (
           <div key={p.id} onClick={() => onOpen(p)} style={{
@@ -247,8 +248,8 @@ export default function PostPanel({ post: initialPost, onClose }: { post: any, o
               </span>
             </div>
             <div style={{ display: 'flex', alignItems: 'center', gap: 4 }}>
-              <Eye size={13} style={{ color: 'var(--t4)' }} />
-              <span style={{ fontSize: '.75rem', color: 'var(--t4)' }}>{viewCount}</span>
+              <Eye size={13} style={{ color: 'var(--t2)' }} />
+              <span style={{ fontSize: '.75rem', color: 'var(--t2)' }}>{viewCount >= 1000 ? (viewCount / 1000).toFixed(1) + 'k' : viewCount}</span>
             </div>
           </div>
           <button onClick={onClose} style={{
@@ -277,7 +278,7 @@ export default function PostPanel({ post: initialPost, onClose }: { post: any, o
 
             {/* Post body */}
             <h1 className="auto-dir post-title" style={{ fontSize: '1.125rem', fontWeight: 900, color: 'var(--t1)', marginBottom: 10, lineHeight: 1.35, letterSpacing: '-.02em' }}>{post.title}</h1>
-            {post.body && <p className="auto-dir" style={{ fontSize: '.9rem', color: 'var(--t2)', lineHeight: 1.8, marginBottom: 0 }}>{post.body}</p>}
+            {post.body && <LinkifiedText text={post.body} className="auto-dir" style={{ fontSize: '.9rem', color: 'var(--t2)', lineHeight: 1.8, marginBottom: 0 }} />}
 
             {/* Row 1: Compact reactions */}
             <div style={{ paddingTop: 14, marginTop: 14, borderTop: '1px solid var(--bd)' }}>
@@ -361,7 +362,7 @@ export default function PostPanel({ post: initialPost, onClose }: { post: any, o
             )}
           </div>
 
-          {post.category_id && <RelatedPosts postId={post.id} categoryId={post.category_id} onOpen={openRelated} />}
+          {post.category_id && <RelatedPosts postId={post.id} categoryId={post.category_id} categoryName={post.categories?.name} onOpen={openRelated} />}
         </div>
       </motion.div>
     </AnimatePresence>

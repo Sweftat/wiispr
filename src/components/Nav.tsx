@@ -1,8 +1,9 @@
 'use client'
 import Link from 'next/link'
 import { useEffect, useState, useRef } from 'react'
-import { Search, Moon, Sun, Bell, LogOut } from 'lucide-react'
+import { Search, Bell, LogOut } from 'lucide-react'
 import { useRouter } from 'next/navigation'
+import { motion } from 'framer-motion'
 
 export default function Nav() {
   const router = useRouter()
@@ -12,6 +13,8 @@ export default function Nav() {
   const [searchOpen, setSearchOpen] = useState(false)
   const [searchQuery, setSearchQuery] = useState('')
   const [results, setResults] = useState<any[]>([])
+  const [online, setOnline] = useState(0)
+  const [shrunk, setShrunk] = useState(false)
   const searchRef = useRef<HTMLInputElement>(null)
   const dropdownRef = useRef<HTMLDivElement>(null)
 
@@ -31,6 +34,23 @@ export default function Nav() {
       document.documentElement.setAttribute('data-theme', 'dark')
       setDark(true)
     }
+
+    // Online count
+    fetch('/api/online').then(r => r.json()).then(d => setOnline(d.online || 0))
+    const interval = setInterval(() => {
+      fetch('/api/online').then(r => r.json()).then(d => setOnline(d.online || 0))
+    }, 60000)
+
+    // Scroll-aware nav
+    let lastY = 0
+    function onScroll() {
+      const y = window.scrollY
+      if (y > 50 && y > lastY) setShrunk(true)
+      else if (y < lastY) setShrunk(false)
+      lastY = y
+    }
+    window.addEventListener('scroll', onScroll, { passive: true })
+    return () => { clearInterval(interval); window.removeEventListener('scroll', onScroll) }
   }, [])
 
   useEffect(() => {
@@ -89,13 +109,25 @@ export default function Nav() {
     }
   }
 
+  const navH = shrunk ? 44 : 52
+
   return (
     <nav className="main-nav" style={{
-      height: 52, background: 'var(--sur)', borderBottom: '1px solid var(--bd)',
+      height: navH,
+      background: dark ? 'rgba(24,24,27,0.85)' : 'rgba(255,255,255,0.8)',
+      backdropFilter: 'blur(12px)',
+      WebkitBackdropFilter: 'blur(12px)',
+      borderBottom: dark ? '1px solid rgba(255,255,255,0.08)' : '1px solid rgba(0,0,0,0.06)',
       display: 'flex', alignItems: 'center', padding: '0 20px', gap: 8,
-      position: 'sticky', top: 0, zIndex: 100
+      position: 'sticky', top: 0, zIndex: 100,
+      transition: 'all 0.2s ease',
+      boxShadow: shrunk ? '0 1px 8px rgba(0,0,0,0.06)' : 'none',
     }}>
       <style>{`
+        @keyframes pulse-dot {
+          0%, 100% { opacity: 1; transform: scale(1); }
+          50% { opacity: 0.6; transform: scale(1.4); }
+        }
         @keyframes fireFlicker {
           0%, 100% { transform: scale(1) rotate(-3deg); }
           25% { transform: scale(1.15) rotate(3deg); }
@@ -105,18 +137,40 @@ export default function Nav() {
         .fire-nav { display: inline-block; animation: fireFlicker 1.2s ease-in-out infinite; }
       `}</style>
 
-      {/* Logo */}
+      {/* Gradient top border */}
+      <div style={{
+        position: 'absolute', top: 0, left: 0, right: 0, height: 2,
+        background: 'linear-gradient(90deg, #2563EB, #7C3AED, #EC4899)',
+      }} />
+
+      {/* Logo + online count */}
       <Link href="/" style={{
         fontFamily: 'Georgia, serif', fontStyle: 'italic', fontWeight: 700,
-        fontSize: '1.25rem', display: 'flex', alignItems: 'center', gap: 7, color: 'var(--t1)',
-        textDecoration: 'none', marginRight: 4, flexShrink: 0
+        fontSize: shrunk ? '1.1rem' : '1.25rem', display: 'flex', alignItems: 'center', gap: 7,
+        color: 'var(--t1)', textDecoration: 'none', marginRight: 4, flexShrink: 0,
+        transition: 'font-size 0.2s ease',
       }}>
         <span style={{
           width: 7, height: 7, background: 'var(--blue)', borderRadius: '50%', display: 'inline-block',
           boxShadow: '0 0 0 2px rgba(37,99,235,0.2), 0 0 8px 2px rgba(37,99,235,0.35)',
-        }}></span>
+          animation: 'pulse-dot 2s ease-in-out infinite',
+        }} />
         wiispr
       </Link>
+
+      {online > 0 && (
+        <span style={{
+          fontSize: '.65rem', color: 'var(--grn)', fontWeight: 600,
+          display: 'flex', alignItems: 'center', gap: 3, flexShrink: 0,
+        }}>
+          <span style={{
+            width: 5, height: 5, borderRadius: '50%', background: 'var(--grn)',
+            display: 'inline-block',
+            animation: 'pulse-dot 2s ease-in-out infinite',
+          }} />
+          {online}
+        </span>
+      )}
 
       {/* Trending */}
       <Link href="/trending" style={{
@@ -147,10 +201,7 @@ export default function Nav() {
 
         {searchOpen && (
           <div style={{
-            position: 'fixed',
-            top: 52,
-            left: 16,
-            right: 16,
+            position: 'fixed', top: navH, left: 16, right: 16,
             width: 'auto', maxWidth: 400,
             background: 'var(--sur)',
             border: '1px solid var(--bd)', borderRadius: 'var(--rm)',
@@ -200,7 +251,7 @@ export default function Nav() {
 
             {searchQuery.length >= 2 && results.length === 0 && (
               <div style={{ padding: '20px 14px', textAlign: 'center' }}>
-                <p style={{ fontSize: '.8rem', color: 'var(--t4)' }}>No results for "{searchQuery}"</p>
+                <p style={{ fontSize: '.8rem', color: 'var(--t4)' }}>No results for &quot;{searchQuery}&quot;</p>
               </div>
             )}
 
@@ -213,15 +264,43 @@ export default function Nav() {
         )}
       </div>
 
-      <span style={{ flex: 1 }}></span>
+      <span style={{ flex: 1 }} />
 
-      <button onClick={toggleTheme} style={{
-        display: 'flex', alignItems: 'center', justifyContent: 'center',
-        width: 32, height: 32, borderRadius: 'var(--r)',
-        border: '1px solid var(--bd)', color: 'var(--t2)',
-        background: 'none', cursor: 'pointer'
-      }}>
-        {dark ? <Sun size={15} /> : <Moon size={15} />}
+      {/* Dark/Light pill toggle */}
+      <button
+        onClick={toggleTheme}
+        aria-label="Toggle theme"
+        style={{
+          width: 76, height: 28, borderRadius: 14,
+          background: dark ? 'rgba(255,255,255,0.1)' : 'rgba(0,0,0,0.06)',
+          border: `1px solid ${dark ? 'rgba(255,255,255,0.1)' : 'rgba(0,0,0,0.08)'}`,
+          display: 'flex', alignItems: 'center', position: 'relative',
+          cursor: 'pointer', padding: 2, flexShrink: 0,
+          transition: 'background 0.2s, border 0.2s',
+        }}
+      >
+        <motion.div
+          animate={{ x: dark ? 38 : 0 }}
+          transition={{ type: 'spring', stiffness: 500, damping: 30 }}
+          style={{
+            width: 34, height: 22, borderRadius: 11,
+            background: dark ? 'rgba(255,255,255,0.15)' : '#fff',
+            boxShadow: dark ? 'none' : '0 1px 3px rgba(0,0,0,0.1)',
+            position: 'absolute', left: 2, top: 2,
+          }}
+        />
+        <span style={{
+          flex: 1, textAlign: 'center', fontSize: '.6rem', fontWeight: 700,
+          color: !dark ? 'var(--t1)' : 'var(--t4)',
+          zIndex: 1, letterSpacing: '.02em', textTransform: 'uppercase',
+          transition: 'color 0.2s',
+        }}>Light</span>
+        <span style={{
+          flex: 1, textAlign: 'center', fontSize: '.6rem', fontWeight: 700,
+          color: dark ? 'var(--t1)' : 'var(--t4)',
+          zIndex: 1, letterSpacing: '.02em', textTransform: 'uppercase',
+          transition: 'color 0.2s',
+        }}>Dark</span>
       </button>
 
       {user ? (

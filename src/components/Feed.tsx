@@ -10,6 +10,7 @@ import ShareButton from './ShareButton'
 import { ArrowUp, MessageCircle, Ghost, Pin, Star, ShieldAlert, Bookmark, RefreshCw, Flame } from 'lucide-react'
 import { useInView } from 'react-intersection-observer'
 import { toast } from 'sonner'
+import LinkifiedText from './LinkifiedText'
 
 function StickyCategories({ categories, onSelect }: { categories: any[], onSelect: (id: any) => void }) {
   const placeholderRef = useRef<HTMLDivElement>(null)
@@ -270,7 +271,7 @@ function PostCard({ post, onOpen }: { post: any, onOpen: () => void }) {
         <span style={{ fontFamily: 'monospace', fontSize: '.65rem', color: 'var(--t4)', marginLeft: 'auto' }}>{timeAgo(post.created_at)}</span>
       </div>
       <h2 className="auto-dir" style={{ fontSize: '1rem', fontWeight: 700, color: 'var(--t1)', marginBottom: 6, position: 'relative' }}>{post.title}</h2>
-      {post.body && <p className="auto-dir" style={{ fontSize: '.875rem', color: 'var(--t2)', lineHeight: 1.7, marginBottom: 12, position: 'relative' }}>{post.body}</p>}
+      {post.body && <LinkifiedText text={post.body} className="auto-dir" style={{ fontSize: '.875rem', color: 'var(--t2)', lineHeight: 1.7, marginBottom: 12, position: 'relative' }} />}
 
       <CompactReactions postId={post.id} />
 
