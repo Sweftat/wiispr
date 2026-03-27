@@ -87,8 +87,8 @@ export default function Compose({ categories }: { categories: Category[] }) {
       onMouseLeave={() => setHovered(false)}
       style={{
         background: 'var(--sur)',
-        border: `2px solid ${hovered ? '#2563EB' : 'var(--bd)'}`,
-        boxShadow: hovered ? '0 0 0 4px rgba(37,99,235,0.15)' : 'none',
+        border: `2px solid ${hovered ? '#4F46E5' : 'var(--bd)'}`,
+        boxShadow: hovered ? '0 0 0 4px rgba(79,70,229,0.15)' : 'none',
         transition: 'border-color .2s, box-shadow .2s',
         borderRadius: 'var(--rm)', padding: '16px 18px', marginBottom: 16,
       }}

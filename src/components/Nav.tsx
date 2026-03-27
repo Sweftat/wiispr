@@ -135,7 +135,7 @@ export default function Nav() {
       {/* Gradient top border */}
       <div style={{
         position: 'absolute', top: 0, left: 0, right: 0, height: 2,
-        background: 'linear-gradient(90deg, #2563EB, #7C3AED, #EC4899)',
+        background: 'linear-gradient(90deg, #4F46E5, #7C3AED, #EC4899)',
       }} />
 
       {/* Logo + online count */}
@@ -147,7 +147,7 @@ export default function Nav() {
       }}>
         <span style={{
           width: 7, height: 7, background: 'var(--blue)', borderRadius: '50%', display: 'inline-block',
-          boxShadow: '0 0 0 2px rgba(37,99,235,0.2), 0 0 8px 2px rgba(37,99,235,0.35)',
+          boxShadow: '0 0 0 2px rgba(79,70,229,0.2), 0 0 8px 2px rgba(79,70,229,0.35)',
           animation: 'pulse-dot 2s ease-in-out infinite',
         }} />
         wiispr

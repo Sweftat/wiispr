@@ -43,8 +43,10 @@ input, textarea, select, button { touch-action: manipulation; }
   --t2: #52525B;
   --t3: #71717A;
   --t4: #A1A1AA;
-  --blue: #2563EB;
-  --blue-d: #EFF6FF;
+  --blue: #4F46E5;
+  --blue-d: #EEF2FF;
+  --purple: #7C3AED;
+  --purple-d: #F5F3FF;
   --grn: #16A34A;
   --grn-d: #F0FDF4;
   --rose: #E11D48;
@@ -74,8 +76,10 @@ input, textarea, select, button { touch-action: manipulation; }
   --t2: #E4E4E7;
   --t3: #A1A1AA;
   --t4: #71717A;
-  --blue: #3B82F6;
-  --blue-d: #1E3A5F;
+  --blue: #6366F1;
+  --blue-d: #1E1B4B;
+  --purple: #A78BFA;
+  --purple-d: #2E1065;
   --grn: #22C55E;
   --grn-d: #14532D;
   --rose: #F43F5E;
@@ -203,7 +207,7 @@ h1, h2, h3 {
 }
 
 .post-card:hover {
-  box-shadow: 0 4px 14px rgba(37,99,235,.1) !important;
+  box-shadow: 0 4px 14px rgba(79,70,229,.1) !important;
 }
 
 [data-theme="dark"] .post-card {
