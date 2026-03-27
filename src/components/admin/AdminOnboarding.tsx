@@ -15,7 +15,25 @@ export default function AdminOnboarding() {
     try {
       const res = await fetch('/api/onboarding')
       const data = await res.json()
-      setSlides(data.slides || [])
+      const loaded = data.slides || []
+      if (loaded.length === 0) {
+        // Seed defaults
+        const defaults = [
+          { emoji: '👻', title: 'Welcome to wiispr', body: 'The anonymous forum where you can speak your truth. No real names. No judgement.', color: '#4F46E5' },
+          { emoji: '🔮', title: 'Your Ghost ID', body: 'Every post gets a unique Ghost ID. Nobody knows it\'s you — not even us.', color: '#7C3AED' },
+          { emoji: '⚡', title: 'Build Your Rep', body: 'Post honest content, earn upvotes, and level up from New → Active → Trusted → Top.', color: '#D97706' },
+          { emoji: '🌸', title: "Women's Space", body: 'A dedicated safe space for women only. Access is granted based on trust level.', color: '#EC4899' },
+          { emoji: '📜', title: 'Community Rules', body: 'Be honest. Be kind. No personal info. No hate. Saudi law applies.', color: '#16A34A' },
+        ]
+        for (const d of defaults) {
+          await fetch('/api/onboarding', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(d) })
+        }
+        const res2 = await fetch('/api/onboarding')
+        const data2 = await res2.json()
+        setSlides(data2.slides || [])
+      } else {
+        setSlides(loaded)
+      }
     } catch { setSlides([]) }
     setLoading(false)
   }

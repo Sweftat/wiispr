@@ -19,6 +19,7 @@ import AdminPostOfDay from './AdminPostOfDay'
 import AdminContentWarnings from './AdminContentWarnings'
 import AdminAuditLog from './AdminAuditLog'
 import Admin2FA from './Admin2FA'
+import AdminWomensSpace from './AdminWomensSpace'
 
 const navItems = [
   { id: 'overview', label: 'Overview', icon: LayoutDashboard },
@@ -37,6 +38,7 @@ const navItems = [
   { id: 'export', label: 'Export Data', icon: Download },
   { id: 'social', label: 'Social Links', icon: Share2 },
   { id: 'audit', label: 'Audit Log', icon: ScrollText },
+  { id: 'womens', label: "Women's Space", icon: ShieldCheck },
   { id: '2fa', label: '2FA Security', icon: ShieldCheck },
   { id: 'settings', label: 'Site Settings', icon: Settings },
 ]
@@ -177,6 +179,7 @@ export default function AdminShell({ admin, flaggedPosts, allUsers, activityLogs
           {active === 'export' && <AdminExport />}
           {active === 'social' && <AdminSocialLinks />}
           {active === 'audit' && <AdminAuditLog />}
+          {active === 'womens' && <AdminWomensSpace />}
           {active === '2fa' && <Admin2FA />}
           {active === 'settings' && <AdminSettings />}
         </main>

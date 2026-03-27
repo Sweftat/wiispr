@@ -16,7 +16,10 @@ export default function SettingsPage() {
   const [ageSaved, setAgeSaved] = useState(false)
   const [deleting, setDeleting] = useState(false)
   const [confirmDelete, setConfirmDelete] = useState(false)
+  const [deleteText, setDeleteText] = useState('')
   const [notifPrefs, setNotifPrefs] = useState({ follows: true, upvotes: true, milestones: true, replies: true })
+  const [follows, setFollows] = useState<string[]>([])
+  const [followsLoaded, setFollowsLoaded] = useState(false)
 
   useEffect(() => {
     fetch('/api/profile')
@@ -27,6 +30,7 @@ export default function SettingsPage() {
           setNickname(d.user.nickname)
           setAgeRange(d.user.age_range || '')
           if (d.user.notification_prefs) setNotifPrefs(d.user.notification_prefs)
+          fetch('/api/follows').then(r => r.json()).then(f => { setFollows(f.following || []); setFollowsLoaded(true) }).catch(() => setFollowsLoaded(true))
         }
       })
   }, [])
@@ -206,8 +210,35 @@ export default function SettingsPage() {
           ))}
         </div>
 
+        {/* Following */}
+        <div style={{ background: 'var(--sur)', border: '1px solid var(--bd)', borderRadius: 'var(--rm)', padding: '20px', marginBottom: 12 }}>
+          <h2 style={{ fontSize: '.875rem', fontWeight: 700, color: 'var(--t1)', marginBottom: 4 }}>Following</h2>
+          <p style={{ fontSize: '.8rem', color: 'var(--t3)', marginBottom: 14 }}>Ghost IDs you follow.</p>
+          {!followsLoaded ? (
+            <p style={{ fontSize: '.8rem', color: 'var(--t4)' }}>Loading...</p>
+          ) : follows.length === 0 ? (
+            <p style={{ fontSize: '.8rem', color: 'var(--t4)' }}>You&apos;re not following anyone yet</p>
+          ) : (
+            <div style={{ display: 'flex', flexDirection: 'column', gap: 0 }}>
+              {follows.map(ghostId => (
+                <div key={ghostId} style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '8px 0', borderBottom: '1px solid var(--bd)' }}>
+                  <span style={{ fontFamily: 'monospace', fontSize: '.8rem', color: 'var(--t2)' }}>👻 {ghostId}</span>
+                  <button onClick={async () => {
+                    setFollows(follows.filter(f => f !== ghostId))
+                    await fetch('/api/follows', { method: 'DELETE', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ ghostId }) })
+                  }} style={{
+                    fontSize: '.7rem', color: 'var(--rose)', border: '1px solid rgba(225,29,72,.2)',
+                    background: 'var(--rose-d)', borderRadius: 'var(--rs)', padding: '3px 8px',
+                    cursor: 'pointer', fontFamily: 'inherit', fontWeight: 600,
+                  }}>Unfollow</button>
+                </div>
+              ))}
+            </div>
+          )}
+        </div>
+
         {/* Danger zone */}
-        <div style={{ background: 'var(--sur)', border: '1px solid var(--rose)', borderRadius: 'var(--rm)', padding: '20px' }}>
+        <div style={{ background: 'var(--rose-d)', border: '1px solid var(--rose)', borderRadius: 'var(--rm)', padding: '20px' }}>
           <h2 style={{ fontSize: '.875rem', fontWeight: 700, color: 'var(--rose)', marginBottom: 4 }}>Danger Zone</h2>
           <p style={{ fontSize: '.8rem', color: 'var(--t3)', marginBottom: 14 }}>Deleting your account is permanent and cannot be undone.</p>
           {!confirmDelete ? (
@@ -215,13 +246,37 @@ export default function SettingsPage() {
               Delete account
             </button>
           ) : (
-            <div style={{ display: 'flex', gap: 8 }}>
-              <button onClick={deleteAccount} disabled={deleting} style={{ padding: '8px 18px', borderRadius: 'var(--r)', background: 'var(--rose)', border: 'none', color: '#fff', fontSize: '.8rem', fontWeight: 600, cursor: 'pointer', fontFamily: 'inherit' }}>
-                {deleting ? 'Deleting...' : 'Yes, delete'}
-              </button>
-              <button onClick={() => setConfirmDelete(false)} style={{ padding: '8px 18px', borderRadius: 'var(--r)', background: 'none', border: '1px solid var(--bd)', color: 'var(--t2)', fontSize: '.8rem', fontWeight: 600, cursor: 'pointer', fontFamily: 'inherit' }}>
-                Cancel
-              </button>
+            <div>
+              <p style={{ fontSize: '.75rem', color: 'var(--t2)', marginBottom: 8 }}>Type <strong>delete my account</strong> to confirm:</p>
+              <input
+                type="text"
+                value={deleteText}
+                onChange={e => setDeleteText(e.target.value)}
+                placeholder="delete my account"
+                style={{
+                  width: '100%', padding: '8px 12px', fontSize: '.8rem', color: 'var(--t1)',
+                  background: 'var(--bg)', border: '1px solid var(--bd)', borderRadius: 'var(--r)',
+                  outline: 'none', fontFamily: 'inherit', marginBottom: 10,
+                }}
+              />
+              <div style={{ display: 'flex', gap: 8 }}>
+                <button
+                  onClick={deleteAccount}
+                  disabled={deleteText !== 'delete my account' || deleting}
+                  style={{
+                    padding: '8px 18px', borderRadius: 'var(--r)',
+                    background: deleteText === 'delete my account' ? 'var(--rose)' : 'var(--bd)',
+                    border: 'none', color: '#fff', fontSize: '.8rem', fontWeight: 600,
+                    cursor: deleteText === 'delete my account' ? 'pointer' : 'not-allowed',
+                    fontFamily: 'inherit', transition: 'background .2s',
+                  }}
+                >
+                  {deleting ? 'Deleting...' : 'Confirm delete'}
+                </button>
+                <button onClick={() => { setConfirmDelete(false); setDeleteText('') }} style={{ padding: '8px 18px', borderRadius: 'var(--r)', background: 'none', border: '1px solid var(--bd)', color: 'var(--t2)', fontSize: '.8rem', fontWeight: 600, cursor: 'pointer', fontFamily: 'inherit' }}>
+                  Cancel
+                </button>
+              </div>
             </div>
           )}
         </div>
