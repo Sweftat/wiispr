@@ -121,33 +121,42 @@ export default function Compose({ categories }: { categories: Category[] }) {
               <option key={c.id} value={c.id}>{c.name}</option>
             ))}
           </select>
-          <input
-            type="text"
-            placeholder="Title"
-            className="auto-dir"
-            value={title}
-            onChange={e => setTitle(e.target.value)}
-            maxLength={200}
-            style={{
-              width: '100%', fontSize: '.9375rem', fontWeight: 600,
-              color: 'var(--t1)', background: 'none', border: 'none',
-              outline: 'none', padding: '4px 0', marginBottom: 8,
-              fontFamily: 'inherit'
-            }}
-          />
-          <textarea
-            placeholder="Add more detail… (optional). Use #hashtags for topics"
-            className="auto-dir"
-            value={body}
-            onChange={e => setBody(e.target.value)}
-            rows={3}
-            style={{
-              width: '100%', fontSize: '.875rem', color: 'var(--t2)',
-              background: 'none', border: 'none', outline: 'none',
-              resize: 'none', lineHeight: 1.6, fontFamily: 'inherit',
-              marginBottom: 8
-            }}
-          />
+          <div style={{ position: 'relative' }}>
+            <input
+              type="text"
+              placeholder="Title"
+              className="auto-dir"
+              value={title}
+              onChange={e => setTitle(e.target.value)}
+              maxLength={200}
+              style={{
+                width: '100%', fontSize: '.9375rem', fontWeight: 600,
+                color: 'var(--t1)', background: 'none', border: 'none',
+                outline: 'none', padding: '4px 0', paddingRight: 36,
+                fontFamily: 'inherit'
+              }}
+            />
+            {title.length > 0 && (
+              <span style={{ position: 'absolute', right: 0, top: '50%', transform: 'translateY(-50%)', fontSize: '.65rem', fontFamily: 'monospace', color: (200 - title.length) <= 20 ? 'var(--rose)' : 'var(--t4)' }}>{200 - title.length}</span>
+            )}
+          </div>
+          <div style={{ position: 'relative', marginBottom: 8 }}>
+            <textarea
+              placeholder="Add more detail… (optional). Use #hashtags for topics"
+              className="auto-dir"
+              value={body}
+              onChange={e => setBody(e.target.value.slice(0, 1000))}
+              rows={3}
+              style={{
+                width: '100%', fontSize: '.875rem', color: 'var(--t2)',
+                background: 'none', border: 'none', outline: 'none',
+                resize: 'none', lineHeight: 1.6, fontFamily: 'inherit',
+              }}
+            />
+            {body.length > 0 && (
+              <span style={{ position: 'absolute', right: 0, bottom: 0, fontSize: '.65rem', fontFamily: 'monospace', color: (1000 - body.length) <= 20 ? 'var(--rose)' : 'var(--t4)' }}>{1000 - body.length}</span>
+            )}
+          </div>
 
           {/* Tags input */}
           <div style={{ marginBottom: 8 }}>

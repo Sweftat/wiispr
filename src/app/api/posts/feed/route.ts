@@ -11,6 +11,7 @@ export async function GET(req: NextRequest) {
   const { searchParams } = new URL(req.url)
   const categoryId = searchParams.get('category')
   const tagFilter = searchParams.get('tag')
+  const sortBy = searchParams.get('sort') // 'top' = sort by upvotes desc
 
   // Fetch pinned + POTD (only on the default feed, not category-filtered views)
   let pinnedPost = null
@@ -57,7 +58,7 @@ export async function GET(req: NextRequest) {
     .select('*, categories(name, slug), users(trust_level)')
     .eq('is_deleted', false)
     .eq('is_blurred', false)
-    .order('created_at', { ascending: false })
+    .order(sortBy === 'top' ? 'upvotes' : 'created_at', { ascending: false })
     .range(offset, offset + limit - 1)
 
   if (categoryId) {

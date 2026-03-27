@@ -202,9 +202,10 @@ function BookmarkButton({ postId }: { postId: string }) {
   )
 }
 
-function PostCard({ post, onOpen, onTagClick }: { post: any, onOpen: () => void, onTagClick?: (tag: string) => void }) {
+function PostCard({ post, onOpen, onTagClick, followedGhosts }: { post: any, onOpen: () => void, onTagClick?: (tag: string) => void, followedGhosts?: Set<string> }) {
   const [revealed, setRevealed] = useState(false)
   const [hovered, setHovered] = useState(false)
+  const [showReplies, setShowReplies] = useState(false)
   const accent = categoryAccent(post.categories?.name)
 
   return (
@@ -256,6 +257,9 @@ function PostCard({ post, onOpen, onTagClick }: { post: any, onOpen: () => void,
           <Ghost size={10} style={{ display: 'inline', verticalAlign: 'middle', marginRight: 3 }} />
           {post.ghost_id}
         </span>
+        {followedGhosts?.has(post.ghost_id) && (
+          <span style={{ fontSize: '.6rem', fontWeight: 600, color: 'var(--grn)', background: 'var(--grn-d)', padding: '1px 7px', borderRadius: 9999 }}>Following</span>
+        )}
         {post.users?.trust_level && post.users.trust_level !== 'new' && (
           <span style={{
             fontSize: '.55rem', fontWeight: 700, letterSpacing: '.04em',
@@ -302,7 +306,7 @@ function PostCard({ post, onOpen, onTagClick }: { post: any, onOpen: () => void,
         <button style={{ fontSize: '.75rem', fontWeight: 600, padding: '5px 10px', borderRadius: 'var(--rs)', border: '1px solid var(--bd)', background: 'none', color: 'var(--t3)', display: 'flex', alignItems: 'center', gap: 4 }}>
           <ArrowUp size={12} />{post.upvotes}
         </button>
-        <button style={{ fontSize: '.75rem', fontWeight: 600, padding: '5px 10px', borderRadius: 'var(--rs)', border: '1px solid var(--bd)', background: 'none', color: 'var(--t3)', display: 'flex', alignItems: 'center', gap: 4 }}>
+        <button onClick={(e) => { e.stopPropagation(); setShowReplies(!showReplies) }} style={{ fontSize: '.75rem', fontWeight: 600, padding: '5px 10px', borderRadius: 'var(--rs)', border: `1px solid ${showReplies ? 'var(--blue)' : 'var(--bd)'}`, background: showReplies ? 'var(--blue-d)' : 'none', color: showReplies ? 'var(--blue)' : 'var(--t3)', display: 'flex', alignItems: 'center', gap: 4, cursor: 'pointer', fontFamily: 'inherit' }}>
           <MessageCircle size={12} />{post.reply_count}
         </button>
         <span style={{ marginLeft: 'auto', display: 'flex', gap: 6 }} onClick={e => e.stopPropagation()}>
@@ -310,7 +314,136 @@ function PostCard({ post, onOpen, onTagClick }: { post: any, onOpen: () => void,
           <ShareButton postId={post.id} />
         </span>
       </div>
+
+      {/* Inline reply drawer */}
+      <AnimatePresence>
+        {showReplies && <InlineReplyDrawer postId={post.id} onOpenPanel={onOpen} />}
+      </AnimatePresence>
     </div>
+  )
+}
+
+function SortTabs({ active, onSelect }: { active: string, onSelect: (m: 'new' | 'top' | 'trending' | 'following') => void }) {
+  const tabs = [
+    { key: 'new', label: 'New' },
+    { key: 'top', label: 'Top' },
+    { key: 'trending', label: 'Trending' },
+    { key: 'following', label: 'Following' },
+  ] as const
+  return (
+    <div style={{
+      display: 'inline-flex', background: 'var(--bg)', border: '1px solid var(--bd)',
+      borderRadius: 'var(--r)', padding: 2, marginBottom: 12, gap: 2,
+    }}>
+      {tabs.map(t => (
+        <button key={t.key} onClick={() => onSelect(t.key as any)} style={{
+          fontSize: '.75rem', fontWeight: active === t.key ? 600 : 500,
+          padding: '4px 12px', borderRadius: 'var(--rs)', border: 'none',
+          background: active === t.key ? 'var(--sur)' : 'transparent',
+          color: active === t.key ? 'var(--t1)' : 'var(--t3)',
+          cursor: 'pointer', fontFamily: 'inherit',
+          boxShadow: active === t.key ? '0 1px 3px rgba(0,0,0,.07)' : 'none',
+          transition: 'all .15s',
+        }}>{t.label}</button>
+      ))}
+    </div>
+  )
+}
+
+function InlineReplyDrawer({ postId, onOpenPanel }: { postId: string, onOpenPanel: () => void }) {
+  const [replies, setReplies] = useState<any[]>([])
+  const [loaded, setLoaded] = useState(false)
+  const [replyBody, setReplyBody] = useState('')
+  const [submitting, setSubmitting] = useState(false)
+  const [loggedIn, setLoggedIn] = useState(false)
+
+  useEffect(() => {
+    setLoggedIn(!!document.cookie.match(/wiispr_user_id=/))
+    fetch('/api/posts/replies?postId=' + postId + '&limit=3').then(r => r.json()).then(d => {
+      setReplies((d.replies || []).slice(0, 3))
+      setLoaded(true)
+    }).catch(() => setLoaded(true))
+  }, [postId])
+
+  async function submitReply() {
+    if (!replyBody.trim() || submitting) return
+    setSubmitting(true)
+    const res = await fetch('/api/posts/reply', {
+      method: 'POST', headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ postId, body: replyBody })
+    })
+    const data = await res.json()
+    if (data.success) {
+      setReplyBody('')
+      toast.success('Reply posted!')
+      const r = await fetch('/api/posts/replies?postId=' + postId + '&limit=3')
+      const d = await r.json()
+      setReplies((d.replies || []).slice(0, 3))
+    } else if (res.status === 401) {
+      toast.error('Sign in to reply')
+    }
+    setSubmitting(false)
+  }
+
+  const remaining = 280 - replyBody.length
+
+  return (
+    <motion.div
+      initial={{ height: 0, opacity: 0 }}
+      animate={{ height: 'auto', opacity: 1 }}
+      exit={{ height: 0, opacity: 0 }}
+      transition={{ type: 'spring', stiffness: 300, damping: 28 }}
+      style={{ overflow: 'hidden' }}
+      onClick={e => e.stopPropagation()}
+    >
+      <div style={{ padding: '10px 16px 14px', borderTop: '1px solid var(--bd)' }}>
+        {!loaded && <p style={{ fontSize: '.78rem', color: 'var(--t4)' }}>Loading...</p>}
+        {loaded && replies.length === 0 && <p style={{ fontSize: '.78rem', color: 'var(--t4)', marginBottom: 8 }}>No replies yet</p>}
+        {replies.map(r => (
+          <div key={r.id} style={{ marginBottom: 8 }}>
+            <div style={{ display: 'flex', gap: 6, alignItems: 'center', marginBottom: 3 }}>
+              <span style={{ fontFamily: 'monospace', fontSize: '.65rem', color: 'var(--t4)' }}>{r.ghost_id}</span>
+              <span style={{ fontSize: '.6rem', color: 'var(--t4)' }}>{timeAgo(r.created_at)}</span>
+            </div>
+            <p className="auto-dir" style={{ fontSize: '.8rem', color: 'var(--t2)', lineHeight: 1.6 }}>{r.body}</p>
+          </div>
+        ))}
+        <button onClick={onOpenPanel} style={{
+          fontSize: '.72rem', color: 'var(--blue)', background: 'none', border: 'none',
+          cursor: 'pointer', fontFamily: 'inherit', fontWeight: 600, marginBottom: 10, padding: 0,
+        }}>Show all replies →</button>
+
+        {loggedIn && (
+          <div style={{ display: 'flex', gap: 6, alignItems: 'flex-end' }}>
+            <div style={{ flex: 1, position: 'relative' }}>
+              <textarea
+                placeholder="Quick reply..."
+                className="auto-dir"
+                value={replyBody}
+                onChange={e => setReplyBody(e.target.value.slice(0, 280))}
+                rows={2}
+                style={{
+                  width: '100%', fontSize: '.8rem', color: 'var(--t1)', background: 'var(--bg)',
+                  border: '1px solid var(--bd)', borderRadius: 'var(--rs)', padding: '6px 8px',
+                  outline: 'none', resize: 'none', fontFamily: 'inherit',
+                }}
+              />
+              <span style={{
+                position: 'absolute', bottom: 4, right: 6,
+                fontSize: '.65rem', fontFamily: 'monospace',
+                color: remaining <= 20 ? 'var(--rose)' : 'var(--t4)',
+              }}>{remaining}</span>
+            </div>
+            <button onClick={submitReply} disabled={!replyBody.trim() || submitting} style={{
+              fontSize: '.75rem', fontWeight: 600, padding: '6px 12px', borderRadius: 'var(--rs)',
+              background: replyBody.trim() ? 'var(--blue)' : 'var(--bd)',
+              color: '#fff', border: 'none', cursor: replyBody.trim() ? 'pointer' : 'not-allowed',
+              fontFamily: 'inherit', whiteSpace: 'nowrap',
+            }}>Reply</button>
+          </div>
+        )}
+      </div>
+    </motion.div>
   )
 }
 
@@ -330,6 +463,8 @@ export default function Feed({ initialPosts, initialPinnedPost, initialPostOfDay
   const [newPostCount, setNewPostCount] = useState(0)
   const [hasMore, setHasMore] = useState(initialPosts.length >= 20)
   const [loadingMore, setLoadingMore] = useState(false)
+  const [sortMode, setSortMode] = useState<'new' | 'top' | 'trending' | 'following'>('new')
+  const [followedGhosts, setFollowedGhosts] = useState<Set<string>>(new Set())
   const savedScrollY = useRef(0)
   const activeCategoryRef = useRef<number | string | null>(null)
   const latestPostTime = useRef<string>(initialPosts[0]?.created_at || new Date().toISOString())
@@ -341,7 +476,17 @@ export default function Feed({ initialPosts, initialPinnedPost, initialPostOfDay
     const check = () => { isMobileRef.current = window.innerWidth < 768 }
     check()
     window.addEventListener('resize', check)
-    return () => window.removeEventListener('resize', check)
+    // Fetch followed ghost IDs
+    fetch('/api/follows').then(r => r.json()).then(d => {
+      if (d.following) setFollowedGhosts(new Set(d.following.map((f: any) => f.ghost_id)))
+    }).catch(() => {})
+    // Listen for post deletions
+    function onPostDeleted(e: Event) {
+      const id = (e as CustomEvent).detail
+      setPosts(prev => prev.filter(p => p.id !== id))
+    }
+    window.addEventListener('postDeleted', onPostDeleted)
+    return () => { window.removeEventListener('resize', check); window.removeEventListener('postDeleted', onPostDeleted) }
   }, [])
 
   useEffect(() => {
@@ -406,6 +551,27 @@ export default function Feed({ initialPosts, initialPinnedPost, initialPostOfDay
     setLoading(false)
   }
 
+  async function sortFeed(mode: 'new' | 'top' | 'trending' | 'following') {
+    setSortMode(mode)
+    setLoading(true)
+    setNewPostCount(0)
+    let url = '/api/posts/feed'
+    if (mode === 'top') url = '/api/posts/feed?sort=top'
+    else if (mode === 'trending') url = '/api/posts/trending'
+    else if (mode === 'following') url = '/api/posts/following'
+    const cat = activeCategoryRef.current
+    if (cat && mode !== 'trending' && mode !== 'following' && typeof cat === 'number') {
+      url += (url.includes('?') ? '&' : '?') + 'category=' + cat
+    }
+    try {
+      const res = await fetch(url)
+      const data = await res.json()
+      setPosts(data.posts || [])
+      setHasMore((data.posts || []).length >= 20)
+    } catch {}
+    setLoading(false)
+  }
+
   async function filterByTag(tag: string) {
     setLoading(true)
     setNewPostCount(0)
@@ -457,6 +623,7 @@ export default function Feed({ initialPosts, initialPinnedPost, initialPostOfDay
 
       <Compose categories={categories} />
       <StickyCategories categories={categories} onSelect={filterByCategory} />
+      <SortTabs active={sortMode} onSelect={sortFeed} />
 
       <AnimatePresence>
         {newPostCount > 0 && (
@@ -534,7 +701,7 @@ export default function Feed({ initialPosts, initialPinnedPost, initialPostOfDay
 
       {!loading && posts.map((post: any, i: number) => (
         <motion.div key={post.id} initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.25, delay: Math.min(i, 10) * 0.05, ease: 'easeOut' }}>
-          <PostCard post={post} onOpen={() => openPost(post)} onTagClick={filterByTag} />
+          <PostCard post={post} onOpen={() => openPost(post)} onTagClick={filterByTag} followedGhosts={followedGhosts} />
         </motion.div>
       ))}
 

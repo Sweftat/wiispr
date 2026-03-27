@@ -4,7 +4,7 @@ import { timeAgo } from '@/lib/time'
 import UpvoteButton from './UpvoteButton'
 import FollowButton from './FollowButton'
 import { motion, AnimatePresence } from 'framer-motion'
-import { X, MessageCircle, Ghost, ArrowUp, Eye, Bookmark, Link2, Flag, ShieldOff } from 'lucide-react'
+import { X, MessageCircle, Ghost, ArrowUp, Eye, Bookmark, Link2, Flag, ShieldOff, Trash2 } from 'lucide-react'
 import { toast } from 'sonner'
 import LinkifiedText from './LinkifiedText'
 
@@ -137,6 +137,7 @@ export default function PostPanel({ post: initialPost, onClose }: { post: any, o
   const [bookmarked, setBookmarked] = useState(false)
   const [reported, setReported] = useState(false)
   const [blocked, setBlocked] = useState(false)
+  const [replySort, setReplySort] = useState<'best' | 'new'>('best')
 
   useEffect(() => {
     fetch('/api/auth/session').then(r => r.json()).then(d => { if (d.user) setUser(d.user) })
@@ -286,8 +287,29 @@ export default function PostPanel({ post: initialPost, onClose }: { post: any, o
               <img src={post.gif_url} alt="" loading="lazy" style={{ maxHeight: 240, borderRadius: 'var(--rs)', objectFit: 'cover', marginTop: 10, display: 'block' }} />
             )}
 
+            {/* Stats row */}
+            <div style={{
+              display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)',
+              padding: '12px 0', borderTop: '1px solid var(--bd)', borderBottom: '1px solid var(--bd)', margin: '14px 0',
+            }}>
+              {[
+                { value: post.upvotes || 0, label: 'Upvotes' },
+                { value: replies.length, label: 'Replies' },
+                { value: viewCount >= 1000 ? (viewCount / 1000).toFixed(1) + 'k' : viewCount, label: 'Views' },
+                { value: timeAgo(post.created_at), label: 'Posted' },
+              ].map((s, i) => (
+                <div key={i} style={{
+                  textAlign: 'center',
+                  borderRight: i < 3 ? '1px solid var(--bd)' : 'none',
+                }}>
+                  <div style={{ fontSize: '1rem', fontWeight: 700, color: 'var(--t1)' }}>{s.value}</div>
+                  <div style={{ fontSize: '.6rem', fontWeight: 600, textTransform: 'uppercase', letterSpacing: '.06em', color: 'var(--t4)' }}>{s.label}</div>
+                </div>
+              ))}
+            </div>
+
             {/* Row 1: Compact reactions */}
-            <div style={{ paddingTop: 14, marginTop: 14, borderTop: '1px solid var(--bd)' }}>
+            <div>
               <CompactReactionBar postId={post.id} />
             </div>
 
@@ -316,16 +338,41 @@ export default function PostPanel({ post: initialPost, onClose }: { post: any, o
                 <ShieldOff size={12} />
                 <span className="action-label">{blocked ? 'Blocked' : 'Block'}</span>
               </motion.button>
+
+              {user && post.user_id === user.id && (
+                <motion.button whileTap={{ scale: 0.95 }} onClick={() => {
+                  toast('Delete this post?', {
+                    action: { label: 'Yes, delete', onClick: async () => {
+                      const res = await fetch('/api/posts/delete', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ postId: post.id }) })
+                      const data = await res.json()
+                      if (data.success) {
+                        toast.success('Post deleted')
+                        window.dispatchEvent(new CustomEvent('postDeleted', { detail: post.id }))
+                        onClose()
+                      }
+                    }},
+                    cancel: { label: 'Cancel', onClick: () => {} },
+                  })
+                }} style={{
+                  ...actionBtnStyle(),
+                  color: 'var(--rose)', border: '1px solid var(--rose)',
+                  background: 'var(--rose-d)',
+                }}>
+                  <Trash2 size={12} />
+                  <span className="action-label">Delete</span>
+                </motion.button>
+              )}
             </div>
           </div>
 
           {/* Reply composer */}
           {user ? (
             <div style={{ background: 'var(--sur)', border: '1px solid var(--bd)', borderRadius: 'var(--rm)', padding: '14px', marginBottom: 12 }}>
-              <textarea placeholder="Write a reply…" value={body} onChange={e => setBody(e.target.value)} rows={3} className="auto-dir"
-                style={{ width: '100%', fontSize: '.875rem', color: 'var(--t1)', background: 'none', border: 'none', outline: 'none', resize: 'none', lineHeight: 1.6, fontFamily: 'inherit', marginBottom: 8 }}
+              <textarea placeholder="Write a reply…" value={body} onChange={e => setBody(e.target.value.slice(0, 280))} rows={3} className="auto-dir"
+                style={{ width: '100%', fontSize: '.875rem', color: 'var(--t1)', background: 'none', border: 'none', outline: 'none', resize: 'none', lineHeight: 1.6, fontFamily: 'inherit', marginBottom: 4 }}
               />
-              <div style={{ display: 'flex', justifyContent: 'flex-end', paddingTop: 8, borderTop: '1px solid var(--bd)' }}>
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', paddingTop: 8, borderTop: '1px solid var(--bd)' }}>
+                <span style={{ fontSize: '.65rem', fontFamily: 'monospace', color: (280 - body.length) <= 20 ? 'var(--rose)' : 'var(--t4)' }}>{280 - body.length}</span>
                 <button onClick={submitReply} disabled={!body.trim() || loading} style={{
                   fontSize: '.8rem', fontWeight: 600, padding: '7px 16px', borderRadius: 'var(--r)',
                   background: body.trim() ? 'var(--blue)' : 'var(--bd)', color: '#fff', border: 'none',
@@ -339,9 +386,25 @@ export default function PostPanel({ post: initialPost, onClose }: { post: any, o
             </div>
           )}
 
+          {/* Reply sort toggle */}
+          {replies.length > 1 && (
+            <div style={{ display: 'inline-flex', background: 'var(--bg)', border: '1px solid var(--bd)', borderRadius: 'var(--rs)', padding: 2, marginBottom: 10, gap: 2 }}>
+              {(['best', 'new'] as const).map(m => (
+                <button key={m} onClick={() => setReplySort(m)} style={{
+                  fontSize: '.7rem', fontWeight: replySort === m ? 600 : 500, padding: '3px 10px',
+                  borderRadius: 'var(--rs)', border: 'none', cursor: 'pointer', fontFamily: 'inherit',
+                  background: replySort === m ? 'var(--sur)' : 'transparent',
+                  color: replySort === m ? 'var(--t1)' : 'var(--t3)',
+                  boxShadow: replySort === m ? '0 1px 3px rgba(0,0,0,.07)' : 'none',
+                  transition: 'all .15s', textTransform: 'capitalize',
+                }}>{m === 'best' ? 'Best' : 'New'}</button>
+              ))}
+            </div>
+          )}
+
           {/* Replies */}
           <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
-            {replies.length > 0 ? replies.map((reply: any, i: number) => (
+            {replies.length > 0 ? [...replies].sort((a, b) => replySort === 'best' ? (b.upvotes || 0) - (a.upvotes || 0) : 0).map((reply: any, i: number) => (
               <motion.div key={reply.id} initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: i * 0.04, duration: 0.25 }}
                 style={{ background: 'var(--sur)', border: '1px solid var(--bd)', borderRadius: 'var(--r)', padding: '13px 15px' }}>
                 <div style={{ display: 'flex', alignItems: 'center', gap: 6, marginBottom: 7 }}>

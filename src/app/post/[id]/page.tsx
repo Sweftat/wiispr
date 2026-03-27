@@ -9,7 +9,7 @@ import ShareButton from '@/components/ShareButton'
 import FollowButton from '@/components/FollowButton'
 import BlockButton from '@/components/BlockButton'
 import { motion } from 'framer-motion'
-import { Ghost, ArrowUp, Eye, Bookmark, Link2, MessageCircle, ArrowLeft } from 'lucide-react'
+import { Ghost, ArrowUp, Eye, Bookmark, Link2, MessageCircle, ArrowLeft, Trash2 } from 'lucide-react'
 import { toast } from 'sonner'
 import { useParams } from 'next/navigation'
 
@@ -252,6 +252,27 @@ export default function PostPage() {
                 <ShareButton postId={post.id} />
                 <ReportButton postId={post.id} />
                 <BlockButton ghostId={post.ghost_id} />
+                {user && post.user_id === user.id && (
+                  <motion.button whileTap={{ scale: 0.95 }} onClick={() => {
+                    toast('Delete this post?', {
+                      action: { label: 'Yes, delete', onClick: async () => {
+                        const res = await fetch('/api/posts/delete', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ postId: post.id }) })
+                        const data = await res.json()
+                        if (data.success) {
+                          toast.success('Post deleted')
+                          window.location.href = '/'
+                        }
+                      }},
+                      cancel: { label: 'Cancel', onClick: () => {} },
+                    })
+                  }} style={{
+                    fontSize: '.72rem', fontWeight: 600, padding: '6px 10px', borderRadius: 'var(--rs)',
+                    border: '1px solid var(--rose)', background: 'var(--rose-d)', color: 'var(--rose)',
+                    cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 5, fontFamily: 'inherit',
+                  }}>
+                    <Trash2 size={11} />Delete
+                  </motion.button>
+                )}
               </div>
             </div>
           </div>
