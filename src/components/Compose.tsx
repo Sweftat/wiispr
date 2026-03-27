@@ -159,7 +159,7 @@ export default function Compose({ categories }: { categories: Category[] }) {
           </div>
 
           {/* Tags input */}
-          <div style={{ marginBottom: 8 }}>
+          <div style={{ marginBottom: 8, borderTop: '1px solid var(--bd)', paddingTop: 10, marginTop: 8 }}>
             <div style={{ display: 'flex', gap: 4, flexWrap: 'wrap', marginBottom: tags.length > 0 ? 6 : 0 }}>
               {tags.map((tag, i) => (
                 <span key={i} style={{
@@ -188,6 +188,8 @@ export default function Compose({ categories }: { categories: Category[] }) {
                     if (t && !tags.includes(t) && tags.length < 5) {
                       setTags([...tags, t])
                       setTagInput('')
+                    } else if (tags.length >= 5) {
+                      toast.error('Maximum 5 tags')
                     }
                   }
                 }}

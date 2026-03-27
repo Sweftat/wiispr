@@ -290,11 +290,11 @@ export default function Nav() {
                         }} />
                         <div style={{ flex: 1, minWidth: 0 }}>
                           <p style={{
-                            fontSize: '.875rem', fontWeight: 600, color: 'var(--t1)',
+                            fontSize: '.875rem', fontWeight: 700, color: 'var(--t1)',
                             whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis',
                             margin: 0,
                           }}>{post.title}</p>
-                          <p style={{ fontSize: '.7rem', color: 'var(--t4)', fontFamily: 'monospace', margin: 0 }}>
+                          <p style={{ fontSize: '.72rem', color: 'var(--t3)', fontFamily: 'monospace', margin: 0 }}>
                             {post.ghost_id} · {post.categories?.name || catSlug}
                           </p>
                         </div>

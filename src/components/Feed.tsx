@@ -258,7 +258,7 @@ function PostCard({ post, onOpen, onTagClick, followedGhosts }: { post: any, onO
           {post.ghost_id}
         </span>
         {followedGhosts?.has(post.ghost_id) && (
-          <span style={{ fontSize: '.6rem', fontWeight: 600, color: 'var(--grn)', background: 'var(--grn-d)', padding: '1px 7px', borderRadius: 9999 }}>Following</span>
+          <span style={{ fontSize: '.6rem', fontWeight: 600, color: 'var(--grn)', background: 'var(--grn-d)', padding: '1px 8px', borderRadius: 9999, border: '1px solid rgba(22,163,74,.2)' }}>Following</span>
         )}
         {post.users?.trust_level && post.users.trust_level !== 'new' && (
           <span style={{

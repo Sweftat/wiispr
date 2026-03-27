@@ -173,7 +173,7 @@ export default function AdminShell({ admin, flaggedPosts, allUsers, activityLogs
           {active === 'announcements' && <AdminAnnouncements />}
           {active === 'legal' && <AdminLegalEditor />}
           {active === 'onboarding' && <AdminOnboarding />}
-          {active === 'analytics' && <AdminAnalytics stats={stats} postsPerDay={postsPerDay} usersPerDay={usersPerDay} categoryStats={categoryStats} />}
+          {active === 'analytics' && <AdminAnalytics />}
           {active === 'export' && <AdminExport />}
           {active === 'social' && <AdminSocialLinks />}
           {active === 'audit' && <AdminAuditLog />}

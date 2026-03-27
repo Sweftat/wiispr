@@ -148,7 +148,10 @@ export default function GifPicker({ open, onClose, onSelect }: GifPickerProps) {
               </div>
             )}
             {!loading && gifs.length === 0 && !query && (!TENOR_KEY && !GIPHY_KEY ? (
-              <p style={{ textAlign: 'center', fontSize: '.78rem', color: 'var(--t4)', padding: 20 }}>GIF search not configured. Add NEXT_PUBLIC_TENOR_API_KEY or NEXT_PUBLIC_GIPHY_API_KEY to env vars.</p>
+              <div style={{ textAlign: 'center', padding: '24px 20px' }}>
+                <Search size={24} style={{ color: 'var(--t4)', margin: '0 auto 8px', display: 'block', opacity: 0.5 }} />
+                <p style={{ fontSize: '.8rem', color: 'var(--t4)', margin: 0 }}>GIFs unavailable right now</p>
+              </div>
             ) : (
               <p style={{ textAlign: 'center', fontSize: '.78rem', color: 'var(--t4)', padding: 20 }}>Search for a GIF</p>
             ))}
