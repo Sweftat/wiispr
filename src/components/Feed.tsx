@@ -459,7 +459,12 @@ export default function Feed({ initialPosts, initialPinnedPost, initialPostOfDay
   const [pinnedPost, setPinnedPost] = useState<any>(initialPinnedPost)
   const [postOfDay, setPostOfDay] = useState<any>(initialPostOfDay)
   const [loading, setLoading] = useState(false)
-  const [activePost, setActivePost] = useState<any>(null)
+  const [expandedPostId, setExpandedPostId] = useState<string | null>(null)
+  const [repliesCache, setRepliesCache] = useState<Record<string, any[]>>({})
+  const [replyBody, setReplyBody] = useState<Record<string, string>>({})
+  const [replyLoading, setReplyLoading] = useState<Record<string, boolean>>({})
+  const [replySort, setReplySort] = useState<Record<string, 'best' | 'new'>>({})
+  const [sessionUserId, setSessionUserId] = useState<string | null>(null)
   const [newPostCount, setNewPostCount] = useState(0)
   const [hasMore, setHasMore] = useState(initialPosts.length >= 20)
   const [loadingMore, setLoadingMore] = useState(false)
@@ -476,7 +481,8 @@ export default function Feed({ initialPosts, initialPinnedPost, initialPostOfDay
     const check = () => { isMobileRef.current = window.innerWidth < 768 }
     check()
     window.addEventListener('resize', check)
-    // Fetch followed ghost IDs
+    // Fetch session + followed ghost IDs
+    fetch('/api/auth/session').then(r => r.json()).then(d => { if (d.user?.id) setSessionUserId(d.user.id) }).catch(() => {})
     fetch('/api/follows').then(r => r.json()).then(d => {
       if (d.following) setFollowedGhosts(new Set(d.following.map((f: any) => f.ghost_id)))
     }).catch(() => {})
@@ -600,15 +606,20 @@ export default function Feed({ initialPosts, initialPinnedPost, initialPostOfDay
       window.location.href = '/post/' + post.id
       return
     }
-    savedScrollY.current = window.scrollY
-    setActivePost(post)
-    window.history.pushState({}, '', '/post/' + post.id)
-  }
-
-  function closePost() {
-    setActivePost(null)
-    window.history.pushState({}, '', '/')
-    requestAnimationFrame(() => { window.scrollTo(0, savedScrollY.current) })
+    // Desktop: toggle inline expansion
+    if (expandedPostId === post.id) {
+      setExpandedPostId(null)
+    } else {
+      setExpandedPostId(post.id)
+      // Fetch replies if not cached
+      if (!repliesCache[post.id]) {
+        fetch('/api/posts/replies?postId=' + post.id).then(r => r.json()).then(d => {
+          setRepliesCache(prev => ({ ...prev, [post.id]: d.replies || [] }))
+        }).catch(() => {})
+      }
+      // Increment view
+      fetch('/api/posts/view', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ postId: post.id }) }).catch(() => {})
+    }
   }
 
   return (
@@ -700,9 +711,146 @@ export default function Feed({ initialPosts, initialPinnedPost, initialPostOfDay
       {loading && <><Skeleton /><Skeleton /><Skeleton /></>}
 
       {!loading && posts.map((post: any, i: number) => (
-        <motion.div key={post.id} initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.25, delay: Math.min(i, 10) * 0.05, ease: 'easeOut' }}>
-          <PostCard post={post} onOpen={() => openPost(post)} onTagClick={filterByTag} followedGhosts={followedGhosts} />
-        </motion.div>
+        <div key={post.id}>
+          <motion.div initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.25, delay: Math.min(i, 10) * 0.05, ease: 'easeOut' }}>
+            <PostCard post={post} onOpen={() => openPost(post)} onTagClick={filterByTag} followedGhosts={followedGhosts} />
+          </motion.div>
+          <AnimatePresence>
+            {expandedPostId === post.id && (
+              <motion.div
+                initial={{ opacity: 0, height: 0 }}
+                animate={{ opacity: 1, height: 'auto' }}
+                exit={{ opacity: 0, height: 0 }}
+                transition={{ type: 'spring', stiffness: 300, damping: 30 }}
+                style={{
+                  background: 'var(--sur)', border: '1px solid var(--bd)', borderTop: 'none',
+                  borderRadius: '0 0 var(--rm) var(--rm)', padding: '0 18px 18px',
+                  marginBottom: 10, marginTop: -10, overflow: 'hidden',
+                }}
+              >
+                {/* Stats row */}
+                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', borderTop: '1px solid var(--bd)', borderBottom: '1px solid var(--bd)', padding: '12px 0', margin: '14px 0' }}>
+                  {[
+                    { value: post.upvotes || 0, label: 'Upvotes' },
+                    { value: repliesCache[post.id]?.length ?? post.reply_count ?? 0, label: 'Replies' },
+                    { value: post.view_count || 0, label: 'Views' },
+                    { value: timeAgo(post.created_at), label: 'Posted' },
+                  ].map((s, si) => (
+                    <div key={s.label} style={{ textAlign: 'center', borderRight: si < 3 ? '1px solid var(--bd)' : 'none' }}>
+                      <span style={{ fontSize: '1rem', fontWeight: 700, color: 'var(--t1)', display: 'block' }}>{s.value}</span>
+                      <span style={{ fontSize: '.6rem', fontWeight: 600, textTransform: 'uppercase', letterSpacing: '.06em', color: 'var(--t4)', display: 'block', marginTop: 2 }}>{s.label}</span>
+                    </div>
+                  ))}
+                </div>
+
+                {/* Reactions */}
+                <CompactReactions postId={post.id} />
+
+                {/* Action bar */}
+                <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap', alignItems: 'center', paddingTop: 10, borderTop: '1px solid var(--bd)', marginTop: 10 }}>
+                  <span onClick={e => e.stopPropagation()}><BookmarkButton postId={post.id} /></span>
+                  <span onClick={e => e.stopPropagation()}><ShareButton postId={post.id} /></span>
+                  <span onClick={e => e.stopPropagation()}><FollowButton ghostId={post.ghost_id} /></span>
+                  {sessionUserId === post.user_id && (
+                    <button onClick={() => {
+                      toast('Delete this post?', {
+                        action: { label: 'Yes, delete', onClick: async () => {
+                          const res = await fetch('/api/posts/create', { method: 'DELETE', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ postId: post.id }) })
+                          if (res.ok) { toast.success('Post deleted'); setExpandedPostId(null); setPosts(prev => prev.filter(p => p.id !== post.id)) }
+                        }},
+                        cancel: 'Cancel',
+                      })
+                    }} style={{
+                      color: 'var(--rose)', border: '1px solid var(--rose)', background: 'var(--rose-d)',
+                      borderRadius: 'var(--rs)', padding: '5px 10px', fontSize: '.75rem', fontWeight: 600,
+                      cursor: 'pointer', fontFamily: 'inherit', display: 'flex', alignItems: 'center', gap: 3,
+                    }}>Delete</button>
+                  )}
+                </div>
+
+                {/* Reply sort */}
+                <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginTop: 16, marginBottom: 10 }}>
+                  <span style={{ fontSize: '.8rem', fontWeight: 700, color: 'var(--t1)' }}>Replies</span>
+                  <div style={{ display: 'flex', background: 'var(--bg)', border: '1px solid var(--bd)', borderRadius: 'var(--r)', padding: 2 }}>
+                    {(['best', 'new'] as const).map(s => (
+                      <button key={s} onClick={() => setReplySort(prev => ({ ...prev, [post.id]: s }))} style={{
+                        fontSize: '.72rem', padding: '3px 10px', borderRadius: 'calc(var(--r) - 2px)',
+                        border: 'none', cursor: 'pointer', fontFamily: 'inherit', textTransform: 'capitalize',
+                        background: (replySort[post.id] || 'best') === s ? 'var(--sur)' : 'transparent',
+                        color: (replySort[post.id] || 'best') === s ? 'var(--t1)' : 'var(--t3)',
+                        fontWeight: (replySort[post.id] || 'best') === s ? 600 : 400,
+                        boxShadow: (replySort[post.id] || 'best') === s ? '0 1px 3px rgba(0,0,0,.07)' : 'none',
+                      }}>{s}</button>
+                    ))}
+                  </div>
+                </div>
+
+                {/* Replies list */}
+                {(() => {
+                  const replies = [...(repliesCache[post.id] || [])]
+                  const sorted = (replySort[post.id] || 'best') === 'best'
+                    ? replies.sort((a, b) => (b.upvotes || 0) - (a.upvotes || 0))
+                    : replies.sort((a, b) => new Date(a.created_at).getTime() - new Date(b.created_at).getTime())
+                  if (sorted.length === 0) return (
+                    <p style={{ fontSize: '.8rem', color: 'var(--t4)', textAlign: 'center', padding: '16px 0' }}>No replies yet. Be the first.</p>
+                  )
+                  return sorted.map((r: any, ri: number) => (
+                    <div key={r.id} style={{ display: 'flex', gap: 10, padding: '10px 0', borderBottom: ri < sorted.length - 1 ? '1px solid var(--bd)' : 'none' }}>
+                      <Ghost size={12} style={{ color: 'var(--t4)', marginTop: 3, flexShrink: 0 }} />
+                      <div style={{ flex: 1 }}>
+                        <div style={{ display: 'flex', gap: 8, alignItems: 'center' }}>
+                          <span style={{ fontFamily: 'monospace', fontSize: '.7rem', color: 'var(--t3)' }}>{r.ghost_id}</span>
+                          <span style={{ fontSize: '.65rem', color: 'var(--t4)' }}>{timeAgo(r.created_at)}</span>
+                        </div>
+                        <p className="auto-dir" style={{ fontSize: '.875rem', color: 'var(--t2)', lineHeight: 1.7, margin: '4px 0' }}>{r.body}</p>
+                        <span style={{ fontSize: '.7rem', color: 'var(--t4)', display: 'flex', alignItems: 'center', gap: 3 }}><ArrowUp size={10} />{r.upvotes || 0}</span>
+                      </div>
+                    </div>
+                  ))
+                })()}
+
+                {/* Reply composer */}
+                {sessionUserId ? (
+                  <div style={{ background: 'var(--bg)', border: '1px solid var(--bd)', borderRadius: 'var(--r)', padding: 12, marginTop: 12 }}>
+                    <textarea
+                      placeholder="Write a reply…"
+                      className="auto-dir"
+                      value={replyBody[post.id] || ''}
+                      onChange={e => setReplyBody(prev => ({ ...prev, [post.id]: e.target.value.slice(0, 280) }))}
+                      style={{ width: '100%', fontSize: '.875rem', color: 'var(--t1)', background: 'transparent', border: 'none', outline: 'none', resize: 'none', minHeight: 64, lineHeight: 1.6, fontFamily: 'inherit' }}
+                    />
+                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', paddingTop: 8, borderTop: '1px solid var(--bd)', marginTop: 8 }}>
+                      <span style={{ fontSize: '.65rem', fontFamily: 'monospace', color: (280 - (replyBody[post.id]?.length || 0)) <= 20 ? 'var(--rose)' : 'var(--t4)' }}>{280 - (replyBody[post.id]?.length || 0)}</span>
+                      <button
+                        disabled={!(replyBody[post.id]?.trim()) || replyLoading[post.id]}
+                        onClick={async () => {
+                          setReplyLoading(prev => ({ ...prev, [post.id]: true }))
+                          const res = await fetch('/api/posts/reply', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ postId: post.id, body: replyBody[post.id] }) })
+                          const data = await res.json()
+                          setReplyLoading(prev => ({ ...prev, [post.id]: false }))
+                          if (data.success) {
+                            toast.success('Reply posted')
+                            setReplyBody(prev => ({ ...prev, [post.id]: '' }))
+                            if (data.reply) setRepliesCache(prev => ({ ...prev, [post.id]: [...(prev[post.id] || []), data.reply] }))
+                          } else if (res.status === 401) { toast.error('Sign in to reply') }
+                        }}
+                        style={{
+                          background: (replyBody[post.id]?.trim()) ? 'var(--blue)' : 'var(--bd)',
+                          color: '#fff', fontSize: '.75rem', fontWeight: 600, padding: '5px 14px',
+                          borderRadius: 'var(--r)', border: 'none',
+                          cursor: (replyBody[post.id]?.trim()) ? 'pointer' : 'not-allowed',
+                          fontFamily: 'inherit',
+                        }}
+                      >Reply anonymously</button>
+                    </div>
+                  </div>
+                ) : (
+                  <a href="/auth" style={{ display: 'block', textAlign: 'center', padding: 16, fontSize: '.875rem', color: 'var(--blue)', fontWeight: 600, textDecoration: 'none' }}>Sign in to reply →</a>
+                )}
+              </motion.div>
+            )}
+          </AnimatePresence>
+        </div>
       ))}
 
       {!loading && hasMore && (
@@ -724,7 +872,6 @@ export default function Feed({ initialPosts, initialPinnedPost, initialPostOfDay
         </div>
       )}
 
-      {activePost && <PostPanel post={activePost} onClose={closePost} />}
     </div>
   )
 }

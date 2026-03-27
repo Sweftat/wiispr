@@ -4,6 +4,19 @@ import { createClient } from '@supabase/supabase-js'
 export const dynamic = 'force-dynamic'
 
 export async function GET(req: NextRequest) {
+  const supabase = createClient(
+    process.env.NEXT_PUBLIC_SUPABASE_URL!,
+    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
+  )
+
+  // Nickname availability check
+  const checkNickname = req.nextUrl.searchParams.get('checkNickname')
+  if (checkNickname) {
+    const userId = req.cookies.get('wiispr_user_id')?.value
+    const { data } = await supabase.from('users').select('id').eq('nickname', checkNickname).neq('id', userId || '').maybeSingle()
+    return NextResponse.json({ available: !data })
+  }
+
   const userId = req.cookies.get('wiispr_user_id')?.value
   const nickname = req.cookies.get('wiispr_nickname')?.value
   const gender = req.cookies.get('wiispr_gender')?.value
@@ -12,11 +25,6 @@ export async function GET(req: NextRequest) {
     return NextResponse.json({ user: null })
   }
 
-  // Fetch DB fields needed for admin features
-  const supabase = createClient(
-    process.env.NEXT_PUBLIC_SUPABASE_URL!,
-    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
-  )
   const { data: dbUser } = await supabase
     .from('users')
     .select('is_admin, totp_enabled')
