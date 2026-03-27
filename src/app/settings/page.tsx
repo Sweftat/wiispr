@@ -151,7 +151,7 @@ export default function SettingsPage() {
                 if (permission !== 'granted') { const { toast: t } = await import('sonner'); t.error('Notification permission denied'); return }
                 const sub = await reg.pushManager.subscribe({
                   userVisibleOnly: true,
-                  applicationServerKey: process.env.NEXT_PUBLIC_VAPID_PUBLIC_KEY || 'BKfrV06-FsNeKfptFfyYVU2frdOJ3niFK2jYxWkBQ196whlN4kCRu90m1aiG3h8yU3kqhShHtVK-F2vvWW3xkGo',
+                  applicationServerKey: process.env.NEXT_PUBLIC_VAPID_PUBLIC_KEY || '',
                 })
                 await fetch('/api/notifications/subscribe', {
                   method: 'POST',

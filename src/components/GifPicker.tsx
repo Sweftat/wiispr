@@ -3,7 +3,8 @@ import { useState, useEffect, useRef } from 'react'
 import { X, Search } from 'lucide-react'
 import { motion, AnimatePresence } from 'framer-motion'
 
-const TENOR_KEY = process.env.NEXT_PUBLIC_TENOR_API_KEY || 'AIzaSyAyimkuYQYF_FXVALexPzkcsvZBywrLdyI'
+const TENOR_KEY = process.env.NEXT_PUBLIC_TENOR_API_KEY || ''
+const GIPHY_KEY = process.env.NEXT_PUBLIC_GIPHY_API_KEY || ''
 
 interface GifPickerProps {
   open: boolean
@@ -37,22 +38,54 @@ export default function GifPicker({ open, onClose, onSelect }: GifPickerProps) {
   async function fetchGifs(q: string) {
     setLoading(true)
     try {
-      const endpoint = q.trim()
-        ? `https://tenor.googleapis.com/v2/search?q=${encodeURIComponent(q)}&key=${TENOR_KEY}&limit=20&contentfilter=medium`
-        : `https://tenor.googleapis.com/v2/featured?key=${TENOR_KEY}&limit=20&contentfilter=medium`
-      const res = await fetch(endpoint)
-      const data = await res.json()
-      setGifs(data.results || [])
+      let results: any[] = []
+      // Try Tenor first
+      if (TENOR_KEY) {
+        const endpoint = q.trim()
+          ? `https://tenor.googleapis.com/v2/search?q=${encodeURIComponent(q)}&key=${TENOR_KEY}&limit=20&contentfilter=medium`
+          : `https://tenor.googleapis.com/v2/featured?key=${TENOR_KEY}&limit=20&contentfilter=medium`
+        const res = await fetch(endpoint)
+        if (res.ok) {
+          const data = await res.json()
+          results = (data.results || []).map((g: any) => ({
+            id: g.id,
+            preview: g.media_formats?.tinygif?.url || g.media_formats?.nanogif?.url || '',
+            full: g.media_formats?.tinygif?.url || g.media_formats?.gif?.url || '',
+          }))
+        }
+      }
+      // Fallback to GIPHY
+      if (results.length === 0 && GIPHY_KEY && q.trim()) {
+        const res = await fetch(`https://api.giphy.com/v1/gifs/search?api_key=${GIPHY_KEY}&q=${encodeURIComponent(q)}&limit=20&rating=pg`)
+        if (res.ok) {
+          const data = await res.json()
+          results = (data.data || []).map((g: any) => ({
+            id: g.id,
+            preview: g.images?.fixed_width_small?.url || g.images?.fixed_width?.url || '',
+            full: g.images?.fixed_width?.url || g.images?.original?.url || '',
+          }))
+        }
+      } else if (results.length === 0 && GIPHY_KEY && !q.trim()) {
+        const res = await fetch(`https://api.giphy.com/v1/gifs/trending?api_key=${GIPHY_KEY}&limit=20&rating=pg`)
+        if (res.ok) {
+          const data = await res.json()
+          results = (data.data || []).map((g: any) => ({
+            id: g.id,
+            preview: g.images?.fixed_width_small?.url || g.images?.fixed_width?.url || '',
+            full: g.images?.fixed_width?.url || g.images?.original?.url || '',
+          }))
+        }
+      }
+      setGifs(results)
     } catch {
       setGifs([])
     }
     setLoading(false)
   }
 
-  function selectGif(gif: any) {
-    const url = gif.media_formats?.tinygif?.url || gif.media_formats?.gif?.url || ''
-    if (url) {
-      onSelect(url)
+  function selectGif(gif: { id: string, preview: string, full: string }) {
+    if (gif.full) {
+      onSelect(gif.full)
       onClose()
     }
   }
@@ -108,14 +141,19 @@ export default function GifPicker({ open, onClose, onSelect }: GifPickerProps) {
           {/* Grid */}
           <div style={{ flex: 1, overflowY: 'auto', padding: 8 }}>
             {loading && gifs.length === 0 && (
-              <div style={{ textAlign: 'center', padding: 20 }}>
-                <p style={{ fontSize: '.78rem', color: 'var(--t4)' }}>Loading...</p>
+              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2, 1fr)', gap: 6 }}>
+                {Array.from({ length: 6 }).map((_, i) => (
+                  <div key={i} style={{ background: 'var(--bg)', borderRadius: 'var(--rs)', aspectRatio: '16/10', animation: 'pulse 1.5s ease-in-out infinite' }} />
+                ))}
               </div>
             )}
+            {!loading && gifs.length === 0 && !query && (!TENOR_KEY && !GIPHY_KEY ? (
+              <p style={{ textAlign: 'center', fontSize: '.78rem', color: 'var(--t4)', padding: 20 }}>GIF search not configured. Add NEXT_PUBLIC_TENOR_API_KEY or NEXT_PUBLIC_GIPHY_API_KEY to env vars.</p>
+            ) : (
+              <p style={{ textAlign: 'center', fontSize: '.78rem', color: 'var(--t4)', padding: 20 }}>Search for a GIF</p>
+            ))}
             <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2, 1fr)', gap: 6 }}>
-              {gifs.map((gif, i) => {
-                const preview = gif.media_formats?.tinygif?.url || gif.media_formats?.nanogif?.url || ''
-                return (
+              {gifs.map((gif, i) => (
                   <button
                     key={gif.id || i}
                     onClick={() => selectGif(gif)}
@@ -126,14 +164,13 @@ export default function GifPicker({ open, onClose, onSelect }: GifPickerProps) {
                     }}
                   >
                     <img
-                      src={preview}
+                      src={gif.preview}
                       alt=""
                       loading="lazy"
                       style={{ width: '100%', height: '100%', objectFit: 'cover', display: 'block' }}
                     />
                   </button>
-                )
-              })}
+              ))}
             </div>
             {!loading && gifs.length === 0 && query && (
               <p style={{ textAlign: 'center', fontSize: '.78rem', color: 'var(--t4)', padding: 20 }}>No GIFs found</p>

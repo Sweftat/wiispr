@@ -18,9 +18,6 @@ export default function MaintenancePage() {
         <p style={{ fontSize: '.9375rem', color: 'var(--t3)', lineHeight: 1.7, marginBottom: 32 }}>
           wiispr is currently undergoing maintenance. We&apos;re working hard to get things back online. Check back shortly.
         </p>
-        <div style={{ background: 'var(--sur)', border: '1px solid var(--bd)', borderRadius: 'var(--r)', padding: '12px 18px', display: 'inline-block' }}>
-          <p style={{ fontSize: '.8rem', color: 'var(--t4)', fontFamily: 'monospace' }}>Status: maintenance_mode = true</p>
-        </div>
       </div>
 
       <p style={{ marginTop: 48, fontSize: '.75rem', color: 'var(--t4)' }}>Made in Saudi Arabia 🇸🇦</p>

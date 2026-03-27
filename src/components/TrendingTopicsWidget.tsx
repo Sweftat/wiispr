@@ -46,11 +46,9 @@ export default function TrendingTopicsWidget() {
               onClick={() => handleClick(t.tag || t.keyword || '')}
               style={{
                 fontSize: '.72rem', fontWeight: 600,
-                padding: '5px 10px', borderRadius: 'var(--rs)',
-                background: i === 0 ? 'var(--blue-d)' : 'var(--sur)',
-                border: `1px solid ${i === 0 ? 'var(--blue)' : 'var(--bd)'}`,
-                color: i === 0 ? 'var(--blue)' : 'var(--t2)',
-                cursor: 'pointer',
+                padding: '4px 10px', borderRadius: 99,
+                background: 'var(--bd)', border: 'none',
+                color: 'var(--t3)', cursor: 'pointer',
               }}
             >
               {label}

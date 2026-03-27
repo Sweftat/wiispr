@@ -5,10 +5,12 @@ import webpush from 'web-push'
 
 export const dynamic = 'force-dynamic'
 
-const VAPID_PUBLIC = process.env.NEXT_PUBLIC_VAPID_PUBLIC_KEY || 'BKfrV06-FsNeKfptFfyYVU2frdOJ3niFK2jYxWkBQ196whlN4kCRu90m1aiG3h8yU3kqhShHtVK-F2vvWW3xkGo'
-const VAPID_PRIVATE = process.env.VAPID_PRIVATE_KEY || '0pBbh5LDjTgamVtSO_8cKT-eYA4Z_PnoLdDqqBtm1wA'
+const VAPID_PUBLIC = process.env.NEXT_PUBLIC_VAPID_PUBLIC_KEY || ''
+const VAPID_PRIVATE = process.env.VAPID_PRIVATE_KEY || ''
 
-webpush.setVapidDetails('mailto:hello@wiispr.app', VAPID_PUBLIC, VAPID_PRIVATE)
+if (VAPID_PUBLIC && VAPID_PRIVATE) {
+  webpush.setVapidDetails('mailto:hello@wiispr.app', VAPID_PUBLIC, VAPID_PRIVATE)
+}
 
 export async function POST(req: NextRequest) {
   const supabase = createClient(
