@@ -15,12 +15,20 @@ import LinkifiedText from './LinkifiedText'
 function StickyCategories({ categories, onSelect }: { categories: any[], onSelect: (id: any) => void }) {
   const placeholderRef = useRef<HTMLDivElement>(null)
   const [isStuck, setIsStuck] = useState(false)
+  const [navH, setNavH] = useState(52)
 
   useEffect(() => {
+    let lastY = 0
     function handleScroll() {
+      const y = window.scrollY
+      // Track nav shrink state (matches Nav.tsx logic)
+      if (y > 50 && y > lastY) setNavH(44)
+      else if (y < lastY) setNavH(52)
+      lastY = y
+
       if (!placeholderRef.current) return
       const rect = placeholderRef.current.getBoundingClientRect()
-      setIsStuck(rect.top <= 52)
+      setIsStuck(rect.top <= (y > 50 ? 44 : 52))
     }
     window.addEventListener('scroll', handleScroll, { passive: true })
     return () => window.removeEventListener('scroll', handleScroll)
@@ -34,10 +42,12 @@ function StickyCategories({ categories, onSelect }: { categories: any[], onSelec
       </div>
       {isStuck && (
         <div style={{
-          position: 'fixed', top: 52, left: 0, right: 0, zIndex: 90,
+          position: 'fixed', top: navH, left: 0, right: 0, zIndex: 90,
           background: 'var(--bg)',
           borderBottom: '1px solid var(--bd)',
           padding: '8px 20px',
+          transition: 'top 0.2s ease',
+          overflowX: 'clip',
         }}>
           <div style={{ maxWidth: 1100, margin: '0 auto' }}>
             <CategoryFilter categories={categories} onSelect={onSelect} />

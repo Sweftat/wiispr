@@ -271,35 +271,35 @@ export default function Nav() {
         onClick={toggleTheme}
         aria-label="Toggle theme"
         style={{
-          width: 76, height: 28, borderRadius: 14,
-          background: dark ? 'rgba(255,255,255,0.1)' : 'rgba(0,0,0,0.06)',
-          border: `1px solid ${dark ? 'rgba(255,255,255,0.1)' : 'rgba(0,0,0,0.08)'}`,
+          width: 88, height: 30, borderRadius: 99,
+          background: 'var(--bd)',
+          border: 'none',
           display: 'flex', alignItems: 'center', position: 'relative',
-          cursor: 'pointer', padding: 2, flexShrink: 0,
-          transition: 'background 0.2s, border 0.2s',
+          cursor: 'pointer', padding: 3, flexShrink: 0,
+          boxShadow: 'inset 0 1px 3px rgba(0,0,0,0.1)',
         }}
       >
         <motion.div
-          animate={{ x: dark ? 38 : 0 }}
-          transition={{ type: 'spring', stiffness: 500, damping: 30 }}
+          layout
+          transition={{ type: 'spring', stiffness: 400, damping: 30 }}
           style={{
-            width: 34, height: 22, borderRadius: 11,
-            background: dark ? 'rgba(255,255,255,0.15)' : '#fff',
-            boxShadow: dark ? 'none' : '0 1px 3px rgba(0,0,0,0.1)',
-            position: 'absolute', left: 2, top: 2,
+            width: 40, height: 24, borderRadius: 99,
+            background: dark ? 'var(--sur)' : '#fff',
+            boxShadow: '0 1px 4px rgba(0,0,0,0.18)',
+            position: 'absolute', left: dark ? 45 : 3, top: 3,
           }}
         />
         <span style={{
-          flex: 1, textAlign: 'center', fontSize: '.6rem', fontWeight: 700,
+          flex: 1, textAlign: 'center', fontSize: '.72rem', fontWeight: 600,
           color: !dark ? 'var(--t1)' : 'var(--t4)',
-          zIndex: 1, letterSpacing: '.02em', textTransform: 'uppercase',
-          transition: 'color 0.2s',
+          zIndex: 1, transition: 'color 0.2s',
+          userSelect: 'none',
         }}>Light</span>
         <span style={{
-          flex: 1, textAlign: 'center', fontSize: '.6rem', fontWeight: 700,
+          flex: 1, textAlign: 'center', fontSize: '.72rem', fontWeight: 600,
           color: dark ? 'var(--t1)' : 'var(--t4)',
-          zIndex: 1, letterSpacing: '.02em', textTransform: 'uppercase',
-          transition: 'color 0.2s',
+          zIndex: 1, transition: 'color 0.2s',
+          userSelect: 'none',
         }}>Dark</span>
       </button>
 
