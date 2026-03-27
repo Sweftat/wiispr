@@ -98,7 +98,7 @@ const REACTIONS = [
   { key: 'funny', emoji: '😂', label: 'Funny' },
 ]
 
-function CompactReactions({ postId }: { postId: string }) {
+function CompactReactions({ postId, showAll = false }: { postId: string, showAll?: boolean }) {
   const [counts, setCounts] = useState<Record<string, number>>({})
   const [userReaction, setUserReaction] = useState<string | null>(null)
   const [loggedIn, setLoggedIn] = useState(false)
@@ -140,11 +140,11 @@ function CompactReactions({ postId }: { postId: string }) {
   }
 
   const totalReactions = Object.values(counts).reduce((a, b) => a + b, 0)
-  if (totalReactions === 0 && !userReaction) return null
+  if (totalReactions === 0 && !userReaction && !showAll) return null
 
   return (
     <div style={{ display: 'flex', gap: 4, flexWrap: 'wrap' }} onClick={e => e.stopPropagation()}>
-      {REACTIONS.filter(r => (counts[r.key] || 0) > 0 || userReaction === r.key).map(r => (
+      {REACTIONS.filter(r => showAll || (counts[r.key] || 0) > 0 || userReaction === r.key).map(r => (
         <motion.button
           key={r.key}
           whileTap={{ scale: 0.9 }}
@@ -750,8 +750,8 @@ export default function Feed({ initialPosts, initialPinnedPost, initialPostOfDay
                   ))}
                 </div>
 
-                {/* Reactions */}
-                <CompactReactions postId={post.id} />
+                {/* Reactions — always show all 5 in expanded view */}
+                <CompactReactions postId={post.id} showAll />
 
                 {/* Action bar */}
                 {(() => {
