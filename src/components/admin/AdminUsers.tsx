@@ -245,6 +245,7 @@ export default function AdminUsers({ initialUsers }: { initialUsers: any[] }) {
               <textarea
                 value={adminNotes}
                 onChange={e => { setAdminNotes(e.target.value); setNotesSaved(false) }}
+                onBlur={saveNotes}
                 placeholder="Private notes about this user..."
                 rows={3}
                 style={{
@@ -253,14 +254,9 @@ export default function AdminUsers({ initialUsers }: { initialUsers: any[] }) {
                   outline: 'none', fontFamily: 'inherit', resize: 'none', marginBottom: 6,
                 }}
               />
-              <button onClick={saveNotes} disabled={notesSaving} style={{
-                padding: '5px 12px', borderRadius: 'var(--rs)',
-                background: notesSaved ? 'var(--grn)' : 'var(--blue)',
-                color: '#fff', border: 'none', fontSize: '.72rem', fontWeight: 600,
-                cursor: 'pointer', fontFamily: 'inherit', transition: 'background .2s',
-              }}>
-                {notesSaved ? 'Saved!' : notesSaving ? 'Saving...' : 'Save notes'}
-              </button>
+              <span style={{ fontSize: '.68rem', color: notesSaved ? 'var(--grn)' : notesSaving ? 'var(--t4)' : 'var(--t4)', fontWeight: 500, transition: 'color .2s' }}>
+                {notesSaved ? '✓ Saved' : notesSaving ? 'Saving...' : 'Auto-saves on blur'}
+              </span>
             </div>
 
             {/* Sessions */}
