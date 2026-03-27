@@ -93,15 +93,19 @@ export async function POST(req: NextRequest) {
       }
 
       if (MILESTONES.includes(newCount) && post.user_id && post.user_id !== userId) {
-        promises.push(
-          Promise.resolve(supabase.from('notifications').insert({
-            user_id: post.user_id,
-            type: 'milestone',
-            message: `Your post "${post.title}" hit ${newCount} upvotes! 🎉`,
-            post_id: postId,
-            is_read: false,
-          }))
-        )
+        const { data: targetUser } = await supabase.from('users').select('notification_prefs').eq('id', post.user_id).single()
+        const prefs = targetUser?.notification_prefs || { milestones: true }
+        if (prefs.milestones !== false) {
+          promises.push(
+            Promise.resolve(supabase.from('notifications').insert({
+              user_id: post.user_id,
+              type: 'milestone',
+              message: `Your post "${post.title}" hit ${newCount} upvotes! 🎉`,
+              post_id: postId,
+              is_read: false,
+            }))
+          )
+        }
       }
 
       await Promise.all(promises)

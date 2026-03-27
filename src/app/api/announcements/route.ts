@@ -15,6 +15,7 @@ export async function GET() {
     .eq('is_active', true)
     .or(`starts_at.is.null,starts_at.lte.${now}`)
     .or(`ends_at.is.null,ends_at.gte.${now}`)
+    .or(`scheduled_at.is.null,scheduled_at.lte.${now}`)
     .order('created_at', { ascending: false })
     .limit(1)
   return NextResponse.json({ announcement: data?.[0] || null })

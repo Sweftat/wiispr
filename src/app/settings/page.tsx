@@ -4,6 +4,7 @@ import Nav from '@/components/Nav'
 import Footer from '@/components/Footer'
 import { useRouter } from 'next/navigation'
 import { Input } from '@/components/ui/input'
+import { Switch } from '@/components/ui/switch'
 
 export default function SettingsPage() {
   const router = useRouter()
@@ -15,6 +16,7 @@ export default function SettingsPage() {
   const [ageSaved, setAgeSaved] = useState(false)
   const [deleting, setDeleting] = useState(false)
   const [confirmDelete, setConfirmDelete] = useState(false)
+  const [notifPrefs, setNotifPrefs] = useState({ follows: true, upvotes: true, milestones: true, replies: true })
 
   useEffect(() => {
     fetch('/api/profile')
@@ -24,6 +26,7 @@ export default function SettingsPage() {
           setUser(d.user)
           setNickname(d.user.nickname)
           setAgeRange(d.user.age_range || '')
+          if (d.user.notification_prefs) setNotifPrefs(d.user.notification_prefs)
         }
       })
   }, [])
@@ -132,6 +135,37 @@ export default function SettingsPage() {
             <div key={item.label} style={{ display: 'flex', justifyContent: 'space-between', padding: '8px 0', borderBottom: '1px solid var(--bd)' }}>
               <span style={{ fontSize: '.8rem', color: 'var(--t3)' }}>{item.label}</span>
               <span style={{ fontSize: '.8rem', fontWeight: 600, color: 'var(--t1)', textTransform: 'capitalize' }}>{item.value}</span>
+            </div>
+          ))}
+        </div>
+
+        {/* Notification preferences */}
+        <div style={{ background: 'var(--sur)', border: '1px solid var(--bd)', borderRadius: 'var(--rm)', padding: '20px', marginBottom: 12 }}>
+          <h2 style={{ fontSize: '.875rem', fontWeight: 700, color: 'var(--t1)', marginBottom: 4 }}>Notifications</h2>
+          <p style={{ fontSize: '.8rem', color: 'var(--t3)', marginBottom: 14 }}>Choose what you get notified about.</p>
+          {([
+            { key: 'follows', label: 'New followers', desc: 'When someone follows your Ghost ID' },
+            { key: 'upvotes', label: 'Upvotes', desc: 'When your post gets upvoted' },
+            { key: 'milestones', label: 'Milestones', desc: 'When your post hits 10, 50, or 100 upvotes' },
+            { key: 'replies', label: 'Replies', desc: 'When someone replies to your post' },
+          ] as const).map(item => (
+            <div key={item.key} style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '10px 0', borderBottom: '1px solid var(--bd)' }}>
+              <div>
+                <p style={{ fontSize: '.8rem', fontWeight: 600, color: 'var(--t1)' }}>{item.label}</p>
+                <p style={{ fontSize: '.72rem', color: 'var(--t4)' }}>{item.desc}</p>
+              </div>
+              <Switch
+                checked={notifPrefs[item.key]}
+                onCheckedChange={async (v) => {
+                  const updated = { ...notifPrefs, [item.key]: v }
+                  setNotifPrefs(updated)
+                  await fetch('/api/notification-prefs', {
+                    method: 'PATCH',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ prefs: updated })
+                  })
+                }}
+              />
             </div>
           ))}
         </div>

@@ -2,9 +2,10 @@
 import { useState, useEffect } from 'react'
 import Nav from '@/components/Nav'
 import Footer from '@/components/Footer'
-import { User, MessageCircle, ArrowUp, Star, Copy, Check, Users, Award, Bookmark, Shield, X } from 'lucide-react'
+import { User, MessageCircle, ArrowUp, Star, Copy, Check, Users, Award, Bookmark, Shield, X, Flame } from 'lucide-react'
 import { timeAgo } from '@/lib/time'
 import { toast } from 'sonner'
+import confetti from 'canvas-confetti'
 
 export default function ProfilePage() {
   const [data, setData] = useState<any>(null)
@@ -26,7 +27,23 @@ export default function ProfilePage() {
       .then(d => { if (d.code) setReferral(d) })
     fetch('/api/badges')
       .then(r => r.json())
-      .then(d => { if (d.badges) setBadges(d.badges) })
+      .then(d => {
+        if (d.badges) {
+          setBadges(d.badges)
+          // Confetti for new badges
+          const prevBadges = JSON.parse(sessionStorage.getItem('seen_badges') || '[]')
+          const newBadges = d.earned?.filter((id: string) => !prevBadges.includes(id)) || []
+          if (newBadges.length > 0) {
+            sessionStorage.setItem('seen_badges', JSON.stringify(d.earned))
+            setTimeout(() => {
+              confetti({ particleCount: 100, spread: 70, origin: { y: 0.6 } })
+              toast.success(`New badge earned! 🎉`)
+            }, 500)
+          } else {
+            sessionStorage.setItem('seen_badges', JSON.stringify(d.earned || []))
+          }
+        }
+      })
   }, [])
 
   useEffect(() => {
@@ -123,11 +140,12 @@ export default function ProfilePage() {
             </a>
           </div>
 
-          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 10 }}>
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: 10 }}>
             {[
               { icon: <ArrowUp size={16} />, label: 'Posts', value: postCount || 0 },
               { icon: <MessageCircle size={16} />, label: 'Replies', value: replyCount || 0 },
               { icon: <Star size={16} />, label: 'Rep', value: user.rep_score || 0 },
+              { icon: <Flame size={16} />, label: 'Streak', value: `${user.streak_days || 0}d` },
             ].map(s => (
               <div key={s.label} style={{ background: 'var(--bg)', borderRadius: 'var(--r)', padding: '12px', textAlign: 'center' }}>
                 <div style={{ color: 'var(--t4)', display: 'flex', justifyContent: 'center', marginBottom: 6 }}>{s.icon}</div>

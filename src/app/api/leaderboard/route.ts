@@ -9,37 +9,52 @@ export async function GET() {
     process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
   )
 
-  // Get top 10 users by rep_score with their most recent ghost ID
-  const { data: topUsers } = await supabase
-    .from('users')
-    .select('id, nickname, rep_score, trust_level')
-    .order('rep_score', { ascending: false })
-    .limit(10)
+  // Weekly leaderboard: sum upvotes on posts created in the last 7 days
+  const oneWeekAgo = new Date(Date.now() - 7 * 24 * 60 * 60 * 1000).toISOString()
 
-  if (!topUsers || topUsers.length === 0) {
+  const { data: weeklyPosts } = await supabase
+    .from('posts')
+    .select('user_id, ghost_id, upvotes')
+    .eq('is_deleted', false)
+    .gte('created_at', oneWeekAgo)
+
+  if (!weeklyPosts || weeklyPosts.length === 0) {
     return NextResponse.json({ leaderboard: [] })
   }
 
-  // Get the most recent ghost_id for each user
-  const leaderboard = await Promise.all(
-    topUsers.map(async (user, index) => {
-      const { data: latestPost } = await supabase
-        .from('posts')
-        .select('ghost_id')
-        .eq('user_id', user.id)
-        .eq('is_deleted', false)
-        .order('created_at', { ascending: false })
-        .limit(1)
-        .maybeSingle()
+  // Aggregate score per user: sum of upvotes + count of posts * 5
+  const userScores: Record<string, { score: number, ghostId: string, userId: string }> = {}
+  for (const post of weeklyPosts) {
+    const uid = post.user_id
+    if (!userScores[uid]) {
+      userScores[uid] = { score: 0, ghostId: post.ghost_id, userId: uid }
+    }
+    userScores[uid].score += (post.upvotes || 0) + 5 // +5 for posting
+    userScores[uid].ghostId = post.ghost_id // use latest ghost_id
+  }
 
-      return {
-        rank: index + 1,
-        ghost_id: latestPost?.ghost_id || `Ghost #${String(user.id).slice(0, 4)}`,
-        rep_score: user.rep_score || 0,
-        trust_level: user.trust_level || 'new',
-      }
-    })
-  )
+  const sorted = Object.values(userScores)
+    .sort((a, b) => b.score - a.score)
+    .slice(0, 10)
+
+  // Get trust levels for these users
+  const userIds = sorted.map(s => s.userId)
+  const { data: users } = await supabase
+    .from('users')
+    .select('id, trust_level')
+    .in('id', userIds)
+
+  const trustMap: Record<string, string> = {}
+  for (const u of users || []) {
+    trustMap[u.id] = u.trust_level || 'new'
+  }
+
+  const leaderboard = sorted.map((s, i) => ({
+    rank: i + 1,
+    ghost_id: s.ghostId,
+    rep_score: s.score,
+    trust_level: trustMap[s.userId] || 'new',
+  }))
 
   return NextResponse.json({ leaderboard })
 }

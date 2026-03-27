@@ -67,10 +67,20 @@ export async function GET(req: NextRequest) {
   }
 
   const { data: posts } = await query
-  // Filter out blocked ghost IDs client-side (supabase doesn't support NOT IN easily)
-  const filteredPosts = blockedGhostIds.length > 0
-    ? (posts || []).filter((p: any) => !blockedGhostIds.includes(p.ghost_id))
-    : (posts || [])
+
+  // Get shadowbanned user IDs
+  const { data: shadowbanned } = await supabase
+    .from('users')
+    .select('id')
+    .eq('is_shadowbanned', true)
+  const shadowbannedIds = new Set((shadowbanned || []).map(u => u.id))
+
+  // Filter: remove blocked ghost IDs + shadowbanned posts (unless it's the current user's own post)
+  const filteredPosts = (posts || []).filter((p: any) => {
+    if (blockedGhostIds.length > 0 && blockedGhostIds.includes(p.ghost_id)) return false
+    if (shadowbannedIds.has(p.user_id) && p.user_id !== userId) return false
+    return true
+  })
 
   return NextResponse.json({ posts: filteredPosts, pinnedPost, postOfDay })
 }

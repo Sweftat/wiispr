@@ -31,13 +31,18 @@ export async function POST(req: NextRequest) {
       .maybeSingle()
 
     if (post && post.user_id !== userId) {
-      await supabase.from('notifications').insert({
-        user_id: post.user_id,
-        type: 'follow',
-        message: `Someone started following ${ghostId}`,
-        post_id: post.id,
-        is_read: false,
-      })
+      // Check notification prefs
+      const { data: targetUser } = await supabase.from('users').select('notification_prefs').eq('id', post.user_id).single()
+      const prefs = targetUser?.notification_prefs || { follows: true }
+      if (prefs.follows !== false) {
+        await supabase.from('notifications').insert({
+          user_id: post.user_id,
+          type: 'follow',
+          message: `Someone started following ${ghostId}`,
+          post_id: post.id,
+          is_read: false,
+        })
+      }
     }
   }
 

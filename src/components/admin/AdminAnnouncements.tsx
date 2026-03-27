@@ -1,6 +1,6 @@
 'use client'
 import { useState, useEffect } from 'react'
-import { Plus, Trash2, Edit2, X } from 'lucide-react'
+import { Plus, Trash2, Edit2, X, Clock } from 'lucide-react'
 import { Switch } from '@/components/ui/switch'
 
 const types = ['info', 'warning', 'success', 'announcement']
@@ -12,7 +12,7 @@ export default function AdminAnnouncements() {
   const [announcements, setAnnouncements] = useState<any[]>([])
   const [showForm, setShowForm] = useState(false)
   const [editing, setEditing] = useState<any>(null)
-  const [form, setForm] = useState({ title: '', body: '', type: 'info', is_active: false })
+  const [form, setForm] = useState({ title: '', body: '', type: 'info', is_active: false, scheduled_at: '' })
   const [saving, setSaving] = useState(false)
 
   useEffect(() => { load() }, [])
@@ -25,15 +25,16 @@ export default function AdminAnnouncements() {
 
   async function save() {
     setSaving(true)
+    const payload = { ...form, scheduled_at: form.scheduled_at || null }
     if (editing) {
-      await fetch('/api/announcements', { method: 'PATCH', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ id: editing.id, ...form }) })
+      await fetch('/api/announcements', { method: 'PATCH', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ id: editing.id, ...payload }) })
     } else {
-      await fetch('/api/announcements', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(form) })
+      await fetch('/api/announcements', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(payload) })
     }
     setSaving(false)
     setShowForm(false)
     setEditing(null)
-    setForm({ title: '', body: '', type: 'info', is_active: false })
+    setForm({ title: '', body: '', type: 'info', is_active: false, scheduled_at: '' })
     load()
   }
 
@@ -49,8 +50,12 @@ export default function AdminAnnouncements() {
 
   function startEdit(a: any) {
     setEditing(a)
-    setForm({ title: a.title, body: a.body || '', type: a.type, is_active: a.is_active })
+    setForm({ title: a.title, body: a.body || '', type: a.type, is_active: a.is_active, scheduled_at: a.scheduled_at ? new Date(a.scheduled_at).toISOString().slice(0, 16) : '' })
     setShowForm(true)
+  }
+
+  function isScheduled(a: any) {
+    return a.scheduled_at && new Date(a.scheduled_at) > new Date()
   }
 
   return (
@@ -60,7 +65,7 @@ export default function AdminAnnouncements() {
           <h1 style={{ fontSize: '1.25rem', fontWeight: 800, color: 'var(--t1)', marginBottom: 4 }}>Announcements</h1>
           <p style={{ fontSize: '.875rem', color: 'var(--t3)' }}>Banners shown to all users across the platform.</p>
         </div>
-        <button onClick={() => { setEditing(null); setForm({ title: '', body: '', type: 'info', is_active: false }); setShowForm(true) }} style={{ display: 'flex', alignItems: 'center', gap: 6, padding: '8px 16px', borderRadius: 'var(--r)', background: 'var(--blue)', color: '#fff', border: 'none', fontSize: '.8rem', fontWeight: 600, cursor: 'pointer', fontFamily: 'inherit' }}>
+        <button onClick={() => { setEditing(null); setForm({ title: '', body: '', type: 'info', is_active: false, scheduled_at: '' }); setShowForm(true) }} style={{ display: 'flex', alignItems: 'center', gap: 6, padding: '8px 16px', borderRadius: 'var(--r)', background: 'var(--blue)', color: '#fff', border: 'none', fontSize: '.8rem', fontWeight: 600, cursor: 'pointer', fontFamily: 'inherit' }}>
           <Plus size={14} /> New announcement
         </button>
       </div>
@@ -91,6 +96,19 @@ export default function AdminAnnouncements() {
                 ))}
               </div>
             </div>
+            <div>
+              <label style={{ fontSize: '.75rem', fontWeight: 600, color: 'var(--t2)', display: 'block', marginBottom: 6 }}>
+                <Clock size={12} style={{ display: 'inline', marginRight: 4, verticalAlign: 'middle' }} />
+                Schedule (optional)
+              </label>
+              <input
+                type="datetime-local"
+                value={form.scheduled_at}
+                onChange={e => setForm({ ...form, scheduled_at: e.target.value })}
+                style={{ width: '100%', height: 38, padding: '0 12px', fontSize: '.875rem', color: 'var(--t1)', background: 'var(--bg)', border: '1px solid var(--bd)', borderRadius: 'var(--r)', outline: 'none', fontFamily: 'inherit' }}
+              />
+              <p style={{ fontSize: '.7rem', color: 'var(--t4)', marginTop: 4 }}>Leave empty to publish immediately when active.</p>
+            </div>
             <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
               <Switch checked={form.is_active} onCheckedChange={v => setForm({ ...form, is_active: v })} />
               <span style={{ fontSize: '.8rem', color: 'var(--t2)' }}>Active immediately</span>
@@ -108,12 +126,17 @@ export default function AdminAnnouncements() {
           <p style={{ fontSize: '1rem', fontWeight: 700, color: 'var(--t1)', marginBottom: 6 }}>No announcements yet</p>
           <p style={{ fontSize: '.875rem', color: 'var(--t3)' }}>Create one to show a banner to all users.</p>
         </div>
-      ) : announcements.map((a, i) => (
+      ) : announcements.map((a) => (
         <div key={a.id} style={{ background: 'var(--sur)', border: '1px solid var(--bd)', borderRadius: 'var(--rm)', padding: '16px 18px', marginBottom: 8, display: 'flex', alignItems: 'center', gap: 12 }}>
           <span style={{ width: 8, height: 8, borderRadius: '50%', background: typeColors[a.type] || 'var(--t4)', flexShrink: 0 }}></span>
           <div style={{ flex: 1, minWidth: 0 }}>
             <p style={{ fontSize: '.875rem', fontWeight: 600, color: 'var(--t1)', marginBottom: 2 }}>{a.title}</p>
             {a.body && <p style={{ fontSize: '.8rem', color: 'var(--t3)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{a.body}</p>}
+            {isScheduled(a) && (
+              <p style={{ fontSize: '.68rem', color: '#7C3AED', fontWeight: 600, marginTop: 2, display: 'flex', alignItems: 'center', gap: 3 }}>
+                <Clock size={10} /> Scheduled: {new Date(a.scheduled_at).toLocaleString('en-US', { month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' })}
+              </p>
+            )}
           </div>
           <span style={{ fontSize: '.65rem', fontWeight: 700, textTransform: 'uppercase', color: typeColors[a.type], background: 'var(--bg)', padding: '2px 7px', borderRadius: 3, flexShrink: 0 }}>{a.type}</span>
           <Switch checked={!!a.is_active} onCheckedChange={() => toggle(a.id, a.is_active)} />
