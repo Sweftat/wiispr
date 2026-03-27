@@ -279,6 +279,9 @@ export default function PostPanel({ post: initialPost, onClose }: { post: any, o
             {/* Post body */}
             <h1 className="auto-dir post-title" style={{ fontSize: '1.125rem', fontWeight: 900, color: 'var(--t1)', marginBottom: 10, lineHeight: 1.35, letterSpacing: '-.02em' }}>{post.title}</h1>
             {post.body && <LinkifiedText text={post.body} className="auto-dir" style={{ fontSize: '.9rem', color: 'var(--t2)', lineHeight: 1.8, marginBottom: 0 }} />}
+            {post.gif_url && (
+              <img src={post.gif_url} alt="" loading="lazy" style={{ maxHeight: 240, borderRadius: 'var(--rs)', objectFit: 'cover', marginTop: 10, display: 'block' }} />
+            )}
 
             {/* Row 1: Compact reactions */}
             <div style={{ paddingTop: 14, marginTop: 14, borderTop: '1px solid var(--bd)' }}>

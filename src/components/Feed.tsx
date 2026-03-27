@@ -272,6 +272,9 @@ function PostCard({ post, onOpen, onTagClick }: { post: any, onOpen: () => void,
       </div>
       <h2 className="auto-dir" style={{ fontSize: '1rem', fontWeight: 700, color: 'var(--t1)', marginBottom: 6, position: 'relative' }}>{post.title}</h2>
       {post.body && <LinkifiedText text={post.body} className="auto-dir" style={{ fontSize: '.875rem', color: 'var(--t2)', lineHeight: 1.7, marginBottom: 8, position: 'relative' }} />}
+      {post.gif_url && (
+        <img src={post.gif_url} alt="" loading="lazy" style={{ maxHeight: 200, borderRadius: 'var(--rs)', objectFit: 'cover', marginBottom: 8, display: 'block' }} />
+      )}
       {(() => {
         const tags = post.body?.match(/#([a-zA-Z0-9_\u0600-\u06FF]+)/g)?.slice(0, 3)
         if (!tags || tags.length === 0) return null

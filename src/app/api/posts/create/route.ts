@@ -31,7 +31,7 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ error: 'Too many posts. Please wait before posting again.' }, { status: 429 })
   }
 
-  const { title, body, categoryId } = await req.json()
+  const { title, body, categoryId, gifUrl } = await req.json()
   if (!title || !categoryId) return NextResponse.json({ error: 'Missing fields' }, { status: 400 })
 
   const ghostId = generateGhostId()
@@ -42,6 +42,7 @@ export async function POST(req: NextRequest) {
     category_id: parseInt(categoryId),
     title,
     body: body || null,
+    gif_url: gifUrl || null,
     upvotes: 0,
     reply_count: 0,
     is_blurred: false,

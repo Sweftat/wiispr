@@ -1,7 +1,8 @@
 'use client'
 import { useState, useEffect } from 'react'
-import { Ghost } from 'lucide-react'
+import { Ghost, Image, X } from 'lucide-react'
 import { toast } from 'sonner'
+import GifPicker from './GifPicker'
 
 interface Category {
   id: number
@@ -18,6 +19,8 @@ export default function Compose({ categories }: { categories: Category[] }) {
   const [categoryId, setCategoryId] = useState('')
   const [loading, setLoading] = useState(false)
   const [user, setUser] = useState<{ id: string, nickname: string } | null>(null)
+  const [gifUrl, setGifUrl] = useState('')
+  const [gifPickerOpen, setGifPickerOpen] = useState(false)
 
   useEffect(() => {
     fetch('/api/auth/session')
@@ -31,7 +34,7 @@ export default function Compose({ categories }: { categories: Category[] }) {
     const res = await fetch('/api/posts/create', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ title, body, categoryId })
+      body: JSON.stringify({ title, body, categoryId, gifUrl: gifUrl || undefined })
     })
     const data = await res.json()
     setLoading(false)
@@ -39,6 +42,7 @@ export default function Compose({ categories }: { categories: Category[] }) {
       setTitle('')
       setBody('')
       setCategoryId('')
+      setGifUrl('')
       setOpen(false)
       window.location.reload()
     } else if (res.status === 403) {
@@ -128,7 +132,7 @@ export default function Compose({ categories }: { categories: Category[] }) {
             }}
           />
           <textarea
-            placeholder="Add more detail… (optional)"
+            placeholder="Add more detail… (optional). Use #hashtags for topics"
             className="auto-dir"
             value={body}
             onChange={e => setBody(e.target.value)}
@@ -137,17 +141,45 @@ export default function Compose({ categories }: { categories: Category[] }) {
               width: '100%', fontSize: '.875rem', color: 'var(--t2)',
               background: 'none', border: 'none', outline: 'none',
               resize: 'none', lineHeight: 1.6, fontFamily: 'inherit',
-              marginBottom: 12
+              marginBottom: 8
             }}
           />
+
+          {/* GIF preview */}
+          {gifUrl && (
+            <div style={{ position: 'relative', marginBottom: 10, display: 'inline-block' }}>
+              <img src={gifUrl} alt="GIF" style={{ maxHeight: 140, borderRadius: 'var(--rs)', display: 'block' }} />
+              <button onClick={() => setGifUrl('')} style={{
+                position: 'absolute', top: 4, right: 4,
+                width: 20, height: 20, borderRadius: '50%',
+                background: 'rgba(0,0,0,0.6)', border: 'none',
+                cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center',
+              }}>
+                <X size={12} style={{ color: '#fff' }} />
+              </button>
+            </div>
+          )}
+
           <div style={{
             display: 'flex', justifyContent: 'space-between',
-            alignItems: 'center', paddingTop: 10, borderTop: '1px solid var(--bd)'
+            alignItems: 'center', paddingTop: 10, borderTop: '1px solid var(--bd)',
+            position: 'relative',
           }}>
-            <button onClick={() => setOpen(false)} style={{
-              fontSize: '.8rem', color: 'var(--t4)', background: 'none',
-              border: 'none', cursor: 'pointer', fontFamily: 'inherit'
-            }}>Cancel</button>
+            <div style={{ display: 'flex', gap: 6, alignItems: 'center' }}>
+              <button onClick={() => setOpen(false)} style={{
+                fontSize: '.8rem', color: 'var(--t4)', background: 'none',
+                border: 'none', cursor: 'pointer', fontFamily: 'inherit'
+              }}>Cancel</button>
+              <button onClick={() => setGifPickerOpen(!gifPickerOpen)} style={{
+                display: 'flex', alignItems: 'center', gap: 4,
+                fontSize: '.75rem', fontWeight: 600, color: gifPickerOpen ? 'var(--blue)' : 'var(--t3)',
+                background: gifPickerOpen ? 'var(--blue-d)' : 'none',
+                border: '1px solid var(--bd)', borderRadius: 'var(--rs)',
+                padding: '4px 8px', cursor: 'pointer', fontFamily: 'inherit',
+              }}>
+                <Image size={12} /> GIF
+              </button>
+            </div>
             <button
               onClick={submit}
               disabled={!title.trim() || !categoryId || loading}
@@ -155,6 +187,7 @@ export default function Compose({ categories }: { categories: Category[] }) {
             >
               {loading ? 'Posting...' : 'Post anonymously'}
             </button>
+            <GifPicker open={gifPickerOpen} onClose={() => setGifPickerOpen(false)} onSelect={setGifUrl} />
           </div>
         </>
       )}

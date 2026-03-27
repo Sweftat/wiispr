@@ -139,6 +139,42 @@ export default function SettingsPage() {
           ))}
         </div>
 
+        {/* Push notifications */}
+        <div style={{ background: 'var(--sur)', border: '1px solid var(--bd)', borderRadius: 'var(--rm)', padding: '20px', marginBottom: 12 }}>
+          <h2 style={{ fontSize: '.875rem', fontWeight: 700, color: 'var(--t1)', marginBottom: 4 }}>Push Notifications</h2>
+          <p style={{ fontSize: '.8rem', color: 'var(--t3)', marginBottom: 14 }}>Get notified even when wiispr is closed.</p>
+          <button
+            onClick={async () => {
+              try {
+                const reg = await navigator.serviceWorker.register('/sw.js')
+                const permission = await Notification.requestPermission()
+                if (permission !== 'granted') { const { toast: t } = await import('sonner'); t.error('Notification permission denied'); return }
+                const sub = await reg.pushManager.subscribe({
+                  userVisibleOnly: true,
+                  applicationServerKey: process.env.NEXT_PUBLIC_VAPID_PUBLIC_KEY || 'BKfrV06-FsNeKfptFfyYVU2frdOJ3niFK2jYxWkBQ196whlN4kCRu90m1aiG3h8yU3kqhShHtVK-F2vvWW3xkGo',
+                })
+                await fetch('/api/notifications/subscribe', {
+                  method: 'POST',
+                  headers: { 'Content-Type': 'application/json' },
+                  body: JSON.stringify({ subscription: sub.toJSON() })
+                })
+                const { toast: t } = await import('sonner')
+                t.success('Push notifications enabled!')
+              } catch (err) {
+                const { toast: t } = await import('sonner')
+                t.error('Could not enable notifications')
+              }
+            }}
+            style={{
+              padding: '8px 18px', borderRadius: 'var(--r)',
+              background: 'var(--blue)', color: '#fff', border: 'none',
+              fontSize: '.8rem', fontWeight: 600, cursor: 'pointer', fontFamily: 'inherit',
+            }}
+          >
+            Enable push notifications
+          </button>
+        </div>
+
         {/* Notification preferences */}
         <div style={{ background: 'var(--sur)', border: '1px solid var(--bd)', borderRadius: 'var(--rm)', padding: '20px', marginBottom: 12 }}>
           <h2 style={{ fontSize: '.875rem', fontWeight: 700, color: 'var(--t1)', marginBottom: 4 }}>Notifications</h2>
