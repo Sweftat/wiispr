@@ -7,7 +7,9 @@ import PostPanel from './PostPanel'
 import CategoryFilter from './CategoryFilter'
 import Compose from './Compose'
 import ShareButton from './ShareButton'
-import { ArrowUp, MessageCircle, Ghost, Pin, Star, ShieldAlert, Bookmark, RefreshCw, Flame } from 'lucide-react'
+import { ArrowUp, MessageCircle, Ghost, Pin, Star, ShieldAlert, Bookmark, RefreshCw, Flame, Link2, Share2, Flag, ShieldOff, Trash2, Image, X } from 'lucide-react'
+import UpvoteButton from './UpvoteButton'
+import GifPicker from './GifPicker'
 import { useInView } from 'react-intersection-observer'
 import { toast } from 'sonner'
 import LinkifiedText from './LinkifiedText'
@@ -464,6 +466,11 @@ export default function Feed({ initialPosts, initialPinnedPost, initialPostOfDay
   const [replyBody, setReplyBody] = useState<Record<string, string>>({})
   const [replyLoading, setReplyLoading] = useState<Record<string, boolean>>({})
   const [replySort, setReplySort] = useState<Record<string, 'best' | 'new'>>({})
+  const [bookmarked, setBookmarked] = useState<Record<string, boolean>>({})
+  const [reported, setReported] = useState<Record<string, boolean>>({})
+  const [blocked, setBlocked] = useState<Record<string, boolean>>({})
+  const [replyGifUrl, setReplyGifUrl] = useState<Record<string, string>>({})
+  const [gifPickerOpen, setGifPickerOpen] = useState<Record<string, boolean>>({})
   const [sessionUserId, setSessionUserId] = useState<string | null>(null)
   const [newPostCount, setNewPostCount] = useState(0)
   const [hasMore, setHasMore] = useState(initialPosts.length >= 20)
@@ -747,26 +754,58 @@ export default function Feed({ initialPosts, initialPinnedPost, initialPostOfDay
                 <CompactReactions postId={post.id} />
 
                 {/* Action bar */}
-                <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap', alignItems: 'center', paddingTop: 10, borderTop: '1px solid var(--bd)', marginTop: 10 }}>
-                  <span onClick={e => e.stopPropagation()}><BookmarkButton postId={post.id} /></span>
-                  <span onClick={e => e.stopPropagation()}><ShareButton postId={post.id} /></span>
-                  <span onClick={e => e.stopPropagation()}><FollowButton ghostId={post.ghost_id} /></span>
-                  {sessionUserId === post.user_id && (
-                    <button onClick={() => {
-                      toast('Delete this post?', {
-                        action: { label: 'Yes, delete', onClick: async () => {
-                          const res = await fetch('/api/posts/create', { method: 'DELETE', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ postId: post.id }) })
-                          if (res.ok) { toast.success('Post deleted'); setExpandedPostId(null); setPosts(prev => prev.filter(p => p.id !== post.id)) }
-                        }},
-                        cancel: 'Cancel',
-                      })
-                    }} style={{
-                      color: 'var(--rose)', border: '1px solid var(--rose)', background: 'var(--rose-d)',
-                      borderRadius: 'var(--rs)', padding: '5px 10px', fontSize: '.75rem', fontWeight: 600,
-                      cursor: 'pointer', fontFamily: 'inherit', display: 'flex', alignItems: 'center', gap: 3,
-                    }}>Delete</button>
-                  )}
-                </div>
+                {(() => {
+                  const gb: React.CSSProperties = { display: 'flex', alignItems: 'center', gap: 5, fontSize: '.75rem', fontWeight: 600, padding: '5px 10px', borderRadius: 'var(--rs)', border: '1px solid var(--bd)', background: 'none', color: 'var(--t3)', cursor: 'pointer', fontFamily: 'inherit', transition: 'all .15s' }
+                  return (
+                    <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap', alignItems: 'center', paddingTop: 10, borderTop: '1px solid var(--bd)', marginTop: 10 }}>
+                      <UpvoteButton postId={post.id} upvotes={post.upvotes} />
+                      <button onClick={async () => {
+                        const isSaved = bookmarked[post.id]
+                        setBookmarked(prev => ({ ...prev, [post.id]: !isSaved }))
+                        await fetch('/api/bookmarks', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ postId: post.id, action: isSaved ? 'remove' : 'add' }) })
+                      }} style={{ ...gb, color: bookmarked[post.id] ? 'var(--blue)' : 'var(--t3)', borderColor: bookmarked[post.id] ? 'rgba(79,70,229,.25)' : 'var(--bd)' }}>
+                        <Bookmark size={13} fill={bookmarked[post.id] ? 'currentColor' : 'none'} />
+                      </button>
+                      <button onClick={() => { navigator.clipboard.writeText(window.location.origin + '/post/' + post.id); toast.success('Link copied!') }} style={gb}>
+                        <Link2 size={13} /><span className="action-label">Copy link</span>
+                      </button>
+                      <button onClick={() => {
+                        if (navigator.share) navigator.share({ title: post.title, url: window.location.origin + '/post/' + post.id }).catch(() => {})
+                        else { navigator.clipboard.writeText(window.location.origin + '/post/' + post.id); toast.success('Link copied!') }
+                      }} style={gb}><Share2 size={13} /><span className="action-label">Share</span></button>
+                      <FollowButton ghostId={post.ghost_id} />
+                      <button onClick={async () => {
+                        if (reported[post.id]) return
+                        await fetch('/api/posts/report', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ postId: post.id, reason: 'user_report' }) })
+                        setReported(prev => ({ ...prev, [post.id]: true })); toast.success('Reported')
+                      }} style={{ ...gb, color: reported[post.id] ? 'var(--rose)' : 'var(--t3)', borderColor: reported[post.id] ? 'rgba(225,29,72,.2)' : 'var(--bd)', background: reported[post.id] ? 'var(--rose-d)' : 'none' }}>
+                        <Flag size={13} fill={reported[post.id] ? 'currentColor' : 'none'} /><span className="action-label">Report</span>
+                      </button>
+                      <button onClick={async () => {
+                        if (blocked[post.id]) return
+                        await fetch('/api/blocks', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ ghostId: post.ghost_id }) })
+                        setBlocked(prev => ({ ...prev, [post.id]: true })); toast.success('Ghost blocked')
+                      }} style={{ ...gb, opacity: blocked[post.id] ? 0.5 : 1, cursor: blocked[post.id] ? 'default' : 'pointer', color: blocked[post.id] ? 'var(--t4)' : 'var(--t3)' }}>
+                        <ShieldOff size={13} /><span className="action-label">Block</span>
+                      </button>
+                      {sessionUserId === post.user_id && (
+                        <button onClick={() => {
+                          toast('Delete this post?', {
+                            action: { label: 'Yes, delete', onClick: async () => {
+                              const res = await fetch('/api/posts/create', { method: 'DELETE', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ postId: post.id }) })
+                              if (res.ok) { toast.success('Post deleted'); setExpandedPostId(null); setPosts(prev => prev.filter(p => p.id !== post.id)) }
+                            }},
+                            cancel: 'Cancel',
+                          })
+                        }} style={{
+                          color: 'var(--rose)', border: '1px solid rgba(225,29,72,.25)', background: 'var(--rose-d)',
+                          borderRadius: 'var(--rs)', padding: '5px 8px', cursor: 'pointer', fontFamily: 'inherit',
+                          display: 'flex', alignItems: 'center', justifyContent: 'center',
+                        }}><Trash2 size={13} /></button>
+                      )}
+                    </div>
+                  )
+                })()}
 
                 {/* Reply sort */}
                 <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginTop: 16, marginBottom: 10 }}>
@@ -811,26 +850,44 @@ export default function Feed({ initialPosts, initialPinnedPost, initialPostOfDay
 
                 {/* Reply composer */}
                 {sessionUserId ? (
-                  <div style={{ background: 'var(--bg)', border: '1px solid var(--bd)', borderRadius: 'var(--r)', padding: 12, marginTop: 12 }}>
+                  <div style={{ background: 'var(--bg)', border: '1px solid var(--bd)', borderRadius: 'var(--r)', padding: 12, marginTop: 12, position: 'relative' }}>
                     <textarea
                       placeholder="Write a reply…"
                       className="auto-dir"
                       value={replyBody[post.id] || ''}
-                      onChange={e => setReplyBody(prev => ({ ...prev, [post.id]: e.target.value.slice(0, 280) }))}
+                      onChange={e => setReplyBody(prev => ({ ...prev, [post.id]: e.target.value.slice(0, 1000) }))}
                       style={{ width: '100%', fontSize: '.875rem', color: 'var(--t1)', background: 'transparent', border: 'none', outline: 'none', resize: 'none', minHeight: 64, lineHeight: 1.6, fontFamily: 'inherit' }}
                     />
+                    {replyGifUrl[post.id] && (
+                      <div style={{ position: 'relative', display: 'inline-block', marginBottom: 8 }}>
+                        <img src={replyGifUrl[post.id]} alt="" style={{ maxHeight: 120, borderRadius: 'var(--rs)', display: 'block' }} />
+                        <button onClick={() => setReplyGifUrl(prev => { const n = { ...prev }; delete n[post.id]; return n })} style={{ position: 'absolute', top: 4, right: 4, width: 20, height: 20, borderRadius: '50%', background: 'rgba(0,0,0,.6)', border: 'none', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                          <X size={11} style={{ color: '#fff' }} />
+                        </button>
+                      </div>
+                    )}
                     <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', paddingTop: 8, borderTop: '1px solid var(--bd)', marginTop: 8 }}>
-                      <span style={{ fontSize: '.65rem', fontFamily: 'monospace', color: (280 - (replyBody[post.id]?.length || 0)) <= 20 ? 'var(--rose)' : 'var(--t4)' }}>{280 - (replyBody[post.id]?.length || 0)}</span>
+                      <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
+                        <span style={{ fontSize: '.65rem', fontFamily: 'monospace', color: (1000 - (replyBody[post.id]?.length || 0)) <= 20 ? 'var(--rose)' : 'var(--t4)' }}>{1000 - (replyBody[post.id]?.length || 0)}</span>
+                        <button onClick={() => setGifPickerOpen(prev => ({ ...prev, [post.id]: !prev[post.id] }))} style={{
+                          display: 'flex', alignItems: 'center', gap: 3, fontSize: '.72rem', fontWeight: 600,
+                          color: gifPickerOpen[post.id] ? 'var(--blue)' : 'var(--t3)',
+                          background: gifPickerOpen[post.id] ? 'var(--blue-d)' : 'none',
+                          border: '1px solid var(--bd)', borderRadius: 'var(--rs)', padding: '3px 8px',
+                          cursor: 'pointer', fontFamily: 'inherit',
+                        }}><Image size={13} /> GIF</button>
+                      </div>
                       <button
                         disabled={!(replyBody[post.id]?.trim()) || replyLoading[post.id]}
                         onClick={async () => {
                           setReplyLoading(prev => ({ ...prev, [post.id]: true }))
-                          const res = await fetch('/api/posts/reply', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ postId: post.id, body: replyBody[post.id] }) })
+                          const res = await fetch('/api/posts/reply', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ postId: post.id, body: replyBody[post.id], gifUrl: replyGifUrl[post.id] || undefined }) })
                           const data = await res.json()
                           setReplyLoading(prev => ({ ...prev, [post.id]: false }))
                           if (data.success) {
                             toast.success('Reply posted')
                             setReplyBody(prev => ({ ...prev, [post.id]: '' }))
+                            setReplyGifUrl(prev => { const n = { ...prev }; delete n[post.id]; return n })
                             if (data.reply) setRepliesCache(prev => ({ ...prev, [post.id]: [...(prev[post.id] || []), data.reply] }))
                           } else if (res.status === 401) { toast.error('Sign in to reply') }
                         }}
@@ -843,6 +900,7 @@ export default function Feed({ initialPosts, initialPinnedPost, initialPostOfDay
                         }}
                       >Reply anonymously</button>
                     </div>
+                    <GifPicker open={!!gifPickerOpen[post.id]} onClose={() => setGifPickerOpen(prev => ({ ...prev, [post.id]: false }))} onSelect={url => { setReplyGifUrl(prev => ({ ...prev, [post.id]: url })); setGifPickerOpen(prev => ({ ...prev, [post.id]: false })) }} />
                   </div>
                 ) : (
                   <a href="/auth" style={{ display: 'block', textAlign: 'center', padding: 16, fontSize: '.875rem', color: 'var(--blue)', fontWeight: 600, textDecoration: 'none' }}>Sign in to reply →</a>
