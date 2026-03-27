@@ -194,6 +194,20 @@ export default function PostPage() {
               }}>
                 <Ghost size={10} />{post.ghost_id}
               </span>
+              {user && post.user_id === user.id && (
+                <button onClick={() => {
+                  toast('Delete this post?', {
+                    action: { label: 'Yes, delete', onClick: async () => {
+                      const res = await fetch('/api/posts/delete', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ postId: post.id }) })
+                      const data = await res.json()
+                      if (data.success) { toast.success('Post deleted'); window.location.href = '/' }
+                    }},
+                    cancel: { label: 'Cancel', onClick: () => {} },
+                  })
+                }} style={{ background: 'none', border: 'none', cursor: 'pointer', padding: 2, color: 'var(--rose)', display: 'flex', alignItems: 'center' }}>
+                  <Trash2 size={13} />
+                </button>
+              )}
               <FollowButton ghostId={post.ghost_id} />
               <div style={{ display: 'flex', alignItems: 'center', gap: 6, marginLeft: 'auto' }}>
                 <div style={{ display: 'flex', alignItems: 'center', gap: 4 }}>
@@ -252,27 +266,6 @@ export default function PostPage() {
                 <ShareButton postId={post.id} />
                 <ReportButton postId={post.id} />
                 <BlockButton ghostId={post.ghost_id} />
-                {user && post.user_id === user.id && (
-                  <motion.button whileTap={{ scale: 0.95 }} onClick={() => {
-                    toast('Delete this post?', {
-                      action: { label: 'Yes, delete', onClick: async () => {
-                        const res = await fetch('/api/posts/delete', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ postId: post.id }) })
-                        const data = await res.json()
-                        if (data.success) {
-                          toast.success('Post deleted')
-                          window.location.href = '/'
-                        }
-                      }},
-                      cancel: { label: 'Cancel', onClick: () => {} },
-                    })
-                  }} style={{
-                    fontSize: '.72rem', fontWeight: 600, padding: '6px 10px', borderRadius: 'var(--rs)',
-                    border: '1px solid var(--rose)', background: 'var(--rose-d)', color: 'var(--rose)',
-                    cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 5, fontFamily: 'inherit',
-                  }}>
-                    <Trash2 size={11} />Delete
-                  </motion.button>
-                )}
               </div>
             </div>
           </div>

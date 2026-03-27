@@ -115,11 +115,11 @@ export default function AccessibilityToolbar() {
                 exit={{ opacity: 0, y: 6, scale: 0.95 }}
                 transition={{ duration: 0.12 }}
                 style={{
-                  position: 'absolute', bottom: 40, right: 0,
+                  position: 'fixed', bottom: 60, right: 20,
                   width: 160, background: 'var(--sur)',
                   border: '1px solid var(--bd)', borderRadius: 'var(--r)',
-                  boxShadow: '0 8px 24px rgba(0,0,0,.15)',
-                  padding: 4, zIndex: 160,
+                  boxShadow: '0 8px 24px rgba(0,0,0,.25)',
+                  padding: 4, zIndex: 9999,
                 }}
               >
                 {COLOR_MODES.map(mode => (

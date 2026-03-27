@@ -107,11 +107,11 @@ export default function GifPicker({ open, onClose, onSelect }: GifPickerProps) {
           exit={{ opacity: 0, y: 8, scale: 0.96 }}
           transition={{ duration: 0.15 }}
           style={{
-            position: 'absolute', bottom: '100%', left: 0, right: 0,
-            marginBottom: 8,
+            position: 'fixed', bottom: 80, left: 20, right: 20,
+            maxWidth: 480, margin: '0 auto',
             background: 'var(--sur)', border: '1px solid var(--bd)',
-            borderRadius: 'var(--rm)', boxShadow: '0 8px 32px rgba(0,0,0,.15)',
-            overflow: 'hidden', zIndex: 200,
+            borderRadius: 'var(--rm)', boxShadow: '0 12px 40px rgba(0,0,0,.25)',
+            overflow: 'hidden', zIndex: 9999,
             maxHeight: 380, display: 'flex', flexDirection: 'column',
           }}
         >

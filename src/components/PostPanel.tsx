@@ -277,6 +277,27 @@ export default function PostPanel({ post: initialPost, onClose }: { post: any, o
               }}>
                 <Ghost size={10} />{post.ghost_id}
               </span>
+              {user && post.user_id === user.id && (
+                <button onClick={() => {
+                  toast('Delete this post?', {
+                    action: { label: 'Yes, delete', onClick: async () => {
+                      const res = await fetch('/api/posts/delete', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ postId: post.id }) })
+                      const data = await res.json()
+                      if (data.success) {
+                        toast.success('Post deleted')
+                        window.dispatchEvent(new CustomEvent('postDeleted', { detail: post.id }))
+                        onClose()
+                      }
+                    }},
+                    cancel: { label: 'Cancel', onClick: () => {} },
+                  })
+                }} style={{
+                  background: 'none', border: 'none', cursor: 'pointer', padding: 2,
+                  color: 'var(--rose)', display: 'flex', alignItems: 'center',
+                }}>
+                  <Trash2 size={13} />
+                </button>
+              )}
               <span style={{ fontFamily: 'monospace', fontSize: '.65rem', color: 'var(--t4)', marginLeft: 'auto' }}>{timeAgo(post.created_at)}</span>
             </div>
 
@@ -339,29 +360,6 @@ export default function PostPanel({ post: initialPost, onClose }: { post: any, o
                 <span className="action-label">{blocked ? 'Blocked' : 'Block'}</span>
               </motion.button>
 
-              {user && post.user_id === user.id && (
-                <motion.button whileTap={{ scale: 0.95 }} onClick={() => {
-                  toast('Delete this post?', {
-                    action: { label: 'Yes, delete', onClick: async () => {
-                      const res = await fetch('/api/posts/delete', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ postId: post.id }) })
-                      const data = await res.json()
-                      if (data.success) {
-                        toast.success('Post deleted')
-                        window.dispatchEvent(new CustomEvent('postDeleted', { detail: post.id }))
-                        onClose()
-                      }
-                    }},
-                    cancel: { label: 'Cancel', onClick: () => {} },
-                  })
-                }} style={{
-                  ...actionBtnStyle(),
-                  color: 'var(--rose)', border: '1px solid var(--rose)',
-                  background: 'var(--rose-d)',
-                }}>
-                  <Trash2 size={12} />
-                  <span className="action-label">Delete</span>
-                </motion.button>
-              )}
             </div>
           </div>
 

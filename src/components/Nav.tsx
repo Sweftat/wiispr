@@ -13,7 +13,6 @@ export default function Nav() {
   const [searchOpen, setSearchOpen] = useState(false)
   const [searchQuery, setSearchQuery] = useState('')
   const [results, setResults] = useState<any[]>([])
-  const [online, setOnline] = useState(0)
   const [shrunk, setShrunk] = useState(false)
   const searchRef = useRef<HTMLInputElement>(null)
   const dropdownRef = useRef<HTMLDivElement>(null)
@@ -35,11 +34,7 @@ export default function Nav() {
       setDark(true)
     }
 
-    // Online count
-    fetch('/api/online').then(r => r.json()).then(d => setOnline(d.online || 0))
-    const interval = setInterval(() => {
-      fetch('/api/online').then(r => r.json()).then(d => setOnline(d.online || 0))
-    }, 60000)
+    const interval = setInterval(() => {}, 60000) // keep cleanup consistent
 
     // Scroll-aware nav
     let lastY = 0
@@ -157,20 +152,6 @@ export default function Nav() {
         }} />
         wiispr
       </Link>
-
-      {online > 0 && (
-        <span style={{
-          fontSize: '.65rem', color: 'var(--grn)', fontWeight: 600,
-          display: 'flex', alignItems: 'center', gap: 3, flexShrink: 0,
-        }}>
-          <span style={{
-            width: 5, height: 5, borderRadius: '50%', background: 'var(--grn)',
-            display: 'inline-block',
-            animation: 'pulse-dot 2s ease-in-out infinite',
-          }} />
-          {online}
-        </span>
-      )}
 
       {/* Trending */}
       <Link href="/trending" style={{
