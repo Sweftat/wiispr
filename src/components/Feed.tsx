@@ -198,7 +198,7 @@ function BookmarkButton({ postId }: { postId: string }) {
   )
 }
 
-function PostCard({ post, onOpen }: { post: any, onOpen: () => void }) {
+function PostCard({ post, onOpen, onTagClick }: { post: any, onOpen: () => void, onTagClick?: (tag: string) => void }) {
   const [revealed, setRevealed] = useState(false)
   const [hovered, setHovered] = useState(false)
   const accent = categoryAccent(post.categories?.name)
@@ -271,7 +271,23 @@ function PostCard({ post, onOpen }: { post: any, onOpen: () => void }) {
         <span style={{ fontFamily: 'monospace', fontSize: '.65rem', color: 'var(--t4)', marginLeft: 'auto' }}>{timeAgo(post.created_at)}</span>
       </div>
       <h2 className="auto-dir" style={{ fontSize: '1rem', fontWeight: 700, color: 'var(--t1)', marginBottom: 6, position: 'relative' }}>{post.title}</h2>
-      {post.body && <LinkifiedText text={post.body} className="auto-dir" style={{ fontSize: '.875rem', color: 'var(--t2)', lineHeight: 1.7, marginBottom: 12, position: 'relative' }} />}
+      {post.body && <LinkifiedText text={post.body} className="auto-dir" style={{ fontSize: '.875rem', color: 'var(--t2)', lineHeight: 1.7, marginBottom: 8, position: 'relative' }} />}
+      {(() => {
+        const tags = post.body?.match(/#([a-zA-Z0-9_\u0600-\u06FF]+)/g)?.slice(0, 3)
+        if (!tags || tags.length === 0) return null
+        const allTags = post.body?.match(/#([a-zA-Z0-9_\u0600-\u06FF]+)/g) || []
+        return (
+          <div style={{ display: 'flex', gap: 4, flexWrap: 'wrap', marginBottom: 8 }}>
+            {tags.map((t: string, i: number) => (
+              <span key={i} onClick={(e) => { e.stopPropagation(); onTagClick?.(t.slice(1)) }}
+                style={{ fontSize: '.68rem', color: 'var(--blue)', background: 'var(--blue-d)', padding: '1px 6px', borderRadius: 3, cursor: 'pointer', fontWeight: 600 }}>
+                {t}
+              </span>
+            ))}
+            {allTags.length > 3 && <span style={{ fontSize: '.65rem', color: 'var(--t4)' }}>+{allTags.length - 3}</span>}
+          </div>
+        )
+      })()}
 
       <CompactReactions postId={post.id} />
 
@@ -383,10 +399,27 @@ export default function Feed({ initialPosts, initialPinnedPost, initialPostOfDay
     setLoading(false)
   }
 
+  async function filterByTag(tag: string) {
+    setLoading(true)
+    setNewPostCount(0)
+    const res = await fetch('/api/posts/feed?tag=' + encodeURIComponent(tag))
+    const data = await res.json()
+    setPosts(data.posts || [])
+    setPinnedPost(null)
+    setPostOfDay(null)
+    setHasMore(false)
+    setLoading(false)
+  }
+
   useEffect(() => {
     function handleSidebarSelect(e: CustomEvent) { filterByCategory(e.detail) }
+    function handleTagFilter(e: CustomEvent) { filterByTag(e.detail) }
     window.addEventListener('sidebarCategorySelect', handleSidebarSelect as EventListener)
-    return () => window.removeEventListener('sidebarCategorySelect', handleSidebarSelect as EventListener)
+    window.addEventListener('filterByTag', handleTagFilter as EventListener)
+    return () => {
+      window.removeEventListener('sidebarCategorySelect', handleSidebarSelect as EventListener)
+      window.removeEventListener('filterByTag', handleTagFilter as EventListener)
+    }
   }, [])
 
   function openPost(post: any) {
@@ -494,7 +527,7 @@ export default function Feed({ initialPosts, initialPinnedPost, initialPostOfDay
 
       {!loading && posts.map((post: any, i: number) => (
         <motion.div key={post.id} initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.25, delay: Math.min(i, 10) * 0.05, ease: 'easeOut' }}>
-          <PostCard post={post} onOpen={() => openPost(post)} />
+          <PostCard post={post} onOpen={() => openPost(post)} onTagClick={filterByTag} />
         </motion.div>
       ))}
 

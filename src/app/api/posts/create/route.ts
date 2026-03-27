@@ -50,6 +50,26 @@ export async function POST(req: NextRequest) {
 
   if (error) return NextResponse.json({ error: error.message }, { status: 500 })
 
+  // Extract and save hashtags from body
+  if (body) {
+    const tagMatches = body.match(/#([a-zA-Z0-9_\u0600-\u06FF]+)/g)
+    if (tagMatches && tagMatches.length > 0) {
+      const { data: createdPost } = await supabase
+        .from('posts')
+        .select('id')
+        .eq('user_id', userId)
+        .order('created_at', { ascending: false })
+        .limit(1)
+        .single()
+      if (createdPost) {
+        const tags = [...new Set(tagMatches.map((t: string) => t.slice(1).toLowerCase()))].slice(0, 5)
+        await supabase.from('post_tags').insert(
+          tags.map(tag => ({ post_id: createdPost.id, tag }))
+        )
+      }
+    }
+  }
+
   // Update streak
   const today = new Date().toISOString().slice(0, 10)
   const { data: userData } = await supabase.from('users').select('last_post_date, streak_days').eq('id', userId).single()

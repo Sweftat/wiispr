@@ -10,6 +10,7 @@ export async function GET(req: NextRequest) {
   )
   const { searchParams } = new URL(req.url)
   const categoryId = searchParams.get('category')
+  const tagFilter = searchParams.get('tag')
 
   // Fetch pinned + POTD (only on the default feed, not category-filtered views)
   let pinnedPost = null
@@ -68,6 +69,17 @@ export async function GET(req: NextRequest) {
 
   const { data: posts } = await query
 
+  // Filter by tag if specified
+  let tagFilteredPosts = posts || []
+  if (tagFilter) {
+    const { data: taggedPostIds } = await supabase
+      .from('post_tags')
+      .select('post_id')
+      .eq('tag', tagFilter.toLowerCase())
+    const taggedIds = new Set((taggedPostIds || []).map(t => t.post_id))
+    tagFilteredPosts = tagFilteredPosts.filter((p: any) => taggedIds.has(p.id))
+  }
+
   // Get shadowbanned user IDs
   const { data: shadowbanned } = await supabase
     .from('users')
@@ -76,7 +88,7 @@ export async function GET(req: NextRequest) {
   const shadowbannedIds = new Set((shadowbanned || []).map(u => u.id))
 
   // Filter: remove blocked ghost IDs + shadowbanned posts (unless it's the current user's own post)
-  const filteredPosts = (posts || []).filter((p: any) => {
+  const filteredPosts = tagFilteredPosts.filter((p: any) => {
     if (blockedGhostIds.length > 0 && blockedGhostIds.includes(p.ghost_id)) return false
     if (shadowbannedIds.has(p.user_id) && p.user_id !== userId) return false
     return true
