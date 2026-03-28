@@ -914,7 +914,7 @@ export default function Feed({ initialPosts, initialPinnedPost, initialPostOfDay
                     <GifPicker open={!!gifPickerOpen[post.id]} onClose={() => setGifPickerOpen(prev => ({ ...prev, [post.id]: false }))} onSelect={url => { setReplyGifUrl(prev => ({ ...prev, [post.id]: url })); setGifPickerOpen(prev => ({ ...prev, [post.id]: false })) }} />
                   </div>
                 ) : (
-                  <a href="/auth" style={{ display: 'block', textAlign: 'center', padding: 16, fontSize: '.875rem', color: 'var(--blue)', fontWeight: 600, textDecoration: 'none' }}>Sign in to reply →</a>
+                  <a href="/auth?signin=1" style={{ display: 'block', textAlign: 'center', padding: 16, fontSize: '.875rem', color: 'var(--blue)', fontWeight: 600, textDecoration: 'none' }}>Sign in to reply →</a>
                 )}
               </motion.div>
             )}

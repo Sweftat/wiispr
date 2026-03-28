@@ -474,15 +474,20 @@ export default function Nav() {
               onClick={() => setAuthPromptOpen(false)}
               style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,.5)', backdropFilter: 'blur(4px)', zIndex: 500 }} />
             <motion.div
-              initial={{ y: isMobile ? '100%' : undefined, scale: isMobile ? 1 : 0.95, opacity: isMobile ? 1 : 0 }}
-              animate={{ y: 0, scale: 1, opacity: 1 }}
-              exit={{ y: isMobile ? '100%' : undefined, scale: isMobile ? 1 : 0.95, opacity: isMobile ? 1 : 0 }}
+              initial={isMobile ? { y: '100%' } : { scale: 0.95, opacity: 0 }}
+              animate={isMobile ? { y: 0 } : { scale: 1, opacity: 1 }}
+              exit={isMobile ? { y: '100%' } : { scale: 0.95, opacity: 0 }}
               transition={{ type: 'spring', stiffness: 300, damping: 28 }}
-              style={{
-                position: 'fixed', zIndex: 501, background: 'var(--sur)',
-                ...(isMobile
-                  ? { bottom: 0, left: 0, right: 0, borderRadius: '20px 20px 0 0', paddingBottom: 'env(safe-area-inset-bottom)' }
-                  : { top: '50%', left: '50%', transform: 'translate(-50%,-50%)', width: 360, borderRadius: 'var(--rm)', border: '1px solid var(--bd)', boxShadow: '0 20px 60px rgba(0,0,0,.2)' })
+              style={isMobile ? {
+                position: 'fixed', bottom: 0, left: 0, right: 0, zIndex: 501,
+                background: 'var(--sur)', borderRadius: '20px 20px 0 0',
+                paddingBottom: 'env(safe-area-inset-bottom)',
+              } : {
+                position: 'fixed', top: '50%', left: '50%', zIndex: 501,
+                width: 380, background: 'var(--sur)', borderRadius: 'var(--rm)',
+                border: '1px solid var(--bd)', boxShadow: '0 20px 60px rgba(0,0,0,.2)',
+                padding: '32px 28px',
+                marginTop: -200, marginLeft: -190,
               }}>
               {isMobile && <div style={{ width: 36, height: 4, background: 'var(--bd2)', borderRadius: 9999, margin: '12px auto 4px' }} />}
               <div style={{ padding: '28px 28px 24px' }}>
