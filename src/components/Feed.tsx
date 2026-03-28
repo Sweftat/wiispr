@@ -411,10 +411,12 @@ function InlineReplyDrawer({ postId, onOpenPanel }: { postId: string, onOpenPane
             <p className="auto-dir" style={{ fontSize: '.8rem', color: 'var(--t2)', lineHeight: 1.6 }}>{r.body}</p>
           </div>
         ))}
-        <button onClick={onOpenPanel} style={{
-          fontSize: '.72rem', color: 'var(--blue)', background: 'none', border: 'none',
-          cursor: 'pointer', fontFamily: 'inherit', fontWeight: 600, marginBottom: 10, padding: 0,
-        }}>Show all replies →</button>
+        {replies.length > 3 && (
+          <button onClick={onOpenPanel} style={{
+            fontSize: '.72rem', color: 'var(--blue)', background: 'none', border: 'none',
+            cursor: 'pointer', fontFamily: 'inherit', fontWeight: 600, marginBottom: 10, padding: 0,
+          }}>Show all replies →</button>
+        )}
 
         {loggedIn ? (
           <div style={{ display: 'flex', gap: 6, alignItems: 'flex-end' }}>
@@ -447,8 +449,8 @@ function InlineReplyDrawer({ postId, onOpenPanel }: { postId: string, onOpenPane
         ) : sessionChecked ? (
           <div style={{ textAlign: 'center', padding: '8px 0' }}>
             <div style={{ display: 'flex', gap: 8, justifyContent: 'center' }}>
-              <a href="/auth?signin=1" style={{ border: '1px solid var(--bd)', color: 'var(--t2)', background: 'none', padding: '5px 14px', borderRadius: 'var(--rs)', fontSize: '.75rem', fontWeight: 600, textDecoration: 'none' }}>Sign in</a>
-              <a href="/auth" style={{ background: 'var(--blue)', color: '#fff', padding: '5px 14px', borderRadius: 'var(--rs)', fontSize: '.75rem', fontWeight: 600, textDecoration: 'none', border: 'none' }}>Join free</a>
+              <a href="/auth?signin=1" style={{ border: '1px solid var(--bd)', color: 'var(--t2)', background: 'none', padding: '5px 14px', borderRadius: 'var(--rs)', fontSize: '.75rem', fontWeight: 600, textDecoration: 'none' }}>Log in</a>
+              <a href="/auth" style={{ background: 'var(--blue)', color: '#fff', padding: '5px 14px', borderRadius: 'var(--rs)', fontSize: '.75rem', fontWeight: 600, textDecoration: 'none', border: 'none' }}>Sign up</a>
             </div>
           </div>
         ) : null}

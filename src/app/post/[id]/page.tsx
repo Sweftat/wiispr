@@ -1,5 +1,5 @@
 'use client'
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useRef } from 'react'
 import { timeAgo } from '@/lib/time'
 import Nav from '@/components/Nav'
 import Footer from '@/components/Footer'
@@ -9,7 +9,7 @@ import ShareButton from '@/components/ShareButton'
 import FollowButton from '@/components/FollowButton'
 import BlockButton from '@/components/BlockButton'
 import { motion } from 'framer-motion'
-import { Ghost, ArrowUp, Eye, Bookmark, Link2, MessageCircle, ArrowLeft, Trash2 } from 'lucide-react'
+import { Ghost, ArrowUp, Eye, Bookmark, Link2, MessageCircle, ArrowLeft, Trash2, MoreHorizontal, Edit } from 'lucide-react'
 import { toast } from 'sonner'
 import { useParams } from 'next/navigation'
 
@@ -40,6 +40,9 @@ export default function PostPage() {
   const [replySort, setReplySort] = useState<'best' | 'new'>('best')
   const [sessionUserId, setSessionUserId] = useState<string | null>(null)
   const [sessionLoaded, setSessionLoaded] = useState(false)
+  const [moreMenuOpen, setMoreMenuOpen] = useState(false)
+  const composerRef = useRef<HTMLTextAreaElement>(null)
+  const menuRef = useRef<HTMLDivElement>(null)
 
   useEffect(() => {
     Promise.all([
@@ -76,8 +79,16 @@ export default function PostPage() {
     fetchPost()
   }, [id])
 
+  // Close menu on click outside
+  useEffect(() => {
+    function handleClick(e: MouseEvent) {
+      if (menuRef.current && !menuRef.current.contains(e.target as Node)) setMoreMenuOpen(false)
+    }
+    if (moreMenuOpen) document.addEventListener('mousedown', handleClick)
+    return () => document.removeEventListener('mousedown', handleClick)
+  }, [moreMenuOpen])
+
   async function fetchPost() {
-    const res = await fetch(`/api/posts/related?postId=none&categoryId=0`)
     const searchRes = await fetch(`/api/posts/feed?offset=0&limit=100`)
     const data = await searchRes.json()
     const allPosts = [...(data.posts || []), data.pinnedPost, data.postOfDay].filter(Boolean)
@@ -154,6 +165,11 @@ export default function PostPage() {
     setSubmitting(false)
   }
 
+  function scrollToComposer() {
+    composerRef.current?.scrollIntoView({ behavior: 'smooth', block: 'center' })
+    setTimeout(() => composerRef.current?.focus(), 300)
+  }
+
   if (loading) return (
     <main style={{ minHeight: '100dvh', background: 'var(--bg)' }}>
       <Nav />
@@ -172,7 +188,7 @@ export default function PostPage() {
     </main>
   )
 
-  const isOwner = post && sessionUserId && post.user_id === sessionUserId
+  const isOwner = !!(post && sessionUserId && post.user_id === sessionUserId)
   const sortedReplies = [...replies].sort((a, b) => replySort === 'best' ? ((b.upvotes || 0) - (a.upvotes || 0)) : 0)
 
   const totalReactions = Object.values(reactionCounts).reduce((s, c) => s + c, 0)
@@ -180,18 +196,10 @@ export default function PostPage() {
   const filteredReactions = showAllReactions ? REACTIONS : REACTIONS.filter(r => (reactionCounts[r.key] || 0) > 0 || userReaction === r.key)
   const reactionsToShow = filteredReactions.length === 0 ? REACTIONS : filteredReactions
 
-  const stats = [
-    { value: post.upvotes || 0, label: 'UPVOTES' },
-    { value: replies.length, label: 'REPLIES' },
-    { value: viewCount >= 1000 ? (viewCount / 1000).toFixed(1) + 'k' : viewCount, label: 'VIEWS' },
-    { value: timeAgo(post.created_at), label: 'POSTED' },
-  ]
-
   return (
     <main style={{ minHeight: '100dvh', background: 'var(--bg)', display: 'flex', flexDirection: 'column' }}>
       <Nav />
       <div style={{ flex: 1, maxWidth: 680, margin: '0 auto', padding: '20px', width: '100%' }}>
-        {/* Back link */}
         <a href="/" style={{ fontSize: '.8rem', color: 'var(--blue)', display: 'inline-flex', alignItems: 'center', gap: 4, marginBottom: 16, textDecoration: 'none' }}>
           <ArrowLeft size={14} /> Back to feed
         </a>
@@ -199,23 +207,55 @@ export default function PostPage() {
         <motion.div initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.3 }}>
 
           {/* ═══ CARD 1 — THE POST ═══ */}
-          <div style={{ background: 'var(--sur)', border: '1px solid var(--bd)', borderRadius: 'var(--rm)', marginBottom: 16 }}>
+          <div style={{ background: 'var(--sur)', border: '1px solid var(--bd)', borderRadius: 'var(--rm)', marginBottom: 16, overflow: 'hidden' }}>
 
-            {/* Section 1: Post Header */}
-            <div style={{ padding: '16px 18px 14px', borderBottom: '1px solid var(--bd)' }}>
-              <div style={{ display: 'flex', alignItems: 'center', gap: 8, flexWrap: 'wrap', marginBottom: 12 }}>
+            {/* HEADER */}
+            <div style={{ padding: '14px 18px', borderBottom: '1px solid var(--bd)' }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: 8, flexWrap: 'wrap' }}>
                 <span style={{ fontSize: '.6rem', fontWeight: 700, letterSpacing: '.06em', textTransform: 'uppercase', color: 'var(--blue)', background: 'var(--blue-d)', padding: '2px 7px', borderRadius: 3 }}>{post.categories?.name}</span>
                 <span style={{ fontFamily: 'monospace', fontSize: '.68rem', color: 'var(--t3)', background: 'var(--bg)', padding: '2px 8px', borderRadius: 4, border: '1px solid var(--bd)', fontWeight: 600, display: 'flex', alignItems: 'center', gap: 4 }}>
                   <Ghost size={10} />{post.ghost_id}
                 </span>
                 {!isOwner && <FollowButton ghostId={post.ghost_id} />}
-                <div style={{ display: 'flex', alignItems: 'center', gap: 4, marginLeft: 'auto' }}>
-                  <Eye size={12} style={{ color: 'var(--t4)' }} />
-                  <span style={{ fontSize: '.72rem', color: 'var(--t4)' }}>{viewCount}</span>
-                </div>
-                <span style={{ fontSize: '.72rem', color: 'var(--t4)', fontFamily: 'monospace' }}>{timeAgo(post.created_at)}</span>
+                <span style={{ marginLeft: 'auto', fontSize: '.72rem', color: 'var(--t4)', display: 'flex', alignItems: 'center', gap: 8 }}>
+                  <span style={{ display: 'flex', alignItems: 'center', gap: 3 }}><Eye size={11} />{viewCount}</span>
+                  <span>·</span>
+                  <span>{replies.length} {replies.length === 1 ? 'reply' : 'replies'}</span>
+                  <span>·</span>
+                  <span>{timeAgo(post.created_at)}</span>
+                </span>
+                {isOwner && (
+                  <div ref={menuRef} style={{ position: 'relative' }}>
+                    <button onClick={() => setMoreMenuOpen(!moreMenuOpen)} style={{ width: 28, height: 28, borderRadius: 'var(--rs)', border: '1px solid var(--bd)', background: 'none', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer', color: 'var(--t4)' }}>
+                      <MoreHorizontal size={16} />
+                    </button>
+                    {moreMenuOpen && (
+                      <div style={{ position: 'absolute', top: '100%', right: 0, marginTop: 4, background: 'var(--sur)', border: '1px solid var(--bd)', borderRadius: 'var(--r)', boxShadow: '0 4px 16px rgba(0,0,0,.1)', zIndex: 50, minWidth: 140, padding: 4 }}>
+                        <button onClick={() => { setMoreMenuOpen(false); toast('Edit coming soon') }} style={{ display: 'flex', alignItems: 'center', gap: 8, width: '100%', padding: '8px 12px', fontSize: '.8rem', color: 'var(--t1)', background: 'none', border: 'none', borderRadius: 'calc(var(--r) - 2px)', cursor: 'pointer', fontFamily: 'inherit', textAlign: 'left' }}>
+                          <Edit size={13} />Edit post
+                        </button>
+                        <button onClick={() => {
+                          setMoreMenuOpen(false)
+                          toast('Delete this post?', {
+                            action: { label: 'Yes, delete', onClick: async () => {
+                              const res = await fetch('/api/posts/delete', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ postId: post.id }) })
+                              const data = await res.json()
+                              if (data.success) { toast.success('Post deleted'); window.location.href = '/' }
+                            }},
+                            cancel: { label: 'Cancel', onClick: () => {} },
+                          })
+                        }} style={{ display: 'flex', alignItems: 'center', gap: 8, width: '100%', padding: '8px 12px', fontSize: '.8rem', color: 'var(--rose)', background: 'none', border: 'none', borderRadius: 'calc(var(--r) - 2px)', cursor: 'pointer', fontFamily: 'inherit', textAlign: 'left' }}>
+                          <Trash2 size={13} />Delete post
+                        </button>
+                      </div>
+                    )}
+                  </div>
+                )}
               </div>
+            </div>
 
+            {/* BODY */}
+            <div style={{ padding: '16px 18px' }}>
               <h1 className="auto-dir" style={{ fontSize: '1.25rem', fontWeight: 900, color: 'var(--t1)', marginBottom: 10, lineHeight: 1.35, letterSpacing: '-.02em' }}>{post.title}</h1>
               {post.body && <p className="auto-dir" style={{ fontSize: '.9375rem', color: 'var(--t2)', lineHeight: 1.8 }}>{post.body}</p>}
               {post.gif_url && (
@@ -223,44 +263,43 @@ export default function PostPage() {
               )}
             </div>
 
-            {/* Section 2: Stats Row */}
-            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', borderBottom: '1px solid var(--bd)' }}>
-              {stats.map((s, i) => (
-                <div key={s.label} style={{ padding: '12px 0', textAlign: 'center', borderRight: i < 3 ? '1px solid var(--bd)' : 'none' }}>
-                  <span style={{ fontSize: '1rem', fontWeight: 700, color: 'var(--t1)', display: 'block', lineHeight: 1 }}>{s.value}</span>
-                  <span style={{ fontSize: '.6rem', fontWeight: 600, textTransform: 'uppercase', letterSpacing: '.06em', color: 'var(--t4)', display: 'block', marginTop: 3 }}>{s.label}</span>
-                </div>
-              ))}
-            </div>
+            {/* REACTIONS — hidden on own posts */}
+            {!isOwner && (
+              <div style={{ padding: '10px 18px', borderTop: '1px solid var(--bd)', display: 'flex', gap: 6, flexWrap: 'wrap' }}>
+                {reactionsToShow.map(r => {
+                  const selected = userReaction === r.key
+                  return (
+                    <motion.button key={r.key} whileTap={{ scale: 0.88 }} onClick={() => react(r.key)} style={{
+                      display: 'flex', alignItems: 'center', gap: 5, padding: '6px 12px', borderRadius: 'var(--rs)',
+                      border: `1px solid ${selected ? r.color : 'var(--bd)'}`,
+                      background: selected ? r.color + '15' : 'none',
+                      cursor: 'pointer', fontSize: '.78rem', fontFamily: 'inherit',
+                      color: selected ? r.color : 'var(--t3)', fontWeight: 600, transition: 'all .15s',
+                    }}>
+                      <span>{r.emoji}</span><span className="reaction-label">{r.label}</span>
+                      {(reactionCounts[r.key] || 0) > 0 && <span style={{ fontSize: '.68rem', opacity: 0.7 }}>{reactionCounts[r.key]}</span>}
+                    </motion.button>
+                  )
+                })}
+              </div>
+            )}
 
-            {/* Section 3: Reactions — hidden on own posts */}
-            {!isOwner && <div style={{ padding: '12px 18px', borderBottom: '1px solid var(--bd)', display: 'flex', gap: 6, flexWrap: 'wrap' }}>
-              {reactionsToShow.map(r => {
-                const selected = userReaction === r.key
-                return (
-                  <motion.button key={r.key} whileTap={{ scale: 0.88 }} onClick={() => react(r.key)} style={{
-                    display: 'flex', alignItems: 'center', gap: 5, padding: '6px 12px', borderRadius: 'var(--rs)',
-                    border: `1px solid ${selected ? r.color : 'var(--bd)'}`,
-                    background: selected ? r.color + '15' : 'none',
-                    cursor: 'pointer', fontSize: '.78rem', fontFamily: 'inherit',
-                    color: selected ? r.color : 'var(--t3)', fontWeight: 600, transition: 'all .15s',
-                  }}>
-                    <span>{r.emoji}</span><span className="reaction-label">{r.label}</span>
-                    {(reactionCounts[r.key] || 0) > 0 && <span style={{ fontSize: '.68rem', opacity: 0.7 }}>{reactionCounts[r.key]}</span>}
-                  </motion.button>
-                )
-              })}
-            </div>}
-
-            {/* Section 4: Action Bar */}
-            <div style={{ padding: '12px 18px', display: 'flex', alignItems: 'center', gap: 6, flexWrap: 'wrap' }}>
-              {!isOwner && <UpvoteButton postId={post.id} upvotes={post.upvotes} />}
-              <span style={{ fontSize: '.75rem', color: 'var(--t4)', display: 'flex', alignItems: 'center', gap: 4 }}>
-                <MessageCircle size={12} />{replies.length}
-              </span>
+            {/* ACTION BAR */}
+            <div style={{ padding: '10px 18px', background: 'var(--bg)', borderTop: '1px solid var(--bd)', display: 'flex', alignItems: 'center', gap: 6 }}>
+              {isOwner ? (
+                <span style={{ fontSize: '.75rem', fontWeight: 600, padding: '5px 10px', borderRadius: 'var(--rs)', border: '1px solid var(--bd)', background: 'none', color: 'var(--t4)', display: 'flex', alignItems: 'center', gap: 4, opacity: 0.4 }}>
+                  <ArrowUp size={12} />{post.upvotes || 0}
+                </span>
+              ) : (
+                <UpvoteButton postId={post.id} upvotes={post.upvotes} />
+              )}
+              <button onClick={scrollToComposer} style={{ fontSize: '.75rem', fontWeight: 600, padding: '5px 10px', borderRadius: 'var(--rs)', border: '1px solid var(--bd)', background: 'none', color: 'var(--t3)', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 4, fontFamily: 'inherit' }}>
+                <MessageCircle size={13} />{isOwner ? 'Add update' : replies.length}
+              </button>
 
               <span style={{ flex: 1 }} />
 
+              <ShareButton postId={post.id} />
               <motion.button whileTap={{ scale: 0.95 }} onClick={toggleBookmark} style={{
                 fontSize: '.72rem', fontWeight: 600, padding: '5px 8px', borderRadius: 'var(--rs)',
                 border: `1px solid ${bookmarked ? 'var(--blue)' : 'var(--bd)'}`,
@@ -270,7 +309,6 @@ export default function PostPage() {
               }}>
                 <Bookmark size={11} fill={bookmarked ? 'currentColor' : 'none'} /><span className="action-label">{bookmarked ? 'Saved' : 'Save'}</span>
               </motion.button>
-
               <motion.button whileTap={{ scale: 0.95 }} onClick={copyLink} className="action-label" style={{
                 fontSize: '.72rem', fontWeight: 600, padding: '5px 8px', borderRadius: 'var(--rs)',
                 border: '1px solid var(--bd)', background: 'none', color: 'var(--t3)',
@@ -278,31 +316,13 @@ export default function PostPage() {
               }}>
                 <Link2 size={11} /><span>Copy link</span>
               </motion.button>
-
-              <ShareButton postId={post.id} />
               {!isOwner && <ReportButton postId={post.id} />}
               {!isOwner && <BlockButton ghostId={post.ghost_id} />}
-
-              {isOwner && (
-                <button onClick={() => {
-                  toast('Delete this post?', {
-                    action: { label: 'Yes, delete', onClick: async () => {
-                      const res = await fetch('/api/posts/delete', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ postId: post.id }) })
-                      const data = await res.json()
-                      if (data.success) { toast.success('Post deleted'); window.location.href = '/' }
-                    }},
-                    cancel: { label: 'Cancel', onClick: () => {} },
-                  })
-                }} style={{ color: 'var(--rose)', border: '1px solid rgba(225,29,72,.25)', background: 'var(--rose-d)', borderRadius: 'var(--rs)', padding: '5px 8px', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-                  <Trash2 size={12} />
-                </button>
-              )}
             </div>
           </div>
 
           {/* ═══ CARD 2 — REPLIES ═══ */}
           <div style={{ background: 'var(--sur)', border: '1px solid var(--bd)', borderRadius: 'var(--rm)', marginBottom: 16, overflow: 'hidden' }}>
-            {/* Replies header */}
             <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '14px 18px', borderBottom: '1px solid var(--bd)' }}>
               <span style={{ fontSize: '.875rem', fontWeight: 700, color: 'var(--t1)' }}>Replies</span>
               {replies.length > 1 && (
@@ -319,8 +339,6 @@ export default function PostPage() {
                 </div>
               )}
             </div>
-
-            {/* Replies list */}
             {sortedReplies.length > 0 ? sortedReplies.map((reply: any, i: number) => (
               <motion.div key={reply.id} initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: i * 0.04, duration: 0.25 }}
                 style={{ padding: '13px 18px', borderBottom: i < sortedReplies.length - 1 ? '1px solid var(--bd)' : 'none' }}>
@@ -343,16 +361,19 @@ export default function PostPage() {
                 </button>
               </motion.div>
             )) : (
-              <p style={{ textAlign: 'center', color: 'var(--t4)', fontSize: '.875rem', padding: '32px 18px' }}>No replies yet. Be the first.</p>
+              <p style={{ textAlign: 'center', color: 'var(--t4)', fontSize: '.875rem', padding: '24px 18px' }}>No replies yet. Be the first.</p>
             )}
           </div>
 
-          {/* ═══ CARD 3 — REPLY COMPOSER ═══ */}
+          {/* ═══ CARD 3 — COMPOSER ═══ */}
           <div style={{ background: 'var(--sur)', border: '1px solid var(--bd)', borderRadius: 'var(--rm)', overflow: 'hidden', marginBottom: 16 }}>
-            {sessionUserId ? (
+            {sessionLoaded && sessionUserId ? (
               <>
-                <textarea placeholder="Write a reply…" value={body} onChange={e => setBody(e.target.value.slice(0, 1000))} className="auto-dir"
-                  style={{ width: '100%', fontSize: '.875rem', color: 'var(--t1)', background: 'transparent', border: 'none', outline: 'none', resize: 'none', minHeight: 80, padding: '16px 18px', lineHeight: 1.6, fontFamily: 'inherit' }}
+                <p style={{ padding: '10px 18px 0', fontSize: '.75rem', color: 'var(--t4)' }}>
+                  {isOwner ? 'Add an update to your post' : 'Write a reply — always anonymous'}
+                </p>
+                <textarea ref={composerRef} placeholder={isOwner ? 'Add an update...' : 'Write a reply…'} value={body} onChange={e => setBody(e.target.value.slice(0, 1000))} className="auto-dir"
+                  style={{ width: '100%', fontSize: '.875rem', color: 'var(--t1)', background: 'transparent', border: 'none', outline: 'none', resize: 'none', minHeight: 80, padding: '12px 18px', lineHeight: 1.6, fontFamily: 'inherit' }}
                 />
                 <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '10px 18px', borderTop: '1px solid var(--bd)' }}>
                   <span style={{ fontSize: '.72rem', fontFamily: 'monospace', color: (1000 - body.length) <= 20 ? 'var(--rose)' : 'var(--t4)' }}>{1000 - body.length}</span>
@@ -360,14 +381,13 @@ export default function PostPage() {
                     fontSize: '.8rem', fontWeight: 600, padding: '7px 18px', borderRadius: 'var(--r)',
                     background: body.trim() ? 'var(--blue)' : 'var(--bd)', color: body.trim() ? '#fff' : 'var(--t4)', border: 'none',
                     cursor: body.trim() ? 'pointer' : 'not-allowed', fontFamily: 'inherit',
-                  }}>{submitting ? '...' : 'Reply anonymously'}</button>
+                  }}>{submitting ? '...' : isOwner ? 'Post update' : 'Reply anonymously'}</button>
                 </div>
               </>
             ) : sessionLoaded ? (
               <div style={{ padding: 24, textAlign: 'center' }}>
-                <Ghost size={28} style={{ color: 'var(--t4)', opacity: 0.3, margin: '0 auto 10px', display: 'block' }} />
-                <p style={{ fontSize: '.9rem', fontWeight: 600, color: 'var(--t1)', marginBottom: 6 }}>Sign in to join the conversation</p>
-                <p style={{ fontSize: '.78rem', color: 'var(--t4)', marginBottom: 16 }}>Your reply is always anonymous</p>
+                <p style={{ fontSize: '.9rem', fontWeight: 600, color: 'var(--t1)', marginBottom: 6 }}>Join the conversation</p>
+                <p style={{ fontSize: '.78rem', color: 'var(--t4)', marginBottom: 16 }}>Every reply is anonymous</p>
                 <div style={{ display: 'flex', gap: 10, justifyContent: 'center' }}>
                   <a href="/auth?signin=1" style={{ border: '1px solid var(--bd)', color: 'var(--t2)', background: 'none', padding: '8px 20px', borderRadius: 'var(--r)', fontSize: '.875rem', fontWeight: 600, textDecoration: 'none', display: 'inline-block' }}>Log in</a>
                   <a href="/auth" style={{ background: 'var(--blue)', color: '#fff', padding: '8px 20px', borderRadius: 'var(--r)', fontSize: '.875rem', fontWeight: 600, textDecoration: 'none', display: 'inline-block', border: 'none' }}>Sign up</a>
@@ -378,16 +398,12 @@ export default function PostPage() {
 
         </motion.div>
 
-        {/* Related posts */}
         {related.length > 0 && (
           <div style={{ marginTop: 4 }}>
             <p style={{ fontSize: '.75rem', fontWeight: 700, color: 'var(--t4)', textTransform: 'uppercase', letterSpacing: '.06em', marginBottom: 8 }}>Related posts</p>
             <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
               {related.map(p => (
-                <a key={p.id} href={'/post/' + p.id} style={{
-                  background: 'var(--sur)', border: '1px solid var(--bd)', borderRadius: 'var(--r)',
-                  padding: '10px 12px', textDecoration: 'none', display: 'block',
-                }}>
+                <a key={p.id} href={'/post/' + p.id} style={{ background: 'var(--sur)', border: '1px solid var(--bd)', borderRadius: 'var(--r)', padding: '10px 12px', textDecoration: 'none', display: 'block' }}>
                   <p style={{ fontSize: '.8rem', fontWeight: 600, color: 'var(--t1)', marginBottom: 4, lineHeight: 1.4 }}>{p.title}</p>
                   <div style={{ display: 'flex', gap: 8, alignItems: 'center' }}>
                     <span style={{ fontSize: '.65rem', color: 'var(--t4)' }}>{p.upvotes} upvotes</span>
