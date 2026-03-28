@@ -20,18 +20,23 @@ export async function GET() {
       supabase.from('replies').select('id', { count: 'exact', head: true }),
     ])
 
-    // Posts per day — last 14 days
+    // Posts per day — last 14 days (batch fetch, then bucket)
+    const fourteenDaysAgo = subDays(new Date(), 14)
+    fourteenDaysAgo.setHours(0, 0, 0, 0)
+    const { data: recentPosts } = await supabase
+      .from('posts').select('created_at')
+      .eq('is_deleted', false)
+      .gte('created_at', fourteenDaysAgo.toISOString())
+    const dayBuckets: Record<string, number> = {}
+    for (const p of recentPosts || []) {
+      const key = format(new Date(p.created_at), 'MMM d')
+      dayBuckets[key] = (dayBuckets[key] || 0) + 1
+    }
     const postsPerDay: { date: string, count: number }[] = []
     for (let i = 13; i >= 0; i--) {
       const d = subDays(new Date(), i)
-      const start = new Date(d); start.setHours(0, 0, 0, 0)
-      const end = new Date(d); end.setHours(23, 59, 59, 999)
-      const { count } = await supabase
-        .from('posts').select('id', { count: 'exact', head: true })
-        .eq('is_deleted', false)
-        .gte('created_at', start.toISOString())
-        .lte('created_at', end.toISOString())
-      postsPerDay.push({ date: format(d, 'MMM d'), count: count || 0 })
+      const key = format(d, 'MMM d')
+      postsPerDay.push({ date: key, count: dayBuckets[key] || 0 })
     }
 
     // Top 6 categories
@@ -70,17 +75,22 @@ export async function GET() {
       { name: 'Top', value: trustCounts.top },
     ]
 
-    // Reports per day — last 7 days
+    // Reports per day — last 7 days (batch fetch, then bucket)
+    const sevenDaysAgo = subDays(new Date(), 7)
+    sevenDaysAgo.setHours(0, 0, 0, 0)
+    const { data: recentReports } = await supabase
+      .from('reports').select('created_at')
+      .gte('created_at', sevenDaysAgo.toISOString())
+    const reportBuckets: Record<string, number> = {}
+    for (const r of recentReports || []) {
+      const key = format(new Date(r.created_at), 'MMM d')
+      reportBuckets[key] = (reportBuckets[key] || 0) + 1
+    }
     const reportsPerDay: { date: string, count: number }[] = []
     for (let i = 6; i >= 0; i--) {
       const d = subDays(new Date(), i)
-      const start = new Date(d); start.setHours(0, 0, 0, 0)
-      const end = new Date(d); end.setHours(23, 59, 59, 999)
-      const { count } = await supabase
-        .from('reports').select('id', { count: 'exact', head: true })
-        .gte('created_at', start.toISOString())
-        .lte('created_at', end.toISOString())
-      reportsPerDay.push({ date: format(d, 'MMM d'), count: count || 0 })
+      const key = format(d, 'MMM d')
+      reportsPerDay.push({ date: key, count: reportBuckets[key] || 0 })
     }
 
     // Recent activity — last 10

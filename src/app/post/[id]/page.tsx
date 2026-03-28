@@ -37,6 +37,7 @@ export default function PostPage() {
   const [replyUpvotes, setReplyUpvotes] = useState<Record<string, number>>({})
   const [votedReplies, setVotedReplies] = useState<Set<string>>(new Set())
   const [related, setRelated] = useState<any[]>([])
+  const [replySort, setReplySort] = useState<'best' | 'new'>('best')
 
   useEffect(() => {
     Promise.all([
@@ -65,20 +66,15 @@ export default function PostPage() {
       setUserReaction(reactionData.userReaction || null)
     })
 
-    // Fetch post data
     fetch(`/api/posts/replies?postId=${id}`).then(r => r.json()).then(d => {
       setReplies(d.replies || [])
     })
 
-    // We need a way to get the post. Use a simple fetch approach
     fetchPost()
   }, [id])
 
   async function fetchPost() {
-    // Fetch the post directly from feed by searching
     const res = await fetch(`/api/posts/related?postId=none&categoryId=0`)
-    // Actually, let's just get the post from supabase via a simple endpoint approach
-    // We can use the search endpoint or create a direct fetch
     const searchRes = await fetch(`/api/posts/feed?offset=0&limit=100`)
     const data = await searchRes.json()
     const allPosts = [...(data.posts || []), data.pinnedPost, data.postOfDay].filter(Boolean)
@@ -91,7 +87,6 @@ export default function PostPage() {
           .then(r => r.json()).then(d => setRelated(d.posts || []))
       }
     } else {
-      // Fallback: try to get via view endpoint
       setLoading(false)
     }
   }
@@ -174,56 +169,70 @@ export default function PostPage() {
     </main>
   )
 
+  const isOwner = user && post.user_id === user.id
+  const sortedReplies = [...replies].sort((a, b) => replySort === 'best' ? ((b.upvotes || 0) - (a.upvotes || 0)) : 0)
+
+  const totalReactions = Object.values(reactionCounts).reduce((s, c) => s + c, 0)
+  const showAllReactions = totalReactions === 0 && !userReaction
+  const filteredReactions = showAllReactions ? REACTIONS : REACTIONS.filter(r => (reactionCounts[r.key] || 0) > 0 || userReaction === r.key)
+  const reactionsToShow = filteredReactions.length === 0 ? REACTIONS : filteredReactions
+
+  const stats = [
+    { value: post.upvotes || 0, label: 'UPVOTES' },
+    { value: replies.length, label: 'REPLIES' },
+    { value: viewCount >= 1000 ? (viewCount / 1000).toFixed(1) + 'k' : viewCount, label: 'VIEWS' },
+    { value: timeAgo(post.created_at), label: 'POSTED' },
+  ]
+
   return (
     <main style={{ minHeight: '100dvh', background: 'var(--bg)', display: 'flex', flexDirection: 'column' }}>
       <Nav />
       <div style={{ flex: 1, maxWidth: 680, margin: '0 auto', padding: '20px', width: '100%' }}>
+        {/* Back link */}
         <a href="/" style={{ fontSize: '.8rem', color: 'var(--blue)', display: 'inline-flex', alignItems: 'center', gap: 4, marginBottom: 16, textDecoration: 'none' }}>
           <ArrowLeft size={14} /> Back to feed
         </a>
 
         <motion.div initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.3 }}>
-          <div style={{ background: 'var(--sur)', border: '1px solid var(--bd)', borderRadius: 'var(--rm)', padding: '20px', marginBottom: 16 }}>
-            <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 14, flexWrap: 'wrap' }}>
-              <span style={{ fontSize: '.6rem', fontWeight: 700, letterSpacing: '.06em', textTransform: 'uppercase', color: 'var(--blue)', background: 'var(--blue-d)', padding: '2px 7px', borderRadius: 3 }}>{post.categories?.name}</span>
-              <span style={{
-                fontFamily: 'monospace', fontSize: '.68rem', color: 'var(--t3)',
-                background: 'var(--bg)', padding: '2px 8px', borderRadius: 4,
-                border: '1px solid var(--bd)', fontWeight: 600,
-                display: 'flex', alignItems: 'center', gap: 4,
-              }}>
-                <Ghost size={10} />{post.ghost_id}
-              </span>
-              {user && post.user_id === user.id && (
-                <button onClick={() => {
-                  toast('Delete this post?', {
-                    action: { label: 'Yes, delete', onClick: async () => {
-                      const res = await fetch('/api/posts/delete', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ postId: post.id }) })
-                      const data = await res.json()
-                      if (data.success) { toast.success('Post deleted'); window.location.href = '/' }
-                    }},
-                    cancel: { label: 'Cancel', onClick: () => {} },
-                  })
-                }} style={{ background: 'none', border: 'none', cursor: 'pointer', padding: 2, color: 'var(--rose)', display: 'flex', alignItems: 'center' }}>
-                  <Trash2 size={13} />
-                </button>
-              )}
-              <FollowButton ghostId={post.ghost_id} />
-              <div style={{ display: 'flex', alignItems: 'center', gap: 6, marginLeft: 'auto' }}>
-                <div style={{ display: 'flex', alignItems: 'center', gap: 4 }}>
+
+          {/* ═══ CARD 1 — THE POST ═══ */}
+          <div style={{ background: 'var(--sur)', border: '1px solid var(--bd)', borderRadius: 'var(--rm)', marginBottom: 16 }}>
+
+            {/* Section 1: Post Header */}
+            <div style={{ padding: '16px 18px 14px', borderBottom: '1px solid var(--bd)' }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: 8, flexWrap: 'wrap', marginBottom: 12 }}>
+                <span style={{ fontSize: '.6rem', fontWeight: 700, letterSpacing: '.06em', textTransform: 'uppercase', color: 'var(--blue)', background: 'var(--blue-d)', padding: '2px 7px', borderRadius: 3 }}>{post.categories?.name}</span>
+                <span style={{ fontFamily: 'monospace', fontSize: '.68rem', color: 'var(--t3)', background: 'var(--bg)', padding: '2px 8px', borderRadius: 4, border: '1px solid var(--bd)', fontWeight: 600, display: 'flex', alignItems: 'center', gap: 4 }}>
+                  <Ghost size={10} />{post.ghost_id}
+                </span>
+                <FollowButton ghostId={post.ghost_id} />
+                <div style={{ display: 'flex', alignItems: 'center', gap: 4, marginLeft: 'auto' }}>
                   <Eye size={12} style={{ color: 'var(--t4)' }} />
-                  <span style={{ fontSize: '.7rem', color: 'var(--t4)' }}>{viewCount}</span>
+                  <span style={{ fontSize: '.72rem', color: 'var(--t4)' }}>{viewCount}</span>
                 </div>
-                <span style={{ fontFamily: 'monospace', fontSize: '.65rem', color: 'var(--t4)' }}>{timeAgo(post.created_at)}</span>
+                <span style={{ fontSize: '.72rem', color: 'var(--t4)', fontFamily: 'monospace' }}>{timeAgo(post.created_at)}</span>
               </div>
+
+              <h1 className="auto-dir" style={{ fontSize: '1.25rem', fontWeight: 900, color: 'var(--t1)', marginBottom: 10, lineHeight: 1.35, letterSpacing: '-.02em' }}>{post.title}</h1>
+              {post.body && <p className="auto-dir" style={{ fontSize: '.9375rem', color: 'var(--t2)', lineHeight: 1.8 }}>{post.body}</p>}
+              {post.gif_url && (
+                <img src={post.gif_url} alt="" loading="lazy" style={{ maxHeight: 240, borderRadius: 'var(--rs)', objectFit: 'cover', marginTop: 10, display: 'block' }} />
+              )}
             </div>
 
-            <h1 className="auto-dir" style={{ fontSize: '1.25rem', fontWeight: 900, color: 'var(--t1)', marginBottom: 10, lineHeight: 1.35, letterSpacing: '-.02em' }}>{post.title}</h1>
-            {post.body && <p className="auto-dir" style={{ fontSize: '.9375rem', color: 'var(--t2)', lineHeight: 1.8, marginBottom: 16 }}>{post.body}</p>}
+            {/* Section 2: Stats Row */}
+            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', borderBottom: '1px solid var(--bd)' }}>
+              {stats.map((s, i) => (
+                <div key={s.label} style={{ padding: '12px 0', textAlign: 'center', borderRight: i < 3 ? '1px solid var(--bd)' : 'none' }}>
+                  <span style={{ fontSize: '1rem', fontWeight: 700, color: 'var(--t1)', display: 'block', lineHeight: 1 }}>{s.value}</span>
+                  <span style={{ fontSize: '.6rem', fontWeight: 600, textTransform: 'uppercase', letterSpacing: '.06em', color: 'var(--t4)', display: 'block', marginTop: 3 }}>{s.label}</span>
+                </div>
+              ))}
+            </div>
 
-            {/* Reactions */}
-            <div style={{ display: 'flex', gap: 6, paddingTop: 10, flexWrap: 'wrap' }}>
-              {REACTIONS.map(r => {
+            {/* Section 3: Reactions */}
+            <div style={{ padding: '12px 18px', borderBottom: '1px solid var(--bd)', display: 'flex', gap: 6, flexWrap: 'wrap' }}>
+              {reactionsToShow.map(r => {
                 const selected = userReaction === r.key
                 return (
                   <motion.button key={r.key} whileTap={{ scale: 0.88 }} onClick={() => react(r.key)} style={{
@@ -233,95 +242,142 @@ export default function PostPage() {
                     cursor: 'pointer', fontSize: '.78rem', fontFamily: 'inherit',
                     color: selected ? r.color : 'var(--t3)', fontWeight: 600, transition: 'all .15s',
                   }}>
-                    <span>{r.emoji}</span><span>{r.label}</span>
+                    <span>{r.emoji}</span><span className="reaction-label">{r.label}</span>
                     {(reactionCounts[r.key] || 0) > 0 && <span style={{ fontSize: '.68rem', opacity: 0.7 }}>{reactionCounts[r.key]}</span>}
                   </motion.button>
                 )
               })}
             </div>
 
-            {/* Action bar */}
-            <div style={{ display: 'flex', gap: 6, paddingTop: 14, borderTop: '1px solid var(--bd)', marginTop: 12, alignItems: 'center', flexWrap: 'wrap' }}>
+            {/* Section 4: Action Bar */}
+            <div style={{ padding: '12px 18px', display: 'flex', alignItems: 'center', gap: 6, flexWrap: 'wrap' }}>
               <UpvoteButton postId={post.id} upvotes={post.upvotes} />
               <span style={{ fontSize: '.75rem', color: 'var(--t4)', display: 'flex', alignItems: 'center', gap: 4 }}>
                 <MessageCircle size={12} />{replies.length}
               </span>
-              <div style={{ display: 'flex', gap: 5, flexWrap: 'wrap', marginLeft: 'auto' }}>
-                <motion.button whileTap={{ scale: 0.95 }} onClick={toggleBookmark} style={{
-                  fontSize: '.72rem', fontWeight: 600, padding: '6px 10px', borderRadius: 'var(--rs)',
-                  border: `1px solid ${bookmarked ? 'var(--blue)' : 'var(--bd)'}`,
-                  background: bookmarked ? 'var(--blue-d)' : 'none',
-                  color: bookmarked ? 'var(--blue)' : 'var(--t3)',
-                  cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 5, fontFamily: 'inherit',
-                }}>
-                  <Bookmark size={11} fill={bookmarked ? 'currentColor' : 'none'} />{bookmarked ? 'Saved' : 'Save'}
-                </motion.button>
-                <motion.button whileTap={{ scale: 0.95 }} onClick={copyLink} style={{
-                  fontSize: '.72rem', fontWeight: 600, padding: '6px 10px', borderRadius: 'var(--rs)',
-                  border: '1px solid var(--bd)', background: 'none', color: 'var(--t3)',
-                  cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 5, fontFamily: 'inherit',
-                }}>
-                  <Link2 size={11} />Copy link
-                </motion.button>
-                <ShareButton postId={post.id} />
-                <ReportButton postId={post.id} />
-                <BlockButton ghostId={post.ghost_id} />
-              </div>
-            </div>
-          </div>
-        </motion.div>
 
-        {/* Reply composer */}
-        {user ? (
-          <div style={{ background: 'var(--sur)', border: '1px solid var(--bd)', borderRadius: 'var(--rm)', padding: '14px', marginBottom: 16 }}>
-            <textarea placeholder="Write a reply…" value={body} onChange={e => setBody(e.target.value)} rows={3} className="auto-dir"
-              style={{ width: '100%', fontSize: '.875rem', color: 'var(--t1)', background: 'none', border: 'none', outline: 'none', resize: 'none', lineHeight: 1.6, fontFamily: 'inherit', marginBottom: 8 }}
-            />
-            <div style={{ display: 'flex', justifyContent: 'flex-end', paddingTop: 8, borderTop: '1px solid var(--bd)' }}>
-              <button onClick={submitReply} disabled={!body.trim() || submitting} style={{
-                fontSize: '.8rem', fontWeight: 600, padding: '7px 16px', borderRadius: 'var(--r)',
-                background: body.trim() ? 'var(--blue)' : 'var(--bd)', color: '#fff', border: 'none',
-                cursor: body.trim() ? 'pointer' : 'not-allowed', fontFamily: 'inherit',
-              }}>{submitting ? '...' : 'Reply anonymously'}</button>
-            </div>
-          </div>
-        ) : (
-          <div style={{ background: 'var(--sur)', border: '1px solid var(--bd)', borderRadius: 'var(--rm)', padding: '14px', marginBottom: 16, textAlign: 'center' }}>
-            <a href="/auth" style={{ fontSize: '.875rem', color: 'var(--blue)', fontWeight: 600 }}>Sign in to reply</a>
-          </div>
-        )}
+              <span style={{ flex: 1 }} />
 
-        {/* Replies */}
-        <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
-          {replies.length > 0 ? replies.map((reply: any, i: number) => (
-            <motion.div key={reply.id} initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: i * 0.04, duration: 0.25 }}
-              style={{ background: 'var(--sur)', border: '1px solid var(--bd)', borderRadius: 'var(--r)', padding: '13px 15px' }}>
-              <div style={{ display: 'flex', alignItems: 'center', gap: 6, marginBottom: 7 }}>
-                <Ghost size={11} style={{ color: 'var(--t4)' }} />
-                <span style={{ fontFamily: 'monospace', fontSize: '.7rem', color: 'var(--t4)' }}>{reply.ghost_id}</span>
-                <span style={{ fontFamily: 'monospace', fontSize: '.65rem', color: 'var(--t4)', marginLeft: 'auto' }}>{timeAgo(reply.created_at)}</span>
-              </div>
-              <p className="auto-dir" style={{ fontSize: '.875rem', color: 'var(--t2)', lineHeight: 1.7, marginBottom: 10 }}>{reply.body}</p>
-              <button onClick={() => upvoteReply(reply.id)} style={{
-                display: 'flex', alignItems: 'center', gap: 4, padding: '4px 9px', borderRadius: 'var(--rs)',
-                border: `1px solid ${votedReplies.has(reply.id) ? 'var(--blue)' : 'var(--bd)'}`,
-                background: votedReplies.has(reply.id) ? 'var(--blue)' : 'none',
-                color: votedReplies.has(reply.id) ? '#fff' : 'var(--t4)',
-                fontSize: '.75rem', fontWeight: 600,
-                cursor: votedReplies.has(reply.id) ? 'default' : 'pointer',
-                fontFamily: 'inherit'
+              <motion.button whileTap={{ scale: 0.95 }} onClick={toggleBookmark} style={{
+                fontSize: '.72rem', fontWeight: 600, padding: '5px 8px', borderRadius: 'var(--rs)',
+                border: `1px solid ${bookmarked ? 'var(--blue)' : 'var(--bd)'}`,
+                background: bookmarked ? 'var(--blue-d)' : 'none',
+                color: bookmarked ? 'var(--blue)' : 'var(--t3)',
+                cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 4, fontFamily: 'inherit',
               }}>
-                <ArrowUp size={11} />{replyUpvotes[reply.id] ?? reply.upvotes ?? 0}
-              </button>
-            </motion.div>
-          )) : (
-            <p style={{ textAlign: 'center', color: 'var(--t4)', fontSize: '.875rem', padding: '24px 0' }}>No replies yet. Be the first.</p>
-          )}
-        </div>
+                <Bookmark size={11} fill={bookmarked ? 'currentColor' : 'none'} /><span className="action-label">{bookmarked ? 'Saved' : 'Save'}</span>
+              </motion.button>
+
+              <motion.button whileTap={{ scale: 0.95 }} onClick={copyLink} className="action-label" style={{
+                fontSize: '.72rem', fontWeight: 600, padding: '5px 8px', borderRadius: 'var(--rs)',
+                border: '1px solid var(--bd)', background: 'none', color: 'var(--t3)',
+                cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 4, fontFamily: 'inherit',
+              }}>
+                <Link2 size={11} /><span>Copy link</span>
+              </motion.button>
+
+              <ShareButton postId={post.id} />
+              <ReportButton postId={post.id} />
+              <BlockButton ghostId={post.ghost_id} />
+
+              {isOwner && (
+                <button onClick={() => {
+                  toast('Delete this post?', {
+                    action: { label: 'Yes, delete', onClick: async () => {
+                      const res = await fetch('/api/posts/delete', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ postId: post.id }) })
+                      const data = await res.json()
+                      if (data.success) { toast.success('Post deleted'); window.location.href = '/' }
+                    }},
+                    cancel: { label: 'Cancel', onClick: () => {} },
+                  })
+                }} style={{ color: 'var(--rose)', border: '1px solid rgba(225,29,72,.25)', background: 'var(--rose-d)', borderRadius: 'var(--rs)', padding: '5px 8px', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                  <Trash2 size={12} />
+                </button>
+              )}
+            </div>
+          </div>
+
+          {/* ═══ CARD 2 — REPLIES ═══ */}
+          <div style={{ background: 'var(--sur)', border: '1px solid var(--bd)', borderRadius: 'var(--rm)', marginBottom: 16, overflow: 'hidden' }}>
+            {/* Replies header */}
+            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '14px 18px', borderBottom: '1px solid var(--bd)' }}>
+              <span style={{ fontSize: '.875rem', fontWeight: 700, color: 'var(--t1)' }}>Replies</span>
+              {replies.length > 1 && (
+                <div style={{ display: 'flex', gap: 2, background: 'var(--bg)', border: '1px solid var(--bd)', borderRadius: 'var(--r)', padding: 2 }}>
+                  {(['best', 'new'] as const).map(m => (
+                    <button key={m} onClick={() => setReplySort(m)} style={{
+                      fontSize: '.72rem', fontWeight: replySort === m ? 600 : 500, padding: '4px 12px',
+                      borderRadius: 'calc(var(--r) - 2px)', border: 'none', cursor: 'pointer', fontFamily: 'inherit',
+                      background: replySort === m ? 'var(--sur)' : 'transparent',
+                      color: replySort === m ? 'var(--t1)' : 'var(--t3)',
+                      boxShadow: replySort === m ? '0 1px 3px rgba(0,0,0,.07)' : 'none',
+                    }}>{m === 'best' ? 'Best' : 'New'}</button>
+                  ))}
+                </div>
+              )}
+            </div>
+
+            {/* Replies list */}
+            {sortedReplies.length > 0 ? sortedReplies.map((reply: any, i: number) => (
+              <motion.div key={reply.id} initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: i * 0.04, duration: 0.25 }}
+                style={{ padding: '13px 18px', borderBottom: i < sortedReplies.length - 1 ? '1px solid var(--bd)' : 'none' }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: 6, marginBottom: 7 }}>
+                  <Ghost size={11} style={{ color: 'var(--t4)' }} />
+                  <span style={{ fontFamily: 'monospace', fontSize: '.7rem', color: 'var(--t3)' }}>{reply.ghost_id}</span>
+                  <span style={{ fontFamily: 'monospace', fontSize: '.65rem', color: 'var(--t4)', marginLeft: 'auto' }}>{timeAgo(reply.created_at)}</span>
+                </div>
+                <p className="auto-dir" style={{ fontSize: '.875rem', color: 'var(--t2)', lineHeight: 1.7, marginBottom: 8 }}>{reply.body}</p>
+                <button onClick={() => upvoteReply(reply.id)} style={{
+                  display: 'flex', alignItems: 'center', gap: 4, padding: '4px 9px', borderRadius: 'var(--rs)',
+                  border: `1px solid ${votedReplies.has(reply.id) ? 'var(--blue)' : 'var(--bd)'}`,
+                  background: votedReplies.has(reply.id) ? 'var(--blue)' : 'none',
+                  color: votedReplies.has(reply.id) ? '#fff' : 'var(--t4)',
+                  fontSize: '.75rem', fontWeight: 600,
+                  cursor: votedReplies.has(reply.id) ? 'default' : 'pointer',
+                  fontFamily: 'inherit'
+                }}>
+                  <ArrowUp size={11} />{replyUpvotes[reply.id] ?? reply.upvotes ?? 0}
+                </button>
+              </motion.div>
+            )) : (
+              <p style={{ textAlign: 'center', color: 'var(--t4)', fontSize: '.875rem', padding: '32px 18px' }}>No replies yet. Be the first.</p>
+            )}
+          </div>
+
+          {/* ═══ CARD 3 — REPLY COMPOSER ═══ */}
+          <div style={{ background: 'var(--sur)', border: '1px solid var(--bd)', borderRadius: 'var(--rm)', overflow: 'hidden', marginBottom: 16 }}>
+            {user ? (
+              <>
+                <textarea placeholder="Write a reply…" value={body} onChange={e => setBody(e.target.value.slice(0, 1000))} className="auto-dir"
+                  style={{ width: '100%', fontSize: '.875rem', color: 'var(--t1)', background: 'transparent', border: 'none', outline: 'none', resize: 'none', minHeight: 80, padding: '16px 18px', lineHeight: 1.6, fontFamily: 'inherit' }}
+                />
+                <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '10px 18px', borderTop: '1px solid var(--bd)' }}>
+                  <span style={{ fontSize: '.72rem', fontFamily: 'monospace', color: (1000 - body.length) <= 20 ? 'var(--rose)' : 'var(--t4)' }}>{1000 - body.length}</span>
+                  <button onClick={submitReply} disabled={!body.trim() || submitting} style={{
+                    fontSize: '.8rem', fontWeight: 600, padding: '7px 18px', borderRadius: 'var(--r)',
+                    background: body.trim() ? 'var(--blue)' : 'var(--bd)', color: body.trim() ? '#fff' : 'var(--t4)', border: 'none',
+                    cursor: body.trim() ? 'pointer' : 'not-allowed', fontFamily: 'inherit',
+                  }}>{submitting ? '...' : 'Reply anonymously'}</button>
+                </div>
+              </>
+            ) : (
+              <div style={{ padding: 24, textAlign: 'center' }}>
+                <Ghost size={28} style={{ color: 'var(--t4)', opacity: 0.3, margin: '0 auto 10px', display: 'block' }} />
+                <p style={{ fontSize: '.9rem', fontWeight: 600, color: 'var(--t1)', marginBottom: 6 }}>Sign in to join the conversation</p>
+                <p style={{ fontSize: '.78rem', color: 'var(--t4)', marginBottom: 16 }}>Your reply is always anonymous</p>
+                <div style={{ display: 'flex', gap: 10, justifyContent: 'center' }}>
+                  <a href="/auth?signin=1" style={{ border: '1px solid var(--bd)', color: 'var(--t2)', background: 'none', padding: '8px 20px', borderRadius: 'var(--r)', fontSize: '.875rem', fontWeight: 600, textDecoration: 'none', display: 'inline-block' }}>Log in</a>
+                  <a href="/auth" style={{ background: 'var(--blue)', color: '#fff', padding: '8px 20px', borderRadius: 'var(--r)', fontSize: '.875rem', fontWeight: 600, textDecoration: 'none', display: 'inline-block', border: 'none' }}>Sign up</a>
+                </div>
+              </div>
+            )}
+          </div>
+
+        </motion.div>
 
         {/* Related posts */}
         {related.length > 0 && (
-          <div style={{ marginTop: 20 }}>
+          <div style={{ marginTop: 4 }}>
             <p style={{ fontSize: '.75rem', fontWeight: 700, color: 'var(--t4)', textTransform: 'uppercase', letterSpacing: '.06em', marginBottom: 8 }}>Related posts</p>
             <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
               {related.map(p => (

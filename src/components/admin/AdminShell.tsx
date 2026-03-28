@@ -53,7 +53,7 @@ export default function AdminShell({ admin, flaggedPosts, allUsers, activityLogs
   postsPerDay: any[]
   usersPerDay: any[]
   categoryStats: any[]
-  stats: { totalPosts: number, totalUsers: number, totalReports: number }
+  stats: { totalPosts: number, totalUsers: number, totalReports: number, activeToday: number }
 }) {
   const [active, setActive] = useState('overview')
   const [collapsed, setCollapsed] = useState(false)

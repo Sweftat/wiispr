@@ -275,7 +275,7 @@ function PostCard({ post, onOpen, onTagClick, followedGhosts }: { post: any, onO
             <Flame size={10} /> Hot
           </span>
         )}
-        <span onClick={e => e.stopPropagation()}>
+        <span className="nav-follow" onClick={e => e.stopPropagation()}>
           <FollowButton ghostId={post.ghost_id} />
         </span>
         <span style={{ fontFamily: 'monospace', fontSize: '.65rem', color: 'var(--t4)', marginLeft: 'auto' }}>{timeAgo(post.created_at)}</span>
@@ -415,7 +415,7 @@ function InlineReplyDrawer({ postId, onOpenPanel }: { postId: string, onOpenPane
           cursor: 'pointer', fontFamily: 'inherit', fontWeight: 600, marginBottom: 10, padding: 0,
         }}>Show all replies →</button>
 
-        {loggedIn && (
+        {loggedIn ? (
           <div style={{ display: 'flex', gap: 6, alignItems: 'flex-end' }}>
             <div style={{ flex: 1, position: 'relative' }}>
               <textarea
@@ -442,6 +442,13 @@ function InlineReplyDrawer({ postId, onOpenPanel }: { postId: string, onOpenPane
               color: '#fff', border: 'none', cursor: replyBody.trim() ? 'pointer' : 'not-allowed',
               fontFamily: 'inherit', whiteSpace: 'nowrap',
             }}>Reply</button>
+          </div>
+        ) : (
+          <div style={{ textAlign: 'center', padding: '8px 0' }}>
+            <div style={{ display: 'flex', gap: 8, justifyContent: 'center' }}>
+              <a href="/auth?signin=1" style={{ border: '1px solid var(--bd)', color: 'var(--t2)', background: 'none', padding: '5px 14px', borderRadius: 'var(--rs)', fontSize: '.75rem', fontWeight: 600, textDecoration: 'none' }}>Sign in</a>
+              <a href="/auth" style={{ background: 'var(--blue)', color: '#fff', padding: '5px 14px', borderRadius: 'var(--rs)', fontSize: '.75rem', fontWeight: 600, textDecoration: 'none', border: 'none' }}>Join free</a>
+            </div>
           </div>
         )}
       </div>
@@ -798,8 +805,8 @@ export default function Feed({ initialPosts, initialPinnedPost, initialPostOfDay
                             cancel: 'Cancel',
                           })
                         }} style={{
-                          color: 'var(--rose)', border: '1px solid rgba(225,29,72,.25)', background: 'var(--rose-d)',
-                          borderRadius: 'var(--rs)', padding: '5px 8px', cursor: 'pointer', fontFamily: 'inherit',
+                          color: 'var(--rose)', border: 'none', background: 'none',
+                          padding: 2, cursor: 'pointer', fontFamily: 'inherit',
                           display: 'flex', alignItems: 'center', justifyContent: 'center',
                         }}><Trash2 size={13} /></button>
                       )}
@@ -888,7 +895,11 @@ export default function Feed({ initialPosts, initialPinnedPost, initialPostOfDay
                             toast.success('Reply posted')
                             setReplyBody(prev => ({ ...prev, [post.id]: '' }))
                             setReplyGifUrl(prev => { const n = { ...prev }; delete n[post.id]; return n })
-                            if (data.reply) setRepliesCache(prev => ({ ...prev, [post.id]: [...(prev[post.id] || []), data.reply] }))
+                            if (data.reply) {
+                              setRepliesCache(prev => ({ ...prev, [post.id]: [...(prev[post.id] || []), data.reply] }))
+                            } else {
+                              fetch('/api/posts/replies?postId=' + post.id).then(r => r.json()).then(d => setRepliesCache(prev => ({ ...prev, [post.id]: d.replies || [] })))
+                            }
                           } else if (res.status === 401) { toast.error('Sign in to reply') }
                         }}
                         style={{

@@ -25,14 +25,14 @@ export async function POST(req: NextRequest) {
 
   const ghostId = generateGhostId()
 
-  const { error } = await supabase.from('replies').insert({
+  const { data: reply, error } = await supabase.from('replies').insert({
     post_id: postId,
     user_id: userId,
     ghost_id: ghostId,
     body,
     upvotes: 0,
     is_deleted: false
-  })
+  }).select().single()
 
   if (error) return NextResponse.json({ error: error.message }, { status: 500 })
 
@@ -41,5 +41,5 @@ export async function POST(req: NextRequest) {
     addRep(supabase, userId, 2),
   ])
 
-  return NextResponse.json({ success: true })
+  return NextResponse.json({ success: true, reply })
 }

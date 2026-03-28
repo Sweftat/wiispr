@@ -126,8 +126,36 @@ h1, h2, h3 {
   .nav-signin {
     display: none !important;
   }
+  .nav-bell {
+    display: flex !important;
+  }
+  .nav-nickname { display: none !important; }
+  .nav-signout { display: none !important; }
+  .nav-sign-in-link { display: none !important; }
+  .nav-auth-btn {
+    display: flex !important;
+  }
   .nav-join {
-    padding: 5px 10px !important;
+    display: none !important;
+  }
+  .nav-bell {
+    display: flex !important;
+  }
+  .nav-follow {
+    display: none !important;
+  }
+  .online-count {
+    display: none !important;
+  }
+  .desktop-search {
+    display: none !important;
+  }
+  .mobile-search-btn {
+    display: flex !important;
+  }
+  .theme-toggle {
+    width: 58px !important;
+    height: 26px !important;
   }
   .post-card {
     padding: 12px 14px !important;
@@ -153,6 +181,13 @@ h1, h2, h3 {
   .reaction-label {
     display: none !important;
   }
+}
+
+/* Desktop: hide mobile search button, show desktop search */
+.mobile-search-btn { display: none !important; }
+@media (min-width: 641px) {
+  .desktop-search { display: block !important; }
+  .mobile-search-btn { display: none !important; }
 }
 
 @media (max-width: 768px) {
@@ -221,6 +256,22 @@ h1, h2, h3 {
 .post-title {
   font-weight: 900;
   letter-spacing: -.02em;
+}
+
+@media (max-width: 768px) {
+  .settings-area { flex-direction: column !important; }
+  .settings-sidebar {
+    width: 100% !important;
+    border-right: none !important;
+    border-bottom: 1px solid var(--bd) !important;
+    flex-direction: row !important;
+    overflow-x: auto !important;
+    padding: 8px !important;
+    gap: 4px !important;
+    scrollbar-width: none;
+  }
+  .settings-sidebar::-webkit-scrollbar { display: none; }
+  .settings-sidebar .nav-item { white-space: nowrap !important; flex-shrink: 0 !important; }
 }
 
 @supports (-webkit-touch-callout: none) { body { height: -webkit-fill-available; } }

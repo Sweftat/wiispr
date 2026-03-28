@@ -18,11 +18,11 @@ export default function BottomNav() {
   }, [])
 
   const items = [
-    { href: '/',              icon: Home,   label: 'Home',     trending: false },
-    { href: '/search',        icon: Search, label: 'Search',   trending: false },
-    { href: '/trending',      icon: Flame,  label: 'Trending', trending: true },
-    { href: loggedIn ? '/notifications' : '/auth', icon: Bell, label: 'Alerts', badge: unread, trending: false },
-    { href: loggedIn ? '/profile' : '/auth', icon: User, label: 'Profile', trending: false },
+    { href: '/', icon: Home, label: 'Home', key: 'home', trending: false },
+    { href: '/search', icon: Search, label: 'Search', key: 'search', trending: false },
+    { href: '/trending', icon: Flame, label: 'Trending', key: 'trending', trending: true },
+    { href: loggedIn ? '/notifications' : '/auth', icon: Bell, label: 'Alerts', badge: loggedIn ? unread : 0, key: 'alerts', trending: false },
+    { href: loggedIn ? '/profile' : '/auth', icon: User, label: loggedIn ? 'Profile' : 'Sign in', key: 'profile', trending: false },
   ]
 
   return (
@@ -35,9 +35,27 @@ export default function BottomNav() {
         {items.map(item => {
           const Icon = item.icon
           const active = pathname === item.href
+          const isSignInTab = !loggedIn && item.label === 'Sign in'
+
+          if (isSignInTab) {
+            return (
+              <a key={item.key} href={item.href} style={{
+                flex: 1, display: 'flex', flexDirection: 'column',
+                alignItems: 'center', justifyContent: 'center', gap: 3,
+                textDecoration: 'none', position: 'relative',
+              }}>
+                <span style={{
+                  background: 'var(--blue)', color: '#fff',
+                  fontSize: '.7rem', fontWeight: 700,
+                  padding: '5px 12px', borderRadius: 9999,
+                }}>Sign in</span>
+              </a>
+            )
+          }
+
           return (
             <a
-              key={item.href}
+              key={item.key}
               href={item.href}
               style={{
                 flex: 1, display: 'flex', flexDirection: 'column',

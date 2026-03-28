@@ -67,16 +67,57 @@ export default async function AdminPage() {
     .order('created_at', { ascending: false })
     .limit(7)
 
-  const { data: postsPerDay } = await supabase
-    .rpc('get_posts_per_day', { days_back: 30 })
+  // Posts per day - last 30 days
+  const thirtyDaysAgo = new Date()
+  thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30)
+  const { data: rawPosts } = await supabase
+    .from('posts')
+    .select('created_at')
+    .eq('is_deleted', false)
+    .gte('created_at', thirtyDaysAgo.toISOString())
+    .order('created_at', { ascending: true })
 
-  const { data: usersPerDay } = await supabase
-    .rpc('get_users_per_day', { days_back: 30 })
+  const postsByDate: Record<string, number> = {}
+  for (let i = 29; i >= 0; i--) {
+    const d = new Date(); d.setDate(d.getDate() - i)
+    postsByDate[d.toISOString().split('T')[0]] = 0
+  }
+  for (const p of rawPosts || []) {
+    const key = p.created_at.split('T')[0]
+    if (postsByDate[key] !== undefined) postsByDate[key]++
+  }
+  const postsPerDay = Object.entries(postsByDate).map(([date, count]) => ({ date, count }))
+
+  // Users per day - last 30 days
+  const { data: rawUsers } = await supabase
+    .from('users')
+    .select('created_at')
+    .gte('created_at', thirtyDaysAgo.toISOString())
+    .order('created_at', { ascending: true })
+
+  const usersByDate: Record<string, number> = {}
+  for (let i = 29; i >= 0; i--) {
+    const d = new Date(); d.setDate(d.getDate() - i)
+    usersByDate[d.toISOString().split('T')[0]] = 0
+  }
+  for (const u of rawUsers || []) {
+    const key = u.created_at.split('T')[0]
+    if (usersByDate[key] !== undefined) usersByDate[key]++
+  }
+  const usersPerDay = Object.entries(usersByDate).map(([date, count]) => ({ date, count }))
 
   const { data: categoryStats } = await supabase
     .from('posts')
     .select('categories(name)')
     .eq('is_deleted', false)
+
+  // Active today
+  const today = new Date()
+  today.setHours(0, 0, 0, 0)
+  const { count: activeToday } = await supabase
+    .from('activity_logs')
+    .select('user_id', { count: 'exact', head: true })
+    .gte('created_at', today.toISOString())
 
   return (
     <AdminShell
@@ -86,10 +127,10 @@ export default async function AdminPage() {
       activityLogs={activityLogs || []}
       categories={categories || []}
       recentPosts={recentPosts || []}
-      postsPerDay={postsPerDay || []}
-      usersPerDay={usersPerDay || []}
+      postsPerDay={postsPerDay}
+      usersPerDay={usersPerDay}
       categoryStats={categoryStats || []}
-      stats={{ totalPosts: totalPosts || 0, totalUsers: totalUsers || 0, totalReports: totalReports || 0 }}
+      stats={{ totalPosts: totalPosts || 0, totalUsers: totalUsers || 0, totalReports: totalReports || 0, activeToday: activeToday || 0 }}
     />
   )
 }
