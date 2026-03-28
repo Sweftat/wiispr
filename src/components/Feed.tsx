@@ -302,18 +302,34 @@ function PostCard({ post, onOpen, onTagClick, followedGhosts, currentUserId }: {
         )
       })()}
 
-      <CompactReactions postId={post.id} />
+      {post.user_id !== currentUserId && <CompactReactions postId={post.id} />}
 
       <div style={{ display: 'flex', gap: 6, paddingTop: 10, borderTop: '1px solid var(--bd)', alignItems: 'center', marginTop: 8, position: 'relative' }}>
-        <button style={{ fontSize: '.75rem', fontWeight: 600, padding: '5px 10px', borderRadius: 'var(--rs)', border: '1px solid var(--bd)', background: 'none', color: 'var(--t3)', display: 'flex', alignItems: 'center', gap: 4 }}>
-          <ArrowUp size={12} />{post.upvotes}
-        </button>
+        {post.user_id !== currentUserId && (
+          <button style={{ fontSize: '.75rem', fontWeight: 600, padding: '5px 10px', borderRadius: 'var(--rs)', border: '1px solid var(--bd)', background: 'none', color: 'var(--t3)', display: 'flex', alignItems: 'center', gap: 4 }}>
+            <ArrowUp size={12} />{post.upvotes}
+          </button>
+        )}
         <button onClick={(e) => { e.stopPropagation(); setShowReplies(!showReplies) }} style={{ fontSize: '.75rem', fontWeight: 600, padding: '5px 10px', borderRadius: 'var(--rs)', border: `1px solid ${showReplies ? 'var(--blue)' : 'var(--bd)'}`, background: showReplies ? 'var(--blue-d)' : 'none', color: showReplies ? 'var(--blue)' : 'var(--t3)', display: 'flex', alignItems: 'center', gap: 4, cursor: 'pointer', fontFamily: 'inherit' }}>
           <MessageCircle size={12} />{post.reply_count}
         </button>
         <span style={{ marginLeft: 'auto', display: 'flex', gap: 6 }} onClick={e => e.stopPropagation()}>
           <BookmarkButton postId={post.id} />
           <ShareButton postId={post.id} />
+          {post.user_id === currentUserId && (
+            <button onClick={(e) => {
+              e.stopPropagation()
+              toast('Delete this post?', {
+                action: { label: 'Yes, delete', onClick: async () => {
+                  const res = await fetch('/api/posts/delete', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ postId: post.id }) })
+                  if (res.ok) { toast.success('Post deleted'); window.location.reload() }
+                }},
+                cancel: 'Cancel',
+              })
+            }} style={{ border: 'none', background: 'none', padding: 2, cursor: 'pointer', color: 'var(--rose)', display: 'flex', alignItems: 'center' }}>
+              <Trash2 size={13} />
+            </button>
+          )}
         </span>
       </div>
 
@@ -745,80 +761,6 @@ export default function Feed({ initialPosts, initialPinnedPost, initialPostOfDay
                   marginBottom: 10, marginTop: -10, overflow: 'hidden',
                 }}
               >
-                {/* Condensed stats + reactions + action bar */}
-                {(() => {
-                  const isOwner = sessionUserId === post.user_id
-                  const replyCount = repliesCache[post.id]?.length ?? post.reply_count ?? 0
-                  const gb: React.CSSProperties = { display: 'flex', alignItems: 'center', gap: 5, fontSize: '.75rem', fontWeight: 600, padding: '5px 10px', borderRadius: 'var(--rs)', border: '1px solid var(--bd)', background: 'none', color: 'var(--t3)', cursor: 'pointer', fontFamily: 'inherit', transition: 'all .15s' }
-                  return (
-                    <>
-                      {/* Condensed inline stats */}
-                      <div style={{ display: 'flex', alignItems: 'center', gap: 8, padding: '10px 0', borderTop: '1px solid var(--bd)', marginTop: 14, fontSize: '.72rem', color: 'var(--t4)' }}>
-                        <span style={{ display: 'flex', alignItems: 'center', gap: 3 }}><Eye size={11} />{post.view_count || 0} views</span>
-                        <span>·</span>
-                        <span>{replyCount} {replyCount === 1 ? 'reply' : 'replies'}</span>
-                        <span>·</span>
-                        <span>{timeAgo(post.created_at)}</span>
-                      </div>
-
-                      {/* Reactions — hidden on own posts */}
-                      {!isOwner && <CompactReactions postId={post.id} showAll />}
-
-                      {/* Action bar — same for mobile and desktop */}
-                      <div style={{ display: 'flex', gap: 6, alignItems: 'center', padding: '10px 0', borderTop: '1px solid var(--bd)', marginTop: 8 }}>
-                        {!isOwner && <UpvoteButton postId={post.id} upvotes={post.upvotes} />}
-                        <span style={{ ...gb, cursor: 'default' }}><MessageCircle size={12} />{replyCount}</span>
-                        <span style={{ flex: 1 }} />
-                        <button onClick={() => {
-                          if (navigator.share) navigator.share({ title: post.title, url: window.location.origin + '/post/' + post.id }).catch(() => {})
-                          else { navigator.clipboard.writeText(window.location.origin + '/post/' + post.id); toast.success('Link copied!') }
-                        }} style={gb}><Share2 size={13} /><span className="action-label">Share</span></button>
-                        <button onClick={async () => {
-                          const isSaved = bookmarked[post.id]
-                          setBookmarked(prev => ({ ...prev, [post.id]: !isSaved }))
-                          await fetch('/api/bookmarks', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ postId: post.id, action: isSaved ? 'remove' : 'add' }) })
-                        }} style={{ ...gb, color: bookmarked[post.id] ? 'var(--blue)' : 'var(--t3)', borderColor: bookmarked[post.id] ? 'rgba(79,70,229,.25)' : 'var(--bd)' }}>
-                          <Bookmark size={13} fill={bookmarked[post.id] ? 'currentColor' : 'none'} />
-                        </button>
-                        {!isOwner && <FollowButton ghostId={post.ghost_id} />}
-                        {!isOwner && (
-                          <button onClick={async () => {
-                            if (reported[post.id]) return
-                            await fetch('/api/posts/report', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ postId: post.id, reason: 'user_report' }) })
-                            setReported(prev => ({ ...prev, [post.id]: true })); toast.success('Reported')
-                          }} style={{ ...gb, color: reported[post.id] ? 'var(--rose)' : 'var(--t3)', borderColor: reported[post.id] ? 'rgba(225,29,72,.2)' : 'var(--bd)', background: reported[post.id] ? 'var(--rose-d)' : 'none' }}>
-                            <Flag size={13} fill={reported[post.id] ? 'currentColor' : 'none'} /><span className="action-label">Report</span>
-                          </button>
-                        )}
-                        {!isOwner && (
-                          <button onClick={async () => {
-                            if (blocked[post.id]) return
-                            await fetch('/api/blocks', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ ghostId: post.ghost_id }) })
-                            setBlocked(prev => ({ ...prev, [post.id]: true })); toast.success('Ghost blocked')
-                          }} style={{ ...gb, opacity: blocked[post.id] ? 0.5 : 1, cursor: blocked[post.id] ? 'default' : 'pointer', color: blocked[post.id] ? 'var(--t4)' : 'var(--t3)' }}>
-                            <ShieldOff size={13} /><span className="action-label">Block</span>
-                          </button>
-                        )}
-                        {isOwner && (
-                          <button onClick={() => {
-                            toast('Delete this post?', {
-                              action: { label: 'Yes, delete', onClick: async () => {
-                                const res = await fetch('/api/posts/delete', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ postId: post.id }) })
-                                if (res.ok) { toast.success('Post deleted'); setExpandedPostId(null); setPosts(prev => prev.filter(p => p.id !== post.id)) }
-                              }},
-                              cancel: 'Cancel',
-                            })
-                          }} style={{
-                            color: 'var(--rose)', border: 'none', background: 'none',
-                            padding: 2, cursor: 'pointer', fontFamily: 'inherit',
-                            display: 'flex', alignItems: 'center', justifyContent: 'center',
-                          }}><Trash2 size={13} /></button>
-                        )}
-                      </div>
-                    </>
-                  )
-                })()}
-
                 {/* Reply sort */}
                 <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginTop: 16, marginBottom: 10 }}>
                   <span style={{ fontSize: '.8rem', fontWeight: 700, color: 'var(--t1)' }}>Replies</span>
