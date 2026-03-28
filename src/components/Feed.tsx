@@ -764,14 +764,10 @@ export default function Feed({ initialPosts, initialPinnedPost, initialPostOfDay
                       {/* Reactions — hidden on own posts */}
                       {!isOwner && <CompactReactions postId={post.id} showAll />}
 
-                      {/* Action bar — matches post detail page */}
-                      <div style={{ display: 'flex', gap: 6, alignItems: 'center', padding: '10px', borderTop: '1px solid var(--bd)', marginTop: 8, background: 'var(--bg)', borderRadius: 'var(--rs)' }}>
-                        {isOwner ? (
-                          <span style={{ ...gb, opacity: 0.4, cursor: 'default', pointerEvents: 'none' as const }}><ArrowUp size={12} />{post.upvotes || 0}</span>
-                        ) : (
-                          <UpvoteButton postId={post.id} upvotes={post.upvotes} />
-                        )}
-                        <span style={{ fontSize: '.75rem', color: 'var(--t4)', display: 'flex', alignItems: 'center', gap: 4 }}><MessageCircle size={12} />{replyCount}</span>
+                      {/* Action bar — same for mobile and desktop */}
+                      <div style={{ display: 'flex', gap: 6, alignItems: 'center', padding: '10px 0', borderTop: '1px solid var(--bd)', marginTop: 8 }}>
+                        {!isOwner && <UpvoteButton postId={post.id} upvotes={post.upvotes} />}
+                        <span style={{ ...gb, cursor: 'default' }}><MessageCircle size={12} />{replyCount}</span>
                         <span style={{ flex: 1 }} />
                         <button onClick={() => {
                           if (navigator.share) navigator.share({ title: post.title, url: window.location.origin + '/post/' + post.id }).catch(() => {})
@@ -813,8 +809,8 @@ export default function Feed({ initialPosts, initialPinnedPost, initialPostOfDay
                               cancel: 'Cancel',
                             })
                           }} style={{
-                            color: 'var(--rose)', border: '1px solid rgba(225,29,72,.25)', background: 'var(--rose-d)',
-                            borderRadius: 'var(--rs)', padding: '5px 8px', cursor: 'pointer', fontFamily: 'inherit',
+                            color: 'var(--rose)', border: 'none', background: 'none',
+                            padding: 2, cursor: 'pointer', fontFamily: 'inherit',
                             display: 'flex', alignItems: 'center', justifyContent: 'center',
                           }}><Trash2 size={13} /></button>
                         )}

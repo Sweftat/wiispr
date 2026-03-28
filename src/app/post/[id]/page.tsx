@@ -285,20 +285,12 @@ export default function PostPage() {
             )}
 
             {/* ACTION BAR */}
-            <div style={{ padding: '10px 18px', background: 'var(--bg)', borderTop: '1px solid var(--bd)', display: 'flex', alignItems: 'center', gap: 6 }}>
-              {isOwner ? (
-                <span style={{ fontSize: '.75rem', fontWeight: 600, padding: '5px 10px', borderRadius: 'var(--rs)', border: '1px solid var(--bd)', background: 'none', color: 'var(--t4)', display: 'flex', alignItems: 'center', gap: 4, opacity: 0.4 }}>
-                  <ArrowUp size={12} />{post.upvotes || 0}
-                </span>
-              ) : (
-                <UpvoteButton postId={post.id} upvotes={post.upvotes} />
-              )}
+            <div style={{ padding: '10px 18px', borderTop: '1px solid var(--bd)', display: 'flex', alignItems: 'center', gap: 6 }}>
+              {!isOwner && <UpvoteButton postId={post.id} upvotes={post.upvotes} />}
               <button onClick={scrollToComposer} style={{ fontSize: '.75rem', fontWeight: 600, padding: '5px 10px', borderRadius: 'var(--rs)', border: '1px solid var(--bd)', background: 'none', color: 'var(--t3)', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 4, fontFamily: 'inherit' }}>
-                <MessageCircle size={13} />{isOwner ? 'Add update' : replies.length}
+                <MessageCircle size={13} />{replies.length}
               </button>
-
               <span style={{ flex: 1 }} />
-
               <ShareButton postId={post.id} />
               <motion.button whileTap={{ scale: 0.95 }} onClick={toggleBookmark} style={{
                 fontSize: '.72rem', fontWeight: 600, padding: '5px 8px', borderRadius: 'var(--rs)',
@@ -307,14 +299,7 @@ export default function PostPage() {
                 color: bookmarked ? 'var(--blue)' : 'var(--t3)',
                 cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 4, fontFamily: 'inherit',
               }}>
-                <Bookmark size={11} fill={bookmarked ? 'currentColor' : 'none'} /><span className="action-label">{bookmarked ? 'Saved' : 'Save'}</span>
-              </motion.button>
-              <motion.button whileTap={{ scale: 0.95 }} onClick={copyLink} className="action-label" style={{
-                fontSize: '.72rem', fontWeight: 600, padding: '5px 8px', borderRadius: 'var(--rs)',
-                border: '1px solid var(--bd)', background: 'none', color: 'var(--t3)',
-                cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 4, fontFamily: 'inherit',
-              }}>
-                <Link2 size={11} /><span>Copy link</span>
+                <Bookmark size={11} fill={bookmarked ? 'currentColor' : 'none'} />
               </motion.button>
               {!isOwner && <ReportButton postId={post.id} />}
               {!isOwner && <BlockButton ghostId={post.ghost_id} />}
