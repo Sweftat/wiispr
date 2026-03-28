@@ -758,15 +758,18 @@ export default function Feed({ initialPosts, initialPinnedPost, initialPostOfDay
                   ))}
                 </div>
 
-                {/* Reactions — always show all 5 in expanded view */}
-                <CompactReactions postId={post.id} showAll />
+                {/* Reactions — hidden on own posts */}
+                {sessionUserId !== post.user_id && <CompactReactions postId={post.id} showAll />}
 
                 {/* Action bar */}
                 {(() => {
+                  const isOwner = sessionUserId === post.user_id
                   const gb: React.CSSProperties = { display: 'flex', alignItems: 'center', gap: 5, fontSize: '.75rem', fontWeight: 600, padding: '5px 10px', borderRadius: 'var(--rs)', border: '1px solid var(--bd)', background: 'none', color: 'var(--t3)', cursor: 'pointer', fontFamily: 'inherit', transition: 'all .15s' }
                   return (
                     <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap', alignItems: 'center', paddingTop: 10, borderTop: '1px solid var(--bd)', marginTop: 10 }}>
-                      <UpvoteButton postId={post.id} upvotes={post.upvotes} />
+                      {!isOwner && <UpvoteButton postId={post.id} upvotes={post.upvotes} />}
+                      <span style={{ fontSize: '.75rem', color: 'var(--t4)', display: 'flex', alignItems: 'center', gap: 4 }}><MessageCircle size={12} />{repliesCache[post.id]?.length ?? post.reply_count ?? 0}</span>
+                      <span style={{ flex: 1 }} />
                       <button onClick={async () => {
                         const isSaved = bookmarked[post.id]
                         setBookmarked(prev => ({ ...prev, [post.id]: !isSaved }))
@@ -781,33 +784,37 @@ export default function Feed({ initialPosts, initialPinnedPost, initialPostOfDay
                         if (navigator.share) navigator.share({ title: post.title, url: window.location.origin + '/post/' + post.id }).catch(() => {})
                         else { navigator.clipboard.writeText(window.location.origin + '/post/' + post.id); toast.success('Link copied!') }
                       }} style={gb}><Share2 size={13} /><span className="action-label">Share</span></button>
-                      <FollowButton ghostId={post.ghost_id} />
-                      <button onClick={async () => {
-                        if (reported[post.id]) return
-                        await fetch('/api/posts/report', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ postId: post.id, reason: 'user_report' }) })
-                        setReported(prev => ({ ...prev, [post.id]: true })); toast.success('Reported')
-                      }} style={{ ...gb, color: reported[post.id] ? 'var(--rose)' : 'var(--t3)', borderColor: reported[post.id] ? 'rgba(225,29,72,.2)' : 'var(--bd)', background: reported[post.id] ? 'var(--rose-d)' : 'none' }}>
-                        <Flag size={13} fill={reported[post.id] ? 'currentColor' : 'none'} /><span className="action-label">Report</span>
-                      </button>
-                      <button onClick={async () => {
-                        if (blocked[post.id]) return
-                        await fetch('/api/blocks', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ ghostId: post.ghost_id }) })
-                        setBlocked(prev => ({ ...prev, [post.id]: true })); toast.success('Ghost blocked')
-                      }} style={{ ...gb, opacity: blocked[post.id] ? 0.5 : 1, cursor: blocked[post.id] ? 'default' : 'pointer', color: blocked[post.id] ? 'var(--t4)' : 'var(--t3)' }}>
-                        <ShieldOff size={13} /><span className="action-label">Block</span>
-                      </button>
-                      {sessionUserId === post.user_id && (
+                      {!isOwner && <FollowButton ghostId={post.ghost_id} />}
+                      {!isOwner && (
+                        <button onClick={async () => {
+                          if (reported[post.id]) return
+                          await fetch('/api/posts/report', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ postId: post.id, reason: 'user_report' }) })
+                          setReported(prev => ({ ...prev, [post.id]: true })); toast.success('Reported')
+                        }} style={{ ...gb, color: reported[post.id] ? 'var(--rose)' : 'var(--t3)', borderColor: reported[post.id] ? 'rgba(225,29,72,.2)' : 'var(--bd)', background: reported[post.id] ? 'var(--rose-d)' : 'none' }}>
+                          <Flag size={13} fill={reported[post.id] ? 'currentColor' : 'none'} /><span className="action-label">Report</span>
+                        </button>
+                      )}
+                      {!isOwner && (
+                        <button onClick={async () => {
+                          if (blocked[post.id]) return
+                          await fetch('/api/blocks', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ ghostId: post.ghost_id }) })
+                          setBlocked(prev => ({ ...prev, [post.id]: true })); toast.success('Ghost blocked')
+                        }} style={{ ...gb, opacity: blocked[post.id] ? 0.5 : 1, cursor: blocked[post.id] ? 'default' : 'pointer', color: blocked[post.id] ? 'var(--t4)' : 'var(--t3)' }}>
+                          <ShieldOff size={13} /><span className="action-label">Block</span>
+                        </button>
+                      )}
+                      {isOwner && (
                         <button onClick={() => {
                           toast('Delete this post?', {
                             action: { label: 'Yes, delete', onClick: async () => {
-                              const res = await fetch('/api/posts/create', { method: 'DELETE', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ postId: post.id }) })
+                              const res = await fetch('/api/posts/delete', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ postId: post.id }) })
                               if (res.ok) { toast.success('Post deleted'); setExpandedPostId(null); setPosts(prev => prev.filter(p => p.id !== post.id)) }
                             }},
                             cancel: 'Cancel',
                           })
                         }} style={{
-                          color: 'var(--rose)', border: 'none', background: 'none',
-                          padding: 2, cursor: 'pointer', fontFamily: 'inherit',
+                          color: 'var(--rose)', border: '1px solid rgba(225,29,72,.25)', background: 'var(--rose-d)',
+                          borderRadius: 'var(--rs)', padding: '5px 8px', cursor: 'pointer', fontFamily: 'inherit',
                           display: 'flex', alignItems: 'center', justifyContent: 'center',
                         }}><Trash2 size={13} /></button>
                       )}
