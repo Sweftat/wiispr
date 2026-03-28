@@ -38,6 +38,7 @@ export default function PostPage() {
   const [votedReplies, setVotedReplies] = useState<Set<string>>(new Set())
   const [related, setRelated] = useState<any[]>([])
   const [replySort, setReplySort] = useState<'best' | 'new'>('best')
+  const [sessionUserId, setSessionUserId] = useState<string | null>(null)
 
   useEffect(() => {
     Promise.all([
@@ -49,7 +50,7 @@ export default function PostPage() {
       fetch('/api/bookmarks?postId=' + id).then(r => r.json()),
       fetch('/api/posts/reactions?postId=' + id).then(r => r.json()),
     ]).then(([session, repliesData, viewData, bookmarkData, reactionData]) => {
-      if (session.user) setUser(session.user)
+      if (session.user) { setUser(session.user); if (session.user.id) setSessionUserId(session.user.id) }
       setReplies(repliesData.replies || [])
       const init: Record<string, number> = {}
       ;(repliesData.replies || []).forEach((r: any) => { init[r.id] = r.upvotes || 0 })
@@ -169,7 +170,7 @@ export default function PostPage() {
     </main>
   )
 
-  const isOwner = user && post.user_id === user.id
+  const isOwner = post && sessionUserId && post.user_id === sessionUserId
   const sortedReplies = [...replies].sort((a, b) => replySort === 'best' ? ((b.upvotes || 0) - (a.upvotes || 0)) : 0)
 
   const totalReactions = Object.values(reactionCounts).reduce((s, c) => s + c, 0)
