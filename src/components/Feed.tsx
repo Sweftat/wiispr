@@ -204,7 +204,7 @@ function BookmarkButton({ postId }: { postId: string }) {
   )
 }
 
-function PostCard({ post, onOpen, onTagClick, followedGhosts }: { post: any, onOpen: () => void, onTagClick?: (tag: string) => void, followedGhosts?: Set<string> }) {
+function PostCard({ post, onOpen, onTagClick, followedGhosts, currentUserId }: { post: any, onOpen: () => void, onTagClick?: (tag: string) => void, followedGhosts?: Set<string>, currentUserId?: string | null }) {
   const [revealed, setRevealed] = useState(false)
   const [hovered, setHovered] = useState(false)
   const [showReplies, setShowReplies] = useState(false)
@@ -275,9 +275,9 @@ function PostCard({ post, onOpen, onTagClick, followedGhosts }: { post: any, onO
             <Flame size={10} /> Hot
           </span>
         )}
-        <span className="nav-follow" onClick={e => e.stopPropagation()}>
+        {post.user_id !== currentUserId && <span className="nav-follow" onClick={e => e.stopPropagation()}>
           <FollowButton ghostId={post.ghost_id} />
-        </span>
+        </span>}
         <span style={{ fontFamily: 'monospace', fontSize: '.65rem', color: 'var(--t4)', marginLeft: 'auto' }}>{timeAgo(post.created_at)}</span>
       </div>
       <h2 className="auto-dir" style={{ fontSize: '1rem', fontWeight: 700, color: 'var(--t1)', marginBottom: 6, position: 'relative' }}>{post.title}</h2>
@@ -358,9 +358,10 @@ function InlineReplyDrawer({ postId, onOpenPanel }: { postId: string, onOpenPane
   const [replyBody, setReplyBody] = useState('')
   const [submitting, setSubmitting] = useState(false)
   const [loggedIn, setLoggedIn] = useState(false)
+  const [sessionChecked, setSessionChecked] = useState(false)
 
   useEffect(() => {
-    setLoggedIn(!!document.cookie.match(/wiispr_user_id=/))
+    fetch('/api/auth/session').then(r => r.json()).then(d => { setLoggedIn(!!d.user); setSessionChecked(true) }).catch(() => setSessionChecked(true))
     fetch('/api/posts/replies?postId=' + postId + '&limit=3').then(r => r.json()).then(d => {
       setReplies((d.replies || []).slice(0, 3))
       setLoaded(true)
@@ -443,14 +444,14 @@ function InlineReplyDrawer({ postId, onOpenPanel }: { postId: string, onOpenPane
               fontFamily: 'inherit', whiteSpace: 'nowrap',
             }}>Reply</button>
           </div>
-        ) : (
+        ) : sessionChecked ? (
           <div style={{ textAlign: 'center', padding: '8px 0' }}>
             <div style={{ display: 'flex', gap: 8, justifyContent: 'center' }}>
               <a href="/auth?signin=1" style={{ border: '1px solid var(--bd)', color: 'var(--t2)', background: 'none', padding: '5px 14px', borderRadius: 'var(--rs)', fontSize: '.75rem', fontWeight: 600, textDecoration: 'none' }}>Sign in</a>
               <a href="/auth" style={{ background: 'var(--blue)', color: '#fff', padding: '5px 14px', borderRadius: 'var(--rs)', fontSize: '.75rem', fontWeight: 600, textDecoration: 'none', border: 'none' }}>Join free</a>
             </div>
           </div>
-        )}
+        ) : null}
       </div>
     </motion.div>
   )
@@ -727,7 +728,7 @@ export default function Feed({ initialPosts, initialPinnedPost, initialPostOfDay
       {!loading && posts.map((post: any, i: number) => (
         <div key={post.id}>
           <motion.div initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.25, delay: Math.min(i, 10) * 0.05, ease: 'easeOut' }}>
-            <PostCard post={post} onOpen={() => openPost(post)} onTagClick={filterByTag} followedGhosts={followedGhosts} />
+            <PostCard post={post} onOpen={() => openPost(post)} onTagClick={filterByTag} followedGhosts={followedGhosts} currentUserId={sessionUserId} />
           </motion.div>
           <AnimatePresence>
             {expandedPostId === post.id && (

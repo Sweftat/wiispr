@@ -39,6 +39,7 @@ export default function PostPage() {
   const [related, setRelated] = useState<any[]>([])
   const [replySort, setReplySort] = useState<'best' | 'new'>('best')
   const [sessionUserId, setSessionUserId] = useState<string | null>(null)
+  const [sessionLoaded, setSessionLoaded] = useState(false)
 
   useEffect(() => {
     Promise.all([
@@ -51,6 +52,7 @@ export default function PostPage() {
       fetch('/api/posts/reactions?postId=' + id).then(r => r.json()),
     ]).then(([session, repliesData, viewData, bookmarkData, reactionData]) => {
       if (session.user) { setUser(session.user); if (session.user.id) setSessionUserId(session.user.id) }
+      setSessionLoaded(true)
       setReplies(repliesData.replies || [])
       const init: Record<string, number> = {}
       ;(repliesData.replies || []).forEach((r: any) => { init[r.id] = r.upvotes || 0 })
@@ -206,7 +208,7 @@ export default function PostPage() {
                 <span style={{ fontFamily: 'monospace', fontSize: '.68rem', color: 'var(--t3)', background: 'var(--bg)', padding: '2px 8px', borderRadius: 4, border: '1px solid var(--bd)', fontWeight: 600, display: 'flex', alignItems: 'center', gap: 4 }}>
                   <Ghost size={10} />{post.ghost_id}
                 </span>
-                <FollowButton ghostId={post.ghost_id} />
+                {!isOwner && <FollowButton ghostId={post.ghost_id} />}
                 <div style={{ display: 'flex', alignItems: 'center', gap: 4, marginLeft: 'auto' }}>
                   <Eye size={12} style={{ color: 'var(--t4)' }} />
                   <span style={{ fontSize: '.72rem', color: 'var(--t4)' }}>{viewCount}</span>
@@ -231,8 +233,8 @@ export default function PostPage() {
               ))}
             </div>
 
-            {/* Section 3: Reactions */}
-            <div style={{ padding: '12px 18px', borderBottom: '1px solid var(--bd)', display: 'flex', gap: 6, flexWrap: 'wrap' }}>
+            {/* Section 3: Reactions — hidden on own posts */}
+            {!isOwner && <div style={{ padding: '12px 18px', borderBottom: '1px solid var(--bd)', display: 'flex', gap: 6, flexWrap: 'wrap' }}>
               {reactionsToShow.map(r => {
                 const selected = userReaction === r.key
                 return (
@@ -248,11 +250,11 @@ export default function PostPage() {
                   </motion.button>
                 )
               })}
-            </div>
+            </div>}
 
             {/* Section 4: Action Bar */}
             <div style={{ padding: '12px 18px', display: 'flex', alignItems: 'center', gap: 6, flexWrap: 'wrap' }}>
-              <UpvoteButton postId={post.id} upvotes={post.upvotes} />
+              {!isOwner && <UpvoteButton postId={post.id} upvotes={post.upvotes} />}
               <span style={{ fontSize: '.75rem', color: 'var(--t4)', display: 'flex', alignItems: 'center', gap: 4 }}>
                 <MessageCircle size={12} />{replies.length}
               </span>
@@ -278,8 +280,8 @@ export default function PostPage() {
               </motion.button>
 
               <ShareButton postId={post.id} />
-              <ReportButton postId={post.id} />
-              <BlockButton ghostId={post.ghost_id} />
+              {!isOwner && <ReportButton postId={post.id} />}
+              {!isOwner && <BlockButton ghostId={post.ghost_id} />}
 
               {isOwner && (
                 <button onClick={() => {
@@ -347,7 +349,7 @@ export default function PostPage() {
 
           {/* ═══ CARD 3 — REPLY COMPOSER ═══ */}
           <div style={{ background: 'var(--sur)', border: '1px solid var(--bd)', borderRadius: 'var(--rm)', overflow: 'hidden', marginBottom: 16 }}>
-            {user ? (
+            {sessionUserId ? (
               <>
                 <textarea placeholder="Write a reply…" value={body} onChange={e => setBody(e.target.value.slice(0, 1000))} className="auto-dir"
                   style={{ width: '100%', fontSize: '.875rem', color: 'var(--t1)', background: 'transparent', border: 'none', outline: 'none', resize: 'none', minHeight: 80, padding: '16px 18px', lineHeight: 1.6, fontFamily: 'inherit' }}
@@ -361,7 +363,7 @@ export default function PostPage() {
                   }}>{submitting ? '...' : 'Reply anonymously'}</button>
                 </div>
               </>
-            ) : (
+            ) : sessionLoaded ? (
               <div style={{ padding: 24, textAlign: 'center' }}>
                 <Ghost size={28} style={{ color: 'var(--t4)', opacity: 0.3, margin: '0 auto 10px', display: 'block' }} />
                 <p style={{ fontSize: '.9rem', fontWeight: 600, color: 'var(--t1)', marginBottom: 6 }}>Sign in to join the conversation</p>
@@ -371,7 +373,7 @@ export default function PostPage() {
                   <a href="/auth" style={{ background: 'var(--blue)', color: '#fff', padding: '8px 20px', borderRadius: 'var(--r)', fontSize: '.875rem', fontWeight: 600, textDecoration: 'none', display: 'inline-block', border: 'none' }}>Sign up</a>
                 </div>
               </div>
-            )}
+            ) : null}
           </div>
 
         </motion.div>
