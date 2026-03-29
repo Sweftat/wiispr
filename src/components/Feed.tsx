@@ -204,7 +204,7 @@ function BookmarkButton({ postId }: { postId: string }) {
   )
 }
 
-function PostCard({ post, onOpen, onTagClick, followedGhosts, currentUserId }: { post: any, onOpen: () => void, onTagClick?: (tag: string) => void, followedGhosts?: Set<string>, currentUserId?: string | null }) {
+function PostCard({ post, onOpen, onTagClick, followedGhosts, currentUserId, isExpanded }: { post: any, onOpen: () => void, onTagClick?: (tag: string) => void, followedGhosts?: Set<string>, currentUserId?: string | null, isExpanded?: boolean }) {
   const [revealed, setRevealed] = useState(false)
   const [hovered, setHovered] = useState(false)
   const [showReplies, setShowReplies] = useState(false)
@@ -333,9 +333,9 @@ function PostCard({ post, onOpen, onTagClick, followedGhosts, currentUserId }: {
         </span>
       </div>
 
-      {/* Inline reply drawer */}
+      {/* Inline reply drawer — hidden when post is expanded (expansion has its own replies) */}
       <AnimatePresence>
-        {showReplies && <InlineReplyDrawer postId={post.id} onOpenPanel={onOpen} />}
+        {showReplies && !isExpanded && <InlineReplyDrawer postId={post.id} onOpenPanel={onOpen} />}
       </AnimatePresence>
     </div>
   )
@@ -746,7 +746,7 @@ export default function Feed({ initialPosts, initialPinnedPost, initialPostOfDay
       {!loading && posts.map((post: any, i: number) => (
         <div key={post.id}>
           <motion.div initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.25, delay: Math.min(i, 10) * 0.05, ease: 'easeOut' }}>
-            <PostCard post={post} onOpen={() => openPost(post)} onTagClick={filterByTag} followedGhosts={followedGhosts} currentUserId={sessionUserId} />
+            <PostCard post={post} onOpen={() => openPost(post)} onTagClick={filterByTag} followedGhosts={followedGhosts} currentUserId={sessionUserId} isExpanded={expandedPostId === post.id} />
           </motion.div>
           <AnimatePresence>
             {expandedPostId === post.id && (
