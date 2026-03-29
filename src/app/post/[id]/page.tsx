@@ -100,6 +100,16 @@ export default function PostPage() {
         fetch(`/api/posts/related?postId=${id}&categoryId=${found.category_id}`)
           .then(r => r.json()).then(d => setRelated(d.posts || []))
       }
+      // Re-check owner after post loads
+      fetch('/api/auth/session').then(r => r.json()).then(s => {
+        if (s.user?.id) {
+          setSessionUserId(s.user.id)
+          if (found.user_id === s.user.id) {
+            // Force re-render with correct isOwner
+          }
+        }
+        setSessionLoaded(true)
+      }).catch(() => setSessionLoaded(true))
     } else {
       setLoading(false)
     }
